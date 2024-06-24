@@ -60,9 +60,9 @@ sealed interface UUpdateNode<Key, Sort : USort> {
     fun value(key: Key, composer: UComposer<*, *>?): UExpr<Sort>
 
     /**
-     * @return This with [guard] = previous guard /\ condition.
+     * @return This with [guard] updated so that [key] does not overwrite this update.
      */
-    fun addGuard(condition: UBoolExpr): UUpdateNode<Key, Sort>
+    fun guardFromOverwriting(key: Key, composer: UComposer<*, *>?): UUpdateNode<Key, Sort>
 
     /**
      * Guard is a symbolic condition for this update. That is, this update is done only in states satisfying this guard.
@@ -126,8 +126,10 @@ class UPinpointUpdateNode<Key, Sort : USort>(
         return res
     }
 
-    override fun addGuard(condition: UBoolExpr): UUpdateNode<Key, Sort> =
-        UPinpointUpdateNode(key, keyInfo, value, condition.ctx.mkAnd(guard, condition))
+    override fun guardFromOverwriting(key: Key, composer: UComposer<*, *>?): UUpdateNode<Key, Sort> {
+        val excludeCondition = guard.ctx.mkNot(includesSymbolically(key, composer))
+        return UPinpointUpdateNode(key, keyInfo, value, guard.ctx.mkAnd(guard, excludeCondition))
+    }
 
     override fun toString(): String = "{$key <- $value}".takeIf { guard.isTrue } ?: "{$key <- $value | $guard}"
 }
@@ -240,8 +242,11 @@ class URangedUpdateNode<CollectionId : USymbolicCollectionId<SrcKey, Sort, Colle
         )
     }
 
-    override fun addGuard(condition: UBoolExpr): UUpdateNode<DstKey, Sort> =
-        URangedUpdateNode(sourceCollection, adapter, condition.ctx.mkAnd(guard, condition))
+    override fun guardFromOverwriting(key: DstKey, composer: UComposer<*, *>?): UUpdateNode<DstKey, Sort> {
+        val excludeCondition = guard.ctx.mkNot(includesSymbolically(key, composer))
+        URangedUpdateNode(sourceCollection, adapter, guard.ctx.mkAnd(guard, excludeCondition))
+        TODO("Not yet implemented")
+    }
 
     override fun toString(): String =
         "{${adapter.toString(sourceCollection)}${if (guard.isTrue) "" else " | $guard"}}"

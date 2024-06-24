@@ -2,11 +2,7 @@ package org.usvm.memory
 
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
-import org.usvm.UBoolExpr
-import org.usvm.UComposer
-import org.usvm.UExpr
-import org.usvm.USort
-import org.usvm.isFalse
+import org.usvm.*
 import org.usvm.regions.Region
 import org.usvm.regions.RegionTree
 import org.usvm.regions.emptyRegionTree
@@ -179,6 +175,14 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
         node ?: return this
         val splitNode = node.update.split(key, predicate, matchingWrites, guardBuilder, composer)
 
+        // rest records can not satisfy predicate
+        if (splitNode != null) {
+            return UFlatUpdates(
+                UFlatUpdatesNode(splitNode, node.next),
+                keyInfo
+            )
+        }
+
         // False in the guardBuilder means that no nodes after this one are relevant
         val splitNext = if (guardBuilder.isFalse) {
             UFlatUpdates(keyInfo)
@@ -186,18 +190,7 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
             node.next.split(key, predicate, matchingWrites, guardBuilder, composer)
         }
 
-        if (splitNode == null) {
-            return splitNext
-        }
-
-        if (splitNext === node.next && splitNode === node.update) {
-            return this
-        }
-
-        return UFlatUpdates(
-            UFlatUpdatesNode(splitNode, splitNext),
-            keyInfo
-        )
+        return splitNext
     }
 
     /**
@@ -237,7 +230,26 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
         guard: UBoolExpr,
         composer: UComposer<*, *>?,
         predicate: (UExpr<Sort>) -> Boolean,
-    ): USymbolicCollectionUpdates<Key, Sort> = write(key, value, guard)
+    ): UFlatUpdates<Key, Sort> {
+        if (predicate(value)) {
+            return write(key, value, guard)
+        }
+
+        node ?: return write(key, value, guard)
+        val modified = if (predicate(node.update.value(key, composer))) {
+            // continue traverse while records are satisfying predicate
+            node.next.splitWrite(key, value, guard, composer, predicate)
+        } else {
+            node.next.write(key, value, guard)
+        }
+
+        val guardedNode = node.update.guardFromOverwriting(key, composer)
+        if (guardedNode.guard.isFalse) {
+            return modified
+        }
+
+       return UFlatUpdates(UFlatUpdatesNode(update = guardedNode, next = modified), keyInfo)
+    }
 
 
     override fun lastUpdatedElementOrNull(): UUpdateNode<Key, Sort>? = node?.update
@@ -386,15 +398,17 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
         ): RegionTree<Reg, UUpdateNode<Key, Sort>> {
             var dict = tree.entries
             var restRegion = region
-            val ctx = guard.ctx
 
             for ((reg, entry) in tree.entries) {
                 val (node, subtree) = entry
                 if (predicate(node.value(key, composer)) || node is URangedUpdateNode<*, *, Key, Sort>) {
-                    val excludeCondition = ctx.mkNot(node.includesSymbolically(key, composer))
-                    val guardedNode = node.addGuard(excludeCondition)
+                    val guardedNode = node.guardFromOverwriting(key, composer)
                     val modifiedTree = placeUpdateUnderInvariantTree(reg, subtree)
-                    dict = dict.put(reg, guardedNode to modifiedTree)
+                    dict = if (guardedNode.guard.isFalse) {
+                        dict.putAll(modifiedTree.entries)
+                    } else {
+                        dict.put(reg, guardedNode to modifiedTree)
+                    }
                 } else {
                     dict = dict.put(reg, update to RegionTree(persistentMapOf(reg to entry)))
                 }
