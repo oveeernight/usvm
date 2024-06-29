@@ -42,4 +42,17 @@ class StructTest {
             results.any { it is SuccessfulExecutionResult && (it.outputModel.returnExpr as IntConst).const == 3 }
         }
     }
+
+    @Test
+    fun testCheckHeapRefSplitting() {
+        val results = machine.analyze(programDecl.checkHeapRefSplitting)
+        
+        assertTrue {
+            results.any { it is SuccessfulExecutionResult && (it.outputModel.returnExpr as IntConst).const == 2 }
+        }
+
+        assertTrue {
+            results.any { it is SuccessfulExecutionResult && (it.outputModel.returnExpr as IntConst).const == 3 }
+        }
+    }
 }
