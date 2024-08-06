@@ -193,7 +193,7 @@ class TranslationTest {
 
         val concreteRegion = UAllocatedArrayId<_, _, USizeSort>(valueArrayDescr, bv32Sort, concreteRef.address)
             .emptyRegion()
-            .copyRange(region, adapter, trueExpr)
+            .copyRange(region, adapter, trueExpr, ownership)
 
         val idx = mkRegisterReading(4, sizeSort)
         val reading = concreteRegion.read(idx)
@@ -303,7 +303,7 @@ class TranslationTest {
         val reading1 = inputRegion2.read(ref2 to idx)
 
         inputRegion2 = inputRegion2
-            .copyRange(inputRegion1, adapter, trueExpr)
+            .copyRange(inputRegion1, adapter, trueExpr, ownership)
 
         val reading2 = inputRegion2.read(ref2 to idx)
 
@@ -402,7 +402,7 @@ class TranslationTest {
         val reading1 = inputRegion2.read(ref2 to idx)
 
         inputRegion2 = inputRegion2
-            .copyRange(inputRegion1, adapter, trueExpr)
+            .copyRange(inputRegion1, adapter, trueExpr, ownership)
 
         val reading2 = inputRegion2.read(ref2 to idx)
 
@@ -441,7 +441,7 @@ class TranslationTest {
         val readingBeforeCopy = allocatedRegion2.read(idx)
 
         allocatedRegion2 = allocatedRegion2
-            .copyRange(allocatedRegion1, adapter, trueExpr)
+            .copyRange(allocatedRegion1, adapter, trueExpr, ownership)
 
         val readingAfterCopy = allocatedRegion2.read(idx)
 

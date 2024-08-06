@@ -19,7 +19,7 @@ import org.usvm.collection.array.UInputArrayId
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.mkSizeExpr
 import org.usvm.regions.SetRegion
-import org.usvm.regions.emptyRegionTree
+import org.usvm.collections.immutable.emptyRegionTree
 import org.usvm.sizeSort
 import kotlin.random.Random
 import kotlin.test.assertNotNull
@@ -56,11 +56,11 @@ class MemoryRegionTest {
             val treeUpdates = UTreeUpdates<UHeapRef, SetRegion<UHeapRef>, UBv32Sort>(
                 updates = emptyRegionTree(),
                 keyInfo
-            ).write(address, 1.toBv(), mkTrue())
-                .write(address, 2.toBv(), mkTrue())
-                .write(address, 3.toBv(), mkTrue())
-                .write(address, 4.toBv(), mkTrue())
-                .write(address, 5.toBv(), mkTrue())
+            ).write(address, 1.toBv(), mkTrue(), ownership)
+                .write(address, 2.toBv(), mkTrue(), ownership)
+                .write(address, 3.toBv(), mkTrue(), ownership)
+                .write(address, 4.toBv(), mkTrue(), ownership)
+                .write(address, 5.toBv(), mkTrue(), ownership)
 
             assertNotNull(treeUpdates.singleOrNull())
         }
@@ -81,14 +81,14 @@ class MemoryRegionTest {
             val treeUpdates = UTreeUpdates<UHeapRef, SetRegion<UHeapRef>, UBv32Sort>(
                 updates = emptyRegionTree(),
                 keyInfo
-            ).write(address, 1.toBv(), guard)
-                .write(address, 2.toBv(), anotherGuard)
+            ).write(address, 1.toBv(), guard, ownership)
+                .write(address, 2.toBv(), anotherGuard, ownership)
 
            assertEquals(2, treeUpdates.toList().size)
 
             val anotherTreeUpdates = treeUpdates
-                .write(address, 3.toBv(), anotherGuard)
-                .write(address, 4.toBv(), guard)
+                .write(address, 3.toBv(), anotherGuard, ownership)
+                .write(address, 4.toBv(), guard, ownership)
 
             assertEquals(3, anotherTreeUpdates.toList().size)
         }

@@ -21,7 +21,7 @@ import org.usvm.memory.UWritableMemory
 import org.usvm.memory.key.UHeapRefKeyInfo
 import org.usvm.memory.key.UHeapRefRegion
 import org.usvm.regions.Region
-import org.usvm.regions.emptyRegionTree
+import org.usvm.collections.immutable.emptyRegionTree
 import org.usvm.uctx
 import java.util.IdentityHashMap
 

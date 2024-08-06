@@ -15,6 +15,7 @@ import org.usvm.collection.set.ref.UAllocatedRefSetWithInputElementsId
 import org.usvm.collection.set.ref.UInputRefSetWithAllocatedElementsId
 import org.usvm.collection.set.ref.UInputRefSetWithInputElementsId
 import org.usvm.collection.set.ref.USymbolicRefSetId
+import org.usvm.collections.immutable.emptyRegionTree
 import org.usvm.compose
 import org.usvm.memory.ULValue
 import org.usvm.memory.USymbolicCollection
@@ -26,7 +27,6 @@ import org.usvm.memory.key.UHeapRefKeyInfo
 import org.usvm.memory.key.UHeapRefRegion
 import org.usvm.sampleUValue
 import org.usvm.uctx
-import org.usvm.regions.emptyRegionTree
 
 interface USymbolicRefMapId<
         MapType,

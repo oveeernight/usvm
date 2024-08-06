@@ -12,6 +12,7 @@ import org.usvm.collection.set.USetRegionBuilder
 import org.usvm.collection.set.USymbolicSetElement
 import org.usvm.collection.set.USymbolicSetElementRegion
 import org.usvm.collection.set.USymbolicSetKeyInfo
+import org.usvm.collections.immutable.emptyRegionTree
 import org.usvm.memory.ULValue
 import org.usvm.memory.USymbolicCollection
 import org.usvm.memory.USymbolicCollectionId
@@ -19,7 +20,6 @@ import org.usvm.memory.USymbolicCollectionKeyInfo
 import org.usvm.memory.UTreeUpdates
 import org.usvm.memory.UWritableMemory
 import org.usvm.regions.Region
-import org.usvm.regions.emptyRegionTree
 import org.usvm.uctx
 import java.util.IdentityHashMap
 

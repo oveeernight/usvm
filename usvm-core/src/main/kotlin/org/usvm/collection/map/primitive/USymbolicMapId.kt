@@ -12,6 +12,7 @@ import org.usvm.collection.map.USymbolicMapKeyRegion
 import org.usvm.collection.set.primitive.UAllocatedSetId
 import org.usvm.collection.set.primitive.UInputSetId
 import org.usvm.collection.set.primitive.USymbolicSetId
+import org.usvm.collections.immutable.emptyRegionTree
 import org.usvm.compose
 import org.usvm.memory.USymbolicCollection
 import org.usvm.memory.USymbolicCollectionId
@@ -21,7 +22,6 @@ import org.usvm.memory.UWritableMemory
 import org.usvm.sampleUValue
 import org.usvm.uctx
 import org.usvm.regions.Region
-import org.usvm.regions.emptyRegionTree
 
 interface USymbolicMapId<
         MapType,

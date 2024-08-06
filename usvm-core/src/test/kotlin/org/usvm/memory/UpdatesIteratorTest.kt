@@ -13,16 +13,19 @@ import org.usvm.UContext
 import org.usvm.USizeSort
 import org.usvm.USort
 import org.usvm.regions.SetRegion
-import org.usvm.regions.emptyRegionTree
+import org.usvm.collections.immutable.emptyRegionTree
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import kotlin.test.assertTrue
 
 class UpdatesIteratorTest {
     private lateinit var ctx: UContext<USizeSort>
+    private lateinit var ownership: MutabilityOwnership
     @BeforeEach
     fun initializeContext() {
         val components: UComponents<*, USizeSort> = mockk()
         every { components.mkTypeSystem(any()) } returns mockk()
         ctx = UContext(components)
+        ownership = MutabilityOwnership()
     }
 
     @Test
@@ -45,10 +48,10 @@ class UpdatesIteratorTest {
             val treeUpdates = UTreeUpdates<Int, SetRegion<Int>, UBv32Sort>(
                 emptyRegionTree(),
                 keyInfo
-            ).write(10, 10.toBv(), guard = mkTrue())
-                .write(1, 1.toBv(), guard = mkTrue())
-                .write(2, 2.toBv(), guard = mkTrue())
-                .write(3, 3.toBv(), guard = mkTrue())
+            ).write(10, 10.toBv(), guard = mkTrue(), ownership)
+                .write(1, 1.toBv(), guard = mkTrue(), ownership)
+                .write(2, 2.toBv(), guard = mkTrue(), ownership)
+                .write(3, 3.toBv(), guard = mkTrue(), ownership)
 
             val iterator = treeUpdates.iterator()
             checkResult(iterator)
@@ -59,10 +62,10 @@ class UpdatesIteratorTest {
     fun testFlatUpdatesIterator() = with(ctx) {
         val keyInfo = object : TestKeyInfo<Int, SetRegion<Int>> {}
         val flatUpdates = UFlatUpdates<Int, UBv32Sort>(keyInfo)
-            .write(key = 10, value = 10.toBv(), guard = mkTrue())
-            .write(key = 1, value = 1.toBv(), guard = mkTrue())
-            .write(key = 2, value = 2.toBv(), guard = mkTrue())
-            .write(key = 3, value = 3.toBv(), guard = mkTrue())
+            .write(key = 10, value = 10.toBv(), guard = mkTrue(), ownership)
+            .write(key = 1, value = 1.toBv(), guard = mkTrue(), ownership)
+            .write(key = 2, value = 2.toBv(), guard = mkTrue(), ownership)
+            .write(key = 3, value = 3.toBv(), guard = mkTrue(), ownership)
 
         val iterator = flatUpdates.iterator()
         checkResult(iterator)

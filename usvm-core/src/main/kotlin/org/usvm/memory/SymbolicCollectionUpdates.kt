@@ -1,15 +1,13 @@
 package org.usvm.memory
 
-import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toPersistentMap
 import org.usvm.UBoolExpr
 import org.usvm.UComposer
 import org.usvm.UExpr
 import org.usvm.USort
 import org.usvm.isFalse
 import org.usvm.regions.Region
-import org.usvm.regions.RegionTree
-import org.usvm.regions.emptyRegionTree
+import org.usvm.collections.immutable.RegionTree
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 
 /**
  * Represents a sequence of memory writes.
@@ -29,7 +27,8 @@ interface USymbolicCollectionUpdates<Key, Sort : USort> : Sequence<UUpdateNode<K
     fun write(
         key: Key,
         value: UExpr<Sort>,
-        guard: UBoolExpr = value.ctx.trueExpr
+        guard: UBoolExpr = value.ctx.trueExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollectionUpdates<Key, Sort>
 
     /**
@@ -64,6 +63,7 @@ interface USymbolicCollectionUpdates<Key, Sort : USort> : Sequence<UUpdateNode<K
     fun splitWrite(
         key: Key,
         value: UExpr<Sort>,
+        ownership: MutabilityOwnership,
         guard: UBoolExpr = value.ctx.trueExpr,
         composer: UComposer<*, *>? = null,
         predicate: (UExpr<Sort>) -> Boolean,
@@ -79,6 +79,7 @@ interface USymbolicCollectionUpdates<Key, Sort : USort> : Sequence<UUpdateNode<K
         fromCollection: USymbolicCollection<CollectionId, SrcKey, Sort>,
         adapter: USymbolicCollectionAdapter<SrcKey, Key>,
         guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollectionUpdates<Key, Sort>
 
     /**
@@ -144,7 +145,8 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
     override fun write(
         key: Key,
         value: UExpr<Sort>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): UFlatUpdates<Key, Sort> =
         UFlatUpdates(
             UFlatUpdatesNode(
@@ -161,6 +163,7 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
         fromCollection: USymbolicCollection<CollectionId, SrcKey, Sort>,
         adapter: USymbolicCollectionAdapter<SrcKey, Key>,
         guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollectionUpdates<Key, Sort> = UFlatUpdates(
         UFlatUpdatesNode(
             URangedUpdateNode(fromCollection, adapter, guard),
@@ -234,10 +237,11 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
     override fun splitWrite(
         key: Key,
         value: UExpr<Sort>,
+        ownership: MutabilityOwnership,
         guard: UBoolExpr,
         composer: UComposer<*, *>?,
         predicate: (UExpr<Sort>) -> Boolean,
-    ): USymbolicCollectionUpdates<Key, Sort> = write(key, value, guard)
+    ): USymbolicCollectionUpdates<Key, Sort> = write(key, value, guard, ownership)
 
 
     override fun lastUpdatedElementOrNull(): UUpdateNode<Key, Sort>? = node?.update
@@ -284,13 +288,14 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
     override fun write(
         key: Key,
         value: UExpr<Sort>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): UTreeUpdates<Key, Reg, Sort> {
         val update = UPinpointUpdateNode(key, keyInfo, value, guard)
         val reg = keyInfo.keyToRegion(key)
         val newUpdates = updates.write(
             reg,
-            update
+            update,
         ) { !it.isIncludedByUpdateConcretely(update) }
 
         return this.copy(updates = newUpdates)
@@ -299,7 +304,8 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
     override fun <CollectionId : USymbolicCollectionId<SrcKey, Sort, CollectionId>, SrcKey> copyRange(
         fromCollection: USymbolicCollection<CollectionId, SrcKey, Sort>,
         adapter: USymbolicCollectionAdapter<SrcKey, Key>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): UTreeUpdates<Key, Reg, Sort> {
         val update = URangedUpdateNode(fromCollection, adapter, guard)
         val newUpdates = updates.write(
@@ -323,7 +329,7 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
 
         fun traverseTreeWhilePredicateSatisfied(tree: RegionTree<Reg, UUpdateNode<Key, Sort>>) {
             // process nodes of the same level from newest to oldest
-            for ((reg, entry) in tree.entries.toList().reversed()) {
+            for ((reg, entry) in tree.rootEntriesIterator().asSequence().toList().reversed()) {
                 val (node, subtree) = entry
                 val splitUpdate = node.split(key, predicate, matchingWrites, guardBuilder, composer)
                 // range nodes are considered to belong to invariant tree since they can contain concretes
@@ -345,31 +351,34 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
 
         traverseTreeWhilePredicateSatisfied(updates)
 
-        val splitTreeEntries =
-            mutableMapOf<Reg, Pair<UUpdateNode<Key, Sort>, RegionTree<Reg, UUpdateNode<Key, Sort>>>>()
+        val splitTree = RegionTree<Reg, UUpdateNode<Key, Sort>>()
 
         // reconstruct region tree, including all updates unsatisfying `predicate(update.value(key))` in the same order
         while (symbolicSubtreesStack.isNotEmpty()) {
             val (reg, entry) = symbolicSubtreesStack.removeLast()
-            splitTreeEntries[reg] = entry
+            splitTree.put(reg, entry)
         }
 
-        return this.copy(updates = RegionTree(splitTreeEntries.toPersistentMap()))
+        return this.copy(updates = splitTree)
     }
 
     override fun splitWrite(
         key: Key,
         value: UExpr<Sort>,
+        ownership: MutabilityOwnership,
         guard: UBoolExpr,
         composer: UComposer<*, *>?,
         predicate: (UExpr<Sort>) -> Boolean,
     ): UTreeUpdates<Key, Reg, Sort> {
         if (predicate(value)) {
-            return write(key, value, guard)
+            return write(key, value, guard, ownership)
         }
         val update = UPinpointUpdateNode(key, keyInfo, value, guard)
         val region = keyInfo.keyToRegion(key)
-        val (included, disjoint) = updates.split(region) { !it.isIncludedByUpdateConcretely(update) }
+        var (included, disjoint) = updates.split(region) { !it.isIncludedByUpdateConcretely(update) }
+        if (included === disjoint) {
+            disjoint = included.clone()
+        }
 
         /*
          * Traverses tree while nodes satisfy predicate, guarding them from rewriting by [key], then
@@ -384,33 +393,36 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
             region: Reg,
             tree: RegionTree<Reg, UUpdateNode<Key, Sort>>,
         ): RegionTree<Reg, UUpdateNode<Key, Sort>> {
-            var dict = tree.entries
             var restRegion = region
             val ctx = guard.ctx
-
-            for ((reg, entry) in tree.entries) {
+            var modifiedTree = tree.clone()
+            var orderedIterator = tree.rootEntriesIterator()
+            for ((reg, entry) in orderedIterator) {
                 val (node, subtree) = entry
                 if (predicate(node.value(key, composer)) || node is URangedUpdateNode<*, *, Key, Sort>) {
                     val excludeCondition = ctx.mkNot(node.includesSymbolically(key, composer))
                     val guardedNode = node.addGuard(excludeCondition)
-                    val modifiedTree = placeUpdateUnderInvariantTree(reg, subtree)
-                    dict = dict.put(reg, guardedNode to modifiedTree)
+                    val modifiedSubtree = placeUpdateUnderInvariantTree(reg, subtree)
+                    modifiedTree.put(reg, guardedNode to modifiedSubtree)
                 } else {
-                    dict = dict.put(reg, update to RegionTree(persistentMapOf(reg to entry)))
+                    modifiedTree.put(
+                        reg,
+                        update to RegionTree<Reg, UUpdateNode<Key, Sort>>().also { it.put(reg, entry) },
+                    )
                 }
                 restRegion = region.subtract(reg)
             }
 
             return if (restRegion.isEmpty) {
-                RegionTree(dict)
+                modifiedTree
             } else {
-                RegionTree(dict.put(restRegion, update to emptyRegionTree()))
+                modifiedTree.also { it.put(restRegion, update to RegionTree()) }
             }
         }
 
-        val modifiedTree = placeUpdateUnderInvariantTree(region, included)
-        val unionTree = RegionTree(disjoint.entries.putAll(modifiedTree.entries))
-        return this.copy(updates = unionTree)
+        val modifiedIncluded = placeUpdateUnderInvariantTree(region, included)
+        disjoint.putAll(modifiedIncluded)
+        return this.copy(updates = disjoint)
     }
 
     /**
@@ -483,9 +495,9 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
     }
 
     override fun lastUpdatedElementOrNull(): UUpdateNode<Key, Sort>? =
-        updates.entries.entries.lastOrNull()?.value?.first
+        updates.rootEntriesIterator().asSequence().lastOrNull()?.second?.first
 
-    override fun isEmpty(): Boolean = updates.entries.isEmpty()
+    override fun isEmpty(): Boolean = updates.isEmpty
     override fun <Result> accept(
         visitor: UMemoryUpdatesVisitor<Key, Sort, Result>,
         lookupCache: MutableMap<Any?, Result>,
@@ -515,11 +527,11 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
          */
         private fun leftMostFold(updates: RegionTree<*, UUpdateNode<Key, Sort>>): Result =
             cache.getOrPut(updates) {
-                val entryIterator = updates.entries.iterator()
+                val entryIterator = updates.rootEntriesIterator()
                 if (!entryIterator.hasNext()) {
                     visitor.visitInitialValue()
                 } else {
-                    val (update, nextUpdates) = entryIterator.next().value
+                    val (update, nextUpdates) = entryIterator.next().second
                     var result = leftMostFold(nextUpdates)
                     result = visitor.visitUpdate(result, update)
                     notLeftMostFold(result, entryIterator)
@@ -528,13 +540,13 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
 
         private fun notLeftMostFold(
             accumulator: Result,
-            iterator: Iterator<Map.Entry<Region<*>, Pair<UUpdateNode<Key, Sort>, RegionTree<*, UUpdateNode<Key, Sort>>>>>,
+            iterator: Iterator<Pair<Region<*>, Pair<UUpdateNode<Key, Sort>, RegionTree<*, UUpdateNode<Key, Sort>>>>>,
         ): Result {
             var accumulated = accumulator
             while (iterator.hasNext()) {
                 val (reg, entry) = iterator.next()
                 val (update, tree) = entry
-                accumulated = notLeftMostFold(accumulated, tree.entries.iterator())
+                accumulated = notLeftMostFold(accumulated, tree.rootEntriesIterator())
 
                 accumulated = addIfNeeded(accumulated, update, reg)
             }

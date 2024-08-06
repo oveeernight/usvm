@@ -243,8 +243,8 @@ internal class CompositionTest {
         }
 
         val updates = UFlatUpdates<UHeapRef, USizeSort>(keyInfo)
-            .write(fstAddress, fstResultValue, guard = trueExpr)
-            .write(sndAddress, sndResultValue, guard = trueExpr)
+            .write(fstAddress, fstResultValue, guard = trueExpr, ownership)
+            .write(sndAddress, sndResultValue, guard = trueExpr, ownership)
 
         val collectionId = UInputArrayLengthId(arrayType, bv32Sort)
         val regionArray = USymbolicCollection(collectionId, updates)
@@ -296,8 +296,8 @@ internal class CompositionTest {
         }
 
         val updates = UFlatUpdates<USymbolicArrayIndex<USizeSort>, UBv32Sort>(keyInfo)
-            .write(fstAddress to fstIndex, 42.toBv(), guard = trueExpr)
-            .write(sndAddress to sndIndex, 43.toBv(), guard = trueExpr)
+            .write(fstAddress to fstIndex, 42.toBv(), guard = trueExpr, ownership)
+            .write(sndAddress to sndIndex, 43.toBv(), guard = trueExpr, ownership)
 
         val arrayType: KClass<Array<*>> = Array::class
 
@@ -401,8 +401,8 @@ internal class CompositionTest {
         }
 
         val updates = UFlatUpdates<UExpr<USizeSort>, UBv32Sort>(keyInfo)
-            .write(fstIndex, 1.toBv(), guard = trueExpr)
-            .write(sndIndex, 2.toBv(), guard = trueExpr)
+            .write(fstIndex, 1.toBv(), guard = trueExpr, ownership)
+            .write(sndIndex, 2.toBv(), guard = trueExpr, ownership)
 
         val collectionId = UAllocatedArrayId<_, _, USizeSort>(arrayType, bv32Sort, address)
         val regionArray = USymbolicCollection(
@@ -584,7 +584,7 @@ internal class CompositionTest {
         )
 
         val fromRegion1 = fromRegion0
-            .copyRange(fromRegion0, adapter1, trueExpr)
+            .copyRange(fromRegion0, adapter1, trueExpr, ownership)
 
         val adapter2 = USymbolicArrayInputToInputCopyAdapter(
             symbolicRef1 to mkSizeExpr(0),
@@ -594,7 +594,7 @@ internal class CompositionTest {
         )
 
         val fromRegion2 = fromRegion1
-            .copyRange(fromRegion1, adapter2, trueExpr)
+            .copyRange(fromRegion1, adapter2, trueExpr, ownership)
 
         val idx0 = mkRegisterReading(3, bv32Sort)
 

@@ -1,12 +1,13 @@
 package org.usvm.collection.array
 
 import io.ksmt.cache.hash
-import kotlinx.collections.immutable.toPersistentMap
 import org.usvm.UBoolExpr
 import org.usvm.UComposer
 import org.usvm.UConcreteHeapAddress
 import org.usvm.UExpr
 import org.usvm.USort
+import org.usvm.collections.immutable.emptyRegionTree
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.compose
 import org.usvm.memory.UPinpointUpdateNode
 import org.usvm.memory.USymbolicCollection
@@ -15,8 +16,6 @@ import org.usvm.memory.UTreeUpdates
 import org.usvm.memory.UUpdateNode
 import org.usvm.memory.UWritableMemory
 import org.usvm.memory.key.USizeRegion
-import org.usvm.regions.RegionTree
-import org.usvm.regions.emptyRegionTree
 import org.usvm.sampleUValue
 import org.usvm.memory.key.USizeExprKeyInfo
 import org.usvm.uctx
@@ -76,7 +75,7 @@ class UAllocatedArrayId<ArrayType, Sort : USort, USizeSort : USort> internal con
 
     fun initializedArray(
         content: Map<UExpr<USizeSort>, UExpr<Sort>>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
     ): USymbolicCollection<UAllocatedArrayId<ArrayType, Sort, USizeSort>, UExpr<USizeSort>, Sort> {
         val emptyRegionTree = emptyRegionTree<USizeRegion, UUpdateNode<UExpr<USizeSort>, Sort>>()
 
@@ -85,9 +84,10 @@ class UAllocatedArrayId<ArrayType, Sort : USort, USizeSort : USort> internal con
             val update = UPinpointUpdateNode(key, keyInfo(), value, guard)
             region to (update to emptyRegionTree)
         }
-
+        val initializedUpdates = emptyRegionTree<USizeRegion, UUpdateNode<UExpr<USizeSort>, Sort>>()
+        entries.forEach { (key, value) -> initializedUpdates.put(key, value) }
         val updates = UTreeUpdates(
-            updates = RegionTree(entries.toPersistentMap()),
+            updates = initializedUpdates,
             keyInfo()
         )
 

@@ -169,7 +169,7 @@ internal class USetMemoryRegion<SetType, ElementSort : USort, Reg : Region<Reg>>
             val dstCollection = region.getAllocatedSet(dstId)
 
             val adapter = UAllocatedToAllocatedSymbolicSetUnionAdapter(srcCollection)
-            val updated = dstCollection.copyRange(srcCollection, adapter, guard)
+            val updated = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateAllocatedSet(dstId, updated, ownership)
         },
         blockOnConcrete0Symbolic1 = { region, srcConcrete, dstSymbolic, guard ->
@@ -179,7 +179,7 @@ internal class USetMemoryRegion<SetType, ElementSort : USort, Reg : Region<Reg>>
             val dstCollection = region.inputSetElements()
 
             val adapter = UAllocatedToInputSymbolicSetUnionAdapter(dstSymbolic, srcCollection)
-            val updated = dstCollection.copyRange(srcCollection, adapter, guard)
+            val updated = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateInputSet(updated)
         },
         blockOnSymbolic0Concrete1 = { region, srcSymbolic, dstConcrete, guard ->
@@ -189,7 +189,7 @@ internal class USetMemoryRegion<SetType, ElementSort : USort, Reg : Region<Reg>>
             val dstCollection = region.getAllocatedSet(dstId)
 
             val adapter = UInputToAllocatedSymbolicSetUnionAdapter(srcSymbolic, srcCollection)
-            val updated = dstCollection.copyRange(srcCollection, adapter, guard)
+            val updated = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateAllocatedSet(dstId, updated, ownership)
         },
         blockOnSymbolic0Symbolic1 = { region, srcSymbolic, dstSymbolic, guard ->
@@ -197,7 +197,7 @@ internal class USetMemoryRegion<SetType, ElementSort : USort, Reg : Region<Reg>>
             val dstCollection = region.inputSetElements()
 
             val adapter = UInputToInputSymbolicSetUnionAdapter(srcSymbolic, dstSymbolic, srcCollection)
-            val updated = dstCollection.copyRange(srcCollection, adapter, guard)
+            val updated = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateInputSet(updated)
         },
     )
