@@ -889,7 +889,6 @@ class TrieNode<K, V>(
         val current = get(key) ?: defaultValue().let {return put(key, it, owner) to it }
         return this to current
     }
-    
 
     fun put(key: K, value: V, owner: MutabilityOwnership?): TrieNode<K, V> =
         if (owner == null) put(key.hashCode(), key, value, 0) else

@@ -7,7 +7,6 @@ import org.usvm.UConcreteHeapAddress
 import org.usvm.UExpr
 import org.usvm.USort
 import org.usvm.collections.immutable.emptyRegionTree
-import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.compose
 import org.usvm.memory.UPinpointUpdateNode
 import org.usvm.memory.USymbolicCollection

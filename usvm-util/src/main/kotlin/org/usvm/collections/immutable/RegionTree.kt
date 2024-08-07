@@ -4,7 +4,6 @@ import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHa
 import org.usvm.collections.immutable.internal.EndOfChain
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.regions.Region
-import kotlin.concurrent.thread
 
 internal class LinkedValue<V>(val value: V, val previous: Any?, val next: Any?) {
     /** Constructs LinkedValue for a new single entry */
@@ -25,11 +24,11 @@ class RegionTree<Reg, Value> private constructor(
     private var firstKey: Any?,
     private var lastKey: Any?
 ) : Iterable<Pair<Value, Reg>> where Reg : Region<Reg> {
-    constructor(): this(persistentHashMapOf(), EndOfChain, EndOfChain)
+    constructor() : this(persistentHashMapOf(), EndOfChain, EndOfChain)
 
     fun clone() = RegionTree(entries, firstKey, lastKey)
 
-    val isEmpty : Boolean get() = entries.isEmpty()
+    val isEmpty: Boolean get() = entries.isEmpty()
 
     /**
      * Splits the region tree into two trees: completely covered by the [region] and disjoint with it.

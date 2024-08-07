@@ -395,8 +395,8 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
         ): RegionTree<Reg, UUpdateNode<Key, Sort>> {
             var restRegion = region
             val ctx = guard.ctx
-            var modifiedTree = tree.clone()
-            var orderedIterator = tree.rootEntriesIterator()
+            val modifiedTree = tree.clone()
+            val orderedIterator = tree.rootEntriesIterator()
             for ((reg, entry) in orderedIterator) {
                 val (node, subtree) = entry
                 if (predicate(node.value(key, composer)) || node is URangedUpdateNode<*, *, Key, Sort>) {
