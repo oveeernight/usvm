@@ -1,5 +1,6 @@
 package org.usvm
 
+import com.microsoft.z3.Sort
 import org.usvm.collection.array.UAllocatedArrayReading
 import org.usvm.collection.array.UInputArrayReading
 import org.usvm.collection.array.length.UInputArrayLengthReading
@@ -18,12 +19,60 @@ import org.usvm.collection.set.ref.UInputRefSetWithInputElementsReading
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.memory.USymbolicCollectionId
 import org.usvm.regions.Region
+import kotlin.math.exp
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class UComposer<Type, USizeSort : USort>(
     ctx: UContext<USizeSort>,
     val memory: UReadOnlyMemory<Type>
 ) : UExprTransformer<Type, USizeSort>(ctx) {
+
+    fun collectConflicts(expr: UBoolExpr): MutableList<UBoolExpr> {
+        val conflicts = mutableListOf<UBoolExpr>()
+        if (compose(expr).isFalse) {
+            collectConflictingExpressions(expr, conflicts)
+        }
+        return conflicts
+    }
+
+    private fun collectConflictingExpressions(expr: UBoolExpr, acc: MutableList<UBoolExpr>) {
+        when (expr) {
+            is UAndExpr -> {
+                // at least one arg is conflicting
+                val conflictingArgs = expr.args.filter { compose(it).isFalse }
+                conflictingArgs.forEach { collectConflictingExpressions(it, acc) }
+            }
+
+            is UOrExpr -> {
+                // all args are conflicting
+                expr.args.forEach { collectConflictingExpressions(it, acc) }
+            }
+
+            is UNotExpr -> {
+                val arg = expr.arg
+                when (arg) {
+                    // !(!A) <=> A
+                    is UNotExpr -> collectConflictingExpressions(arg.arg, acc)
+
+                    // !(A /\ B) <=> !A \/ !B
+                    is UAndExpr -> arg.args.forEach { collectConflictingExpressions(ctx.mkNot(it), acc) }
+
+                    // !(A \/ B) <=> !A /\ !B
+                    is UOrExpr -> {
+                        // compose(!A) == false <=> compose(A) == true
+                        val conflictingArgs = arg.args.filter { compose(it).isTrue }
+                        conflictingArgs.forEach { collectConflictingExpressions(ctx.mkNot(it), acc) }
+                    }
+
+                    else -> acc.add(expr)
+                }
+            }
+
+            else -> acc.add(expr)
+        }
+
+    }
+
     open fun <Sort : USort> compose(expr: UExpr<Sort>): UExpr<Sort> = apply(expr)
 
     override fun <T : USort> transform(expr: UIteExpr<T>): UExpr<T> =
