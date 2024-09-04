@@ -11,6 +11,7 @@ import org.usvm.memory.*
 import org.usvm.regions.SetRegion
 import kotlin.reflect.KClass
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
 
@@ -134,21 +135,22 @@ class ConflictAnalysisTest {
         val b = j eq jValue
         val negAndExpr1= mkNot(a and b)
         var conflicts = composer.collectConflicts(negAndExpr1)
-        assertEquals(mkNot(a), conflicts[0])
-        assertEquals(mkNot(b), conflicts[1])
+        assertEquals(2, conflicts.size)
+        assertContains(conflicts, a)
+        assertContains(conflicts, b)
 
         val c = i neq iValue
         val d = i eq jValue
         val negAndExpr2 = mkNot(c and d)
         conflicts = composer.collectConflicts(negAndExpr2)
-        assertSame(0, conflicts.size)
+        assertEquals(0, conflicts.size)
 
         val e = i eq iValue
         val f = j neq jValue
         val negOrExpr = mkNot(e or f)
         conflicts = composer.collectConflicts(negOrExpr)
         assertEquals(1, conflicts.size)
-        assertSame(mkNot(e), conflicts[0])
+        assertContains(conflicts, e)
     }
 
     @Test
@@ -200,7 +202,7 @@ class ConflictAnalysisTest {
         val conflicts = composer.collectConflicts(expr)
 
         assertEquals(2, conflicts.size)
-        assertSame(b, conflicts[0])
-        assertSame(c, conflicts[1])
+        assertContains(conflicts, b)
+        assertContains(conflicts, c)
     }
 }
