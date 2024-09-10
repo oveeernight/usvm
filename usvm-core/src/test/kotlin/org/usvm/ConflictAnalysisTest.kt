@@ -1,9 +1,13 @@
 package org.usvm
 
 import io.ksmt.expr.KExpr
+import io.ksmt.utils.getValue
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
+import org.usvm.api.allocateConcreteRef
+import org.usvm.api.readArrayIndex
+import org.usvm.api.writeArrayIndex
 import org.usvm.collection.array.UInputArrayId
 import org.usvm.collection.array.USymbolicArrayIndex
 import org.usvm.constraints.UTypeEvaluator
@@ -156,53 +160,67 @@ class ConflictAnalysisTest {
     @Test
     fun nestedBinaryOperationsConflictsTest() = with(ctx) {
         // a[i] == 42 and (a[j] == 0 || a[j] == 1)
-
-        val address = mockk<UHeapRef>()
-        val fstIndex = mockk<UExpr<USizeSort>>()
-        val sndIndex = mockk<UExpr<USizeSort>>()
-
-        val keyEqualityComparer = { k1: USymbolicArrayIndex<USizeSort>, k2: USymbolicArrayIndex<USizeSort> ->
-            mkAnd((k1.first == k2.first).expr, (k1.second == k2.second).expr)
-        }
-
-        val keyInfo = object : TestKeyInfo<USymbolicArrayIndex<USizeSort>, SetRegion<USymbolicArrayIndex<USizeSort>>> {
-            override fun mapKey(key: USymbolicArrayIndex<USizeSort>, transformer: UTransformer<*, *>?): USymbolicArrayIndex<USizeSort> =
-                transformer.apply(key.first) to transformer.apply(key.second)
-
-            override fun cmpConcreteLe(key1: USymbolicArrayIndex<USizeSort>, key2: USymbolicArrayIndex<USizeSort>): Boolean = key1 == key2
-            override fun eqSymbolic(ctx: UContext<*>, key1: USymbolicArrayIndex<USizeSort>, key2: USymbolicArrayIndex<USizeSort>): UBoolExpr =
-                keyEqualityComparer(key1, key2)
-        }
-
-        val updates1 = UFlatUpdates<USymbolicArrayIndex<USizeSort>, UBv32Sort>(keyInfo)
-            .write(address to fstIndex, 42.toBv(), guard = trueExpr)
-        val updates2 = UFlatUpdates<USymbolicArrayIndex<USizeSort>, UBv32Sort>(keyInfo)
-            .write(address to sndIndex, 43.toBv(), guard = trueExpr)
-
         val arrayType: KClass<Array<*>> = Array::class
+        val bv32sort = mkBv32Sort()
+        val address = mkRegisterReading(0, addressSort)
+        val fstIndex = mkRegisterReading(1, sizeSort)
+        val sndIndex = mkRegisterReading(2, sizeSort)
+        val thdIndex = mkRegisterReading(3, sizeSort)
 
-        val region1 = USymbolicCollection(UInputArrayId(arrayType, bv32Sort), updates1)
-        val region2 = USymbolicCollection(UInputArrayId(arrayType, bv32Sort), updates2)
+        val memory = UMemory<KClass<*>, Any>(ctx, mockk(), mockk())
+        memory.writeArrayIndex(address, fstIndex, arrayType, bv32sort, 42.toBv(), guard = trueExpr)
+        memory.writeArrayIndex(address, sndIndex, arrayType, bv32sort, 43.toBv(), guard = trueExpr)
 
         // TODO replace with jacoDB type
-        val fstArrayIndexReading = mkInputArrayReading(region1, address, fstIndex)
-        // TODO replace with jacoDB type
-        val sndArrayIndexReading = mkInputArrayReading(region2, address, sndIndex)
+        val fstArrayIndexReading = memory.readArrayIndex(address, fstIndex, arrayType, bv32sort)
+        val thdArrayIndexReading = memory.readArrayIndex(address, thdIndex, arrayType, bv32sort)
 
-        val composer = UComposer(ctx, UMemory<KClass<*>, Any>(ctx, mockk())) // TODO replace with jacoDB type
+        val composer = UComposer(ctx, memory) // TODO replace with jacoDB type
 
         every { address.accept(composer) } returns address
         every { fstIndex.accept(composer) } returns fstIndex
         every { sndIndex.accept(composer) } returns sndIndex
+        every { thdIndex.accept(composer) } returns sndIndex
 
         val a = fstArrayIndexReading eq 42.toBv()
-        val b = sndArrayIndexReading eq 0.toBv()
-        val c = sndArrayIndexReading eq 1.toBv()
+        val b = thdArrayIndexReading eq 0.toBv()
+        val c = thdArrayIndexReading eq 1.toBv()
         val expr = a and (b or c)
         val conflicts = composer.collectConflicts(expr)
 
         assertEquals(2, conflicts.size)
         assertContains(conflicts, b)
         assertContains(conflicts, c)
+    }
+
+    @Test
+    fun invertingConflictingValuesTest() = with(ctx) {
+        val a = mockk<UBoolExpr>()
+        val b = mockk<UBoolExpr>()
+        val c = mockk<UBoolExpr>()
+        val d = mockk<UBoolExpr>()
+        val e = mockk<UBoolExpr>()
+        val f = mockk<UBoolExpr>()
+
+        every { a.ctx } returns ctx
+        every { b.ctx } returns ctx
+        every { c.ctx } returns ctx
+        every { d.ctx } returns ctx
+        every { e.ctx } returns ctx
+        every { f.ctx } returns ctx
+
+        every { a.accept(any()) } returns trueExpr
+        every { b.accept(any()) } returns trueExpr
+        every { c.accept(any()) } returns falseExpr
+        every { d.accept(any()) } returns trueExpr
+        every { e.accept(any()) } returns falseExpr
+        every { f.accept(any()) } returns falseExpr
+
+        // (! (a and b) and (c or d) and !(e or f )
+        val expr = !((a and b) and (c or d) and !(e or f))
+        val conflicts = composer.collectConflicts(expr)
+        assertEquals(5, conflicts.size)
+        val expectedConflicts = listOf(a, b, d, e, f)
+        expectedConflicts.forEach { assertContains(conflicts, it) }
     }
 }

@@ -51,7 +51,7 @@ open class UComposer<Type, USizeSort : USort>(
         when {
             // all args are conflicting
             conflictingValue.isFalse -> this.args
-                // at least 1 arg is conflicting
+            // at least 1 arg is conflicting
             conflictingValue.isTrue -> this.args.filter { compose(it).isTrue }
 
             else -> error("Unexpected conflicting value $conflictingValue")
@@ -77,10 +77,10 @@ open class UComposer<Type, USizeSort : USort>(
 //                    is UNotExpr -> collectConflictingExpressions(arg.arg, acc)
 
                     is UAndExpr -> arg.collectConflicts(invertedConflictingValue)
-                        .forEach { collectConflictingExpressions(it, acc, conflictingValue) }
+                        .forEach { collectConflictingExpressions(it, acc, invertedConflictingValue) }
 
                     is UOrExpr -> arg.collectConflicts(invertedConflictingValue)
-                        .forEach { collectConflictingExpressions(it, acc, conflictingValue) }
+                        .forEach { collectConflictingExpressions(it, acc, invertedConflictingValue) }
 
                     else -> acc.add(expr)
                 }
