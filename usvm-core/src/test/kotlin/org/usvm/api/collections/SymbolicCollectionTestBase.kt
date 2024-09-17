@@ -80,9 +80,11 @@ abstract class SymbolicCollectionTestBase {
         ctx, ownership, UCallStack(),
         pathConstraints, memory, emptyList(), PathNode.root(), PathNode.root(), UTargetsSet.empty()
     ) {
-        override fun clone(newConstraints: UPathConstraints<SingleTypeSystem.SingleType>?): StateStub {
-            val thisOwnership = MutabilityOwnership()
-            val cloneOwnership = MutabilityOwnership()
+        override fun clone(
+            thisOwnership: MutabilityOwnership,
+            cloneOwnership: MutabilityOwnership,
+            newConstraints: UPathConstraints<SingleTypeSystem.SingleType>?
+        ): StateStub {
             val clonedConstraints = newConstraints ?: pathConstraints.clone(thisOwnership, cloneOwnership)
             return StateStub(
                 ctx,

@@ -38,21 +38,23 @@ class JcState(
     forkPoints,
     targets
 ) {
-    override fun clone(newConstraints: UPathConstraints<JcType>?): JcState {
-        val newThisOwnership = MutabilityOwnership()
-        val cloneOwnership = MutabilityOwnership()
+    override fun clone(
+        thisOwnership: MutabilityOwnership,
+        cloneOwnership: MutabilityOwnership,
+        newConstraints: UPathConstraints<JcType>?,
+    ): JcState {
         val clonedConstraints = newConstraints?.also {
-            this.pathConstraints.changeOwnership(newThisOwnership)
+            this.pathConstraints.changeOwnership(thisOwnership)
             it.changeOwnership(cloneOwnership)
-        } ?: pathConstraints.clone(newThisOwnership, cloneOwnership)
-        this.ownership = newThisOwnership
+        } ?: pathConstraints.clone(thisOwnership, cloneOwnership)
+        this.ownership = thisOwnership
         return JcState(
             ctx,
             cloneOwnership,
             entrypoint,
             callStack.clone(),
             clonedConstraints,
-            memory.clone(clonedConstraints.typeConstraints, newThisOwnership, cloneOwnership),
+            memory.clone(clonedConstraints.typeConstraints, thisOwnership, cloneOwnership),
             models,
             pathNode,
             forkPoints,

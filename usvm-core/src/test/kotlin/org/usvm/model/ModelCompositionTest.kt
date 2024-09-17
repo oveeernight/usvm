@@ -110,7 +110,7 @@ class ModelCompositionTest {
 
         val concreteRegion = UAllocatedArrayId<_, _, USizeSort>(arrayType, bv32Sort, concreteRef.address)
             .emptyRegion()
-            .copyRange(fromRegion, adapter, trueExpr)
+            .copyRange(fromRegion, adapter, trueExpr, ownership)
 
         val idx = mkRegisterReading(1, sizeSort)
 

@@ -1,6 +1,7 @@
 package org.usvm
 
 import org.usvm.algorithms.findLcaLinear
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.merging.UMergeable
 
 sealed interface PathSegment<Statement> {
@@ -103,3 +104,5 @@ class PathNode<Statement> private constructor(
             appendLine(parent)
         }
 }
+
+class ForkPointOwnership<Statement>(val forkPoint: PathNode<Statement>): MutabilityOwnership()

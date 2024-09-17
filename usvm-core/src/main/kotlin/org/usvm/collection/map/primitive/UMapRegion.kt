@@ -172,7 +172,7 @@ internal class UMapMemoryRegion<MapType, KeySort : USort, ValueSort : USort, Reg
             val dstCollection = region.getAllocatedMap(dstId)
 
             val adapter = UAllocatedToAllocatedSymbolicMapMergeAdapter(srcKeys)
-            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard)
+            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateAllocatedMap(dstId, newDstCollection, ownership)
         },
         blockOnConcrete0Symbolic1 = { region, srcConcrete, dstSymbolic, guard ->
@@ -182,7 +182,7 @@ internal class UMapMemoryRegion<MapType, KeySort : USort, ValueSort : USort, Reg
 
             val dstCollection = getInputMap()
             val adapter = UAllocatedToInputSymbolicMapMergeAdapter(dstSymbolic, srcKeys)
-            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard)
+            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateInputMap(newDstCollection)
         },
         blockOnSymbolic0Concrete1 = { region, srcSymbolic, dstConcrete, guard ->
@@ -193,7 +193,7 @@ internal class UMapMemoryRegion<MapType, KeySort : USort, ValueSort : USort, Reg
             val dstCollection = region.getAllocatedMap(dstId)
 
             val adapter = UInputToAllocatedSymbolicMapMergeAdapter(srcSymbolic, srcKeys)
-            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard)
+            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateAllocatedMap(dstId, newDstCollection, ownership)
         },
         blockOnSymbolic0Symbolic1 = { region, srcSymbolic, dstSymbolic, guard ->
@@ -203,7 +203,7 @@ internal class UMapMemoryRegion<MapType, KeySort : USort, ValueSort : USort, Reg
             val dstCollection = getInputMap()
 
             val adapter = UInputToInputSymbolicMapMergeAdapter(srcSymbolic, dstSymbolic, srcKeys)
-            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard)
+            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateInputMap(newDstCollection)
         },
     )

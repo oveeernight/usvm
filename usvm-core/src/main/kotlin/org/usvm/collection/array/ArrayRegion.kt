@@ -146,7 +146,7 @@ internal class UArrayMemoryRegion<ArrayType, Sort : USort, USizeSort : USort>(
             val adapter = USymbolicArrayAllocatedToAllocatedCopyAdapter(
                 fromSrcIdx, fromDstIdx, toDstIdx, USizeExprKeyInfo()
             )
-            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard)
+            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateAllocatedArray(dstConcrete.address, newDstCollection, ownership)
         },
 
@@ -159,7 +159,7 @@ internal class UArrayMemoryRegion<ArrayType, Sort : USort, USizeSort : USort>(
                 dstSymbolic to toDstIdx,
                 USymbolicArrayIndexKeyInfo()
             )
-            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard)
+            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateInput(newDstCollection)
         },
         blockOnSymbolic0Concrete1 = { region, srcSymbolic, dstConcrete, guard ->
@@ -171,7 +171,7 @@ internal class UArrayMemoryRegion<ArrayType, Sort : USort, USizeSort : USort>(
                 toDstIdx,
                 USizeExprKeyInfo()
             )
-            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard)
+            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateAllocatedArray(dstConcrete.address, newDstCollection, ownership)
         },
         blockOnSymbolic0Symbolic1 = { region, srcSymbolic, dstSymbolic, guard ->
@@ -183,7 +183,7 @@ internal class UArrayMemoryRegion<ArrayType, Sort : USort, USizeSort : USort>(
                 dstSymbolic to toDstIdx,
                 USymbolicArrayIndexKeyInfo()
             )
-            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard)
+            val newDstCollection = dstCollection.copyRange(srcCollection, adapter, guard, ownership)
             region.updateInput(newDstCollection)
         },
     )

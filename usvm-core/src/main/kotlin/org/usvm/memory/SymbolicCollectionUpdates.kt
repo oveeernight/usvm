@@ -6,6 +6,7 @@ import org.usvm.UBoolExpr
 import org.usvm.UComposer
 import org.usvm.UExpr
 import org.usvm.USort
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.isFalse
 import org.usvm.regions.Region
 import org.usvm.regions.RegionTree
@@ -29,7 +30,8 @@ interface USymbolicCollectionUpdates<Key, Sort : USort> : Sequence<UUpdateNode<K
     fun write(
         key: Key,
         value: UExpr<Sort>,
-        guard: UBoolExpr = value.ctx.trueExpr
+        guard: UBoolExpr = value.ctx.trueExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollectionUpdates<Key, Sort>
 
     /**
@@ -64,6 +66,7 @@ interface USymbolicCollectionUpdates<Key, Sort : USort> : Sequence<UUpdateNode<K
     fun splitWrite(
         key: Key,
         value: UExpr<Sort>,
+        ownership: MutabilityOwnership,
         guard: UBoolExpr = value.ctx.trueExpr,
         composer: UComposer<*, *>? = null,
         predicate: (UExpr<Sort>) -> Boolean,
@@ -79,6 +82,7 @@ interface USymbolicCollectionUpdates<Key, Sort : USort> : Sequence<UUpdateNode<K
         fromCollection: USymbolicCollection<CollectionId, SrcKey, Sort>,
         adapter: USymbolicCollectionAdapter<SrcKey, Key>,
         guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollectionUpdates<Key, Sort>
 
     /**
@@ -144,7 +148,8 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
     override fun write(
         key: Key,
         value: UExpr<Sort>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): UFlatUpdates<Key, Sort> =
         UFlatUpdates(
             UFlatUpdatesNode(
@@ -152,7 +157,8 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
                     key,
                     keyInfo,
                     value,
-                    guard
+                    guard,
+                    ownership
                 ), this
             ), keyInfo
         )
@@ -161,9 +167,10 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
         fromCollection: USymbolicCollection<CollectionId, SrcKey, Sort>,
         adapter: USymbolicCollectionAdapter<SrcKey, Key>,
         guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollectionUpdates<Key, Sort> = UFlatUpdates(
         UFlatUpdatesNode(
-            URangedUpdateNode(fromCollection, adapter, guard),
+            URangedUpdateNode(fromCollection, adapter, guard, ownership),
             this
         ),
         keyInfo
@@ -234,10 +241,11 @@ class UFlatUpdates<Key, Sort : USort> private constructor(
     override fun splitWrite(
         key: Key,
         value: UExpr<Sort>,
+        ownership: MutabilityOwnership,
         guard: UBoolExpr,
         composer: UComposer<*, *>?,
         predicate: (UExpr<Sort>) -> Boolean,
-    ): USymbolicCollectionUpdates<Key, Sort> = write(key, value, guard)
+    ): USymbolicCollectionUpdates<Key, Sort> = write(key, value, guard, ownership)
 
 
     override fun lastUpdatedElementOrNull(): UUpdateNode<Key, Sort>? = node?.update
@@ -284,9 +292,10 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
     override fun write(
         key: Key,
         value: UExpr<Sort>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): UTreeUpdates<Key, Reg, Sort> {
-        val update = UPinpointUpdateNode(key, keyInfo, value, guard)
+        val update = UPinpointUpdateNode(key, keyInfo, value, guard, ownership)
         val reg = keyInfo.keyToRegion(key)
         val newUpdates = updates.write(
             reg,
@@ -299,9 +308,10 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
     override fun <CollectionId : USymbolicCollectionId<SrcKey, Sort, CollectionId>, SrcKey> copyRange(
         fromCollection: USymbolicCollection<CollectionId, SrcKey, Sort>,
         adapter: USymbolicCollectionAdapter<SrcKey, Key>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): UTreeUpdates<Key, Reg, Sort> {
-        val update = URangedUpdateNode(fromCollection, adapter, guard)
+        val update = URangedUpdateNode(fromCollection, adapter, guard, ownership)
         val newUpdates = updates.write(
             adapter.region(),
             update
@@ -360,14 +370,15 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
     override fun splitWrite(
         key: Key,
         value: UExpr<Sort>,
+        ownership: MutabilityOwnership,
         guard: UBoolExpr,
         composer: UComposer<*, *>?,
         predicate: (UExpr<Sort>) -> Boolean,
     ): UTreeUpdates<Key, Reg, Sort> {
         if (predicate(value)) {
-            return write(key, value, guard)
+            return write(key, value, guard, ownership)
         }
-        val update = UPinpointUpdateNode(key, keyInfo, value, guard)
+        val update = UPinpointUpdateNode(key, keyInfo, value, guard, ownership)
         val region = keyInfo.keyToRegion(key)
         val (included, disjoint) = updates.split(region) { !it.isIncludedByUpdateConcretely(update) }
 

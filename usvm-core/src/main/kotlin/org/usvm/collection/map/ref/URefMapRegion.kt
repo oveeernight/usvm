@@ -287,7 +287,7 @@ internal class URefMapMemoryRegion<MapType, ValueSort : USort>(
             val dstInputKeysCollection = updatedRegion.getAllocatedMapWithInputKeys(dstInputKeysId)
 
             val adapter = UAllocatedToAllocatedSymbolicRefMapMergeAdapter(srcKeys)
-            val updatedDstCollection = dstInputKeysCollection.copyRange(srcInputKeysCollection, adapter, guard)
+            val updatedDstCollection = dstInputKeysCollection.copyRange(srcInputKeysCollection, adapter, guard, ownership)
             updatedRegion.updateAllocatedMapWithInputKeys(dstInputKeysId, updatedDstCollection, ownership)
         },
         blockOnConcrete0Symbolic1 = { region, srcConcrete, dstSymbolic, guard ->
@@ -310,7 +310,7 @@ internal class URefMapMemoryRegion<MapType, ValueSort : USort>(
             val dstInputKeysCollection = updatedRegion.getInputMapWithInputKeys()
 
             val adapter = UAllocatedToInputSymbolicRefMapMergeAdapter(dstSymbolic, srcKeys)
-            val updatedDstCollection = dstInputKeysCollection.copyRange(srcInputKeysCollection, adapter, guard)
+            val updatedDstCollection = dstInputKeysCollection.copyRange(srcInputKeysCollection, adapter, guard, ownership)
             updatedRegion.updateInputMapWithInputKeys(updatedDstCollection)
         },
         blockOnSymbolic0Concrete1 = { region, srcSymbolic, dstConcrete, guard ->
@@ -332,7 +332,7 @@ internal class URefMapMemoryRegion<MapType, ValueSort : USort>(
             val dstInputKeysCollection = updatedRegion.getAllocatedMapWithInputKeys(dstInputKeysId)
 
             val adapter = UInputToAllocatedSymbolicRefMapMergeAdapter(srcSymbolic, srcKeys)
-            val updatedDstCollection = dstInputKeysCollection.copyRange(srcInputKeysCollection, adapter, guard)
+            val updatedDstCollection = dstInputKeysCollection.copyRange(srcInputKeysCollection, adapter, guard, ownership)
             updatedRegion.updateAllocatedMapWithInputKeys(dstInputKeysId, updatedDstCollection, ownership)
         },
         blockOnSymbolic0Symbolic1 = { region, srcSymbolic, dstSymbolic, guard ->
@@ -352,7 +352,7 @@ internal class URefMapMemoryRegion<MapType, ValueSort : USort>(
             val dstInputKeysCollection = updatedRegion.getInputMapWithInputKeys()
 
             val adapter = UInputToInputSymbolicRefMapMergeAdapter(srcSymbolic, dstSymbolic, srcKeys)
-            val updatedDstCollection = dstInputKeysCollection.copyRange(srcInputKeysCollection, adapter, guard)
+            val updatedDstCollection = dstInputKeysCollection.copyRange(srcInputKeysCollection, adapter, guard, ownership)
             updatedRegion.updateInputMapWithInputKeys(updatedDstCollection)
         },
     )

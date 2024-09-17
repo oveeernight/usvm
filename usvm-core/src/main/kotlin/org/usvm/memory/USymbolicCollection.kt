@@ -131,14 +131,14 @@ data class USymbolicCollection<out CollectionId : USymbolicCollectionId<Key, Sor
                 initialGuard = guard,
                 ignoreNullRefs = false,
                 blockOnConcrete = { newUpdates, (valueRef, valueGuard) ->
-                    newUpdates.splitWrite(key, valueRef.asExpr(sort), valueGuard) { it is UConcreteHeapRef }
+                    newUpdates.splitWrite(key, valueRef.asExpr(sort), ownership, valueGuard) { it is UConcreteHeapRef }
                 },
                 blockOnSymbolic = { newUpdates, (valueRef, valueGuard) ->
-                    newUpdates.splitWrite(key, valueRef.asExpr(sort), valueGuard) { it is UConcreteHeapRef }
+                    newUpdates.splitWrite(key, valueRef.asExpr(sort), ownership, valueGuard) { it is UConcreteHeapRef }
                 }
             )
         } else {
-            updates.write(key, value, guard)
+            updates.write(key, value, guard, ownership)
         }
 
 
@@ -209,9 +209,10 @@ data class USymbolicCollection<out CollectionId : USymbolicCollectionId<Key, Sor
     fun <OtherCollectionId : USymbolicCollectionId<SrcKey, Sort, OtherCollectionId>, SrcKey> copyRange(
         fromCollection: USymbolicCollection<OtherCollectionId, SrcKey, Sort>,
         adapter: USymbolicCollectionAdapter<SrcKey, Key>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollection<CollectionId, Key, Sort> {
-        val updatesCopy = updates.copyRange(fromCollection, adapter, guard)
+        val updatesCopy = updates.copyRange(fromCollection, adapter, guard, ownership)
         return this.copy(updates = updatesCopy)
     }
 

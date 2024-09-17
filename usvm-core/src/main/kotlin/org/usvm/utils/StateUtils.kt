@@ -1,10 +1,8 @@
 package org.usvm.utils
 
-import org.usvm.StepScope
-import org.usvm.UBoolExpr
-import org.usvm.UState
-import org.usvm.isTrue
-import org.usvm.logger
+import jdk.nashorn.internal.ir.Statement
+import org.usvm.*
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.model.UModelBase
 import org.usvm.solver.USatResult
 import org.usvm.solver.USolverResult
@@ -26,7 +24,7 @@ internal fun <Type> UState<Type, *, *, *, *, *>.isSat(): Boolean {
 
 @Suppress("MoveVariableDeclarationIntoWhen")
 internal fun <Type, State : UState<Type, *, *, *, *, State>> State.checkSat(condition: UBoolExpr): State? {
-    val conditionalState = clone()
+    val conditionalState = clone(thisOwnership = MutabilityOwnership(), cloneOwnership = MutabilityOwnership())
     conditionalState.pathConstraints += condition
 
     // If this state did not fork at all or was sat at the last fork point, it must be still sat, so we can just
@@ -52,7 +50,9 @@ internal fun <Type, State : UState<Type, *, *, *, *, State>> State.checkSat(cond
 
             conditionalState
         }
-        is UUnknownResult, is UUnsatResult -> null
+        is UUnknownResult, is UUnsatResult -> {
+            null
+        }
     }
 }
 

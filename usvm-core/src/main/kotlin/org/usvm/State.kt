@@ -39,10 +39,16 @@ abstract class UState<Type, Method, Statement, Context, Target, State>(
         protected set
 
     /**
-     * Creates new state structurally identical to this.
+     * Creates new state structurally identical to this. If this and clone ownership are not specified, creates fresh
+     * ones.
+     *
      * If [newConstraints] is null, clones [pathConstraints]. Otherwise, uses [newConstraints] in cloned state.
      */
-    abstract fun clone(newConstraints: UPathConstraints<Type>? = null): State
+    abstract fun clone(
+        thisOwnership: MutabilityOwnership = MutabilityOwnership(),
+        cloneOwnership: MutabilityOwnership = MutabilityOwnership(),
+        newConstraints: UPathConstraints<Type>? = null,
+    ): State
 
     override fun mergeWith(other: State, by: Unit): State? = null
 

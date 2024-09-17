@@ -6,8 +6,8 @@
 package org.usvm.collections.immutable.internal
 
 /**
- * The mutability ownership token of a persistent collection builder.
+ * The mutability ownership token of a block of code without forks.
  *
- * Used to mark persistent data structures, that are owned by a collection builder and can be mutated by it.
+ * Used to mark persistent data structures, that are owned by a continous block of code and can be mutated by it.
  */
-class MutabilityOwnership
+open class MutabilityOwnership

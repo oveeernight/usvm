@@ -1,6 +1,5 @@
 package org.usvm
 
-import com.microsoft.z3.Sort
 import org.usvm.collection.array.UAllocatedArrayReading
 import org.usvm.collection.array.UInputArrayReading
 import org.usvm.collection.array.length.UInputArrayLengthReading
@@ -20,10 +19,9 @@ import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.memory.USymbolicCollectionId
 import org.usvm.regions.Region
-import kotlin.math.exp
 
 @Suppress("MemberVisibilityCanBePrivate")
-open class UComposer<Type, USizeSort : USort>(
+open class  UComposer<Type, USizeSort : USort>(
     ctx: UContext<USizeSort>,
     val memory: UReadOnlyMemory<Type>,
     val ownership: MutabilityOwnership
