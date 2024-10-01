@@ -5,12 +5,8 @@ import io.ksmt.cache.structurallyEqual
 import io.ksmt.expr.KExpr
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
-import org.usvm.UCollectionReading
-import org.usvm.UContext
-import org.usvm.UHeapRef
-import org.usvm.UNullRef
-import org.usvm.USort
-import org.usvm.UTransformer
+import org.usvm.*
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 
 class UInputFieldReading<Field, Sort : USort> internal constructor(
     ctx: UContext<*>,
@@ -26,6 +22,9 @@ class UInputFieldReading<Field, Sort : USort> internal constructor(
         // An unchecked cast here it to be able to choose the right overload from UExprTransformer
         return transformer.transform(this)
     }
+
+    override fun readingConflict(composer: ConflictsComposer<*, *>): MutabilityOwnership =
+        composer.asTypedComposer<Field, USort>().getReadingConflict(this)
 
     override fun internEquals(other: Any): Boolean = structurallyEqual(other, { collection }, { address })
 

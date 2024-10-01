@@ -21,6 +21,7 @@ import io.ksmt.sort.KBvSort
 import io.ksmt.sort.KFpSort
 import io.ksmt.sort.KSort
 import io.ksmt.sort.KUninterpretedSort
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.memory.USymbolicCollection
 import org.usvm.memory.USymbolicCollectionId
 import kotlin.contracts.ExperimentalContracts
@@ -208,6 +209,7 @@ abstract class UCollectionReading<CollectionId : USymbolicCollectionId<Key, Sort
     val collection: USymbolicCollection<CollectionId, Key, Sort>
 ) : USymbol<Sort>(ctx) {
     override val sort: Sort get() = collection.sort
+    abstract fun readingConflict(composer: ConflictsComposer<*, *>): MutabilityOwnership
 }
 
 //endregion

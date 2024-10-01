@@ -1,12 +1,6 @@
 package org.usvm.ps
 
-import org.usvm.CoverageZone
-import org.usvm.PathSelectionStrategy
-import org.usvm.PathSelectorCombinationStrategy
-import org.usvm.PathSelectorFairnessStrategy
-import org.usvm.UMachineOptions
-import org.usvm.UPathSelector
-import org.usvm.UState
+import org.usvm.*
 import org.usvm.algorithms.DeterministicPriorityCollection
 import org.usvm.algorithms.RandomizedPriorityCollection
 import org.usvm.merging.CloseStatesSearcherImpl
@@ -135,7 +129,10 @@ private fun <Method, Statement, Target, State> createPathSelector(
 
             wrappedSelectors.first().add(initialStates.toList())
             wrappedSelectors.drop(1).forEach {
-                it.add(initialStates.map { it.clone() }.toList())
+                it.add(initialStates.map {
+                    val forkPoint = it.pathNode
+                    val (thisOwnership, cloneOwnership) = ForkPointOwnership(forkPoint) to ForkPointOwnership(forkPoint)
+                    it.clone(thisOwnership, cloneOwnership) }.toList())
             }
 
             ParallelPathSelector(wrappedSelectors)

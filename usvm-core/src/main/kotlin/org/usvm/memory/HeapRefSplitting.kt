@@ -9,6 +9,7 @@ import org.usvm.UIteExpr
 import org.usvm.UNullRef
 import org.usvm.USort
 import org.usvm.USymbolicHeapRef
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.isFalse
 import org.usvm.isStaticHeapRef
 import org.usvm.uctx
@@ -16,6 +17,7 @@ import org.usvm.uctx
 data class GuardedExpr<out T>(
     val expr: T,
     val guard: UBoolExpr,
+    val ownership: MutabilityOwnership? = null
 )
 
 infix fun <T> T.with(guard: UBoolExpr) = GuardedExpr(this, guard)
@@ -125,7 +127,8 @@ inline fun <R> foldHeapRef(
         ref is USymbolicHeapRef -> blockOnSymbolic(initial, ref with initialGuard)
         ref is UIteExpr<UAddressSort> -> {
             val (concreteHeapRefs, symbolicHeapRefs) = splitUHeapRef(
-                ref, initialGuard,
+                ref,
+                initialGuard,
                 collapseHeapRefs = collapseHeapRefs,
                 staticIsConcrete = staticIsConcrete
             )

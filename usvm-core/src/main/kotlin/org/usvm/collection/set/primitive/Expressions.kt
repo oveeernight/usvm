@@ -4,17 +4,9 @@ import io.ksmt.cache.hash
 import io.ksmt.cache.structurallyEqual
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
-import org.usvm.UBoolExpr
-import org.usvm.UBoolSort
-import org.usvm.UCollectionReading
-import org.usvm.UContext
-import org.usvm.UExpr
-import org.usvm.UHeapRef
-import org.usvm.UNullRef
-import org.usvm.USort
-import org.usvm.UTransformer
-import org.usvm.asTypedTransformer
+import org.usvm.*
 import org.usvm.collection.set.USymbolicSetElement
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.regions.Region
 
 class UAllocatedSetReading<SetType, ElementSort : USort, Reg : Region<Reg>> internal constructor(
@@ -27,6 +19,9 @@ class UAllocatedSetReading<SetType, ElementSort : USort, Reg : Region<Reg>> inte
         require(transformer is UTransformer<*, *>) { "Expected a UTransformer, but got: $transformer" }
         return transformer.asTypedTransformer<SetType, USort>().transform(this)
     }
+
+    override fun readingConflict(composer: ConflictsComposer<*, *>): MutabilityOwnership =
+        composer.asTypedComposer<SetType, USort>().getReadingConflict(this)
 
     override fun internEquals(other: Any): Boolean =
         structurallyEqual(
@@ -63,6 +58,9 @@ class UInputSetReading<SetType, ElementSort : USort, Reg : Region<Reg>> internal
         require(transformer is UTransformer<*, *>) { "Expected a UTransformer, but got: $transformer" }
         return transformer.asTypedTransformer<SetType, USort>().transform(this)
     }
+
+    override fun readingConflict(composer: ConflictsComposer<*, *>): MutabilityOwnership =
+        composer.asTypedComposer<SetType, USort>().getReadingConflict(this)
 
     override fun internEquals(other: Any): Boolean =
         structurallyEqual(

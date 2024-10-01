@@ -4,6 +4,7 @@ import org.usvm.UBoolExpr
 import org.usvm.UComposer
 import org.usvm.UExpr
 import org.usvm.USort
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.compose
 import org.usvm.isFalse
 import org.usvm.isTrue
@@ -68,6 +69,7 @@ sealed interface UUpdateNode<Key, Sort : USort> {
      * Guard is a symbolic condition for this update. That is, this update is done only in states satisfying this guard.
      */
     val guard: UBoolExpr
+    val ownership: MutabilityOwnership
 }
 
 /**
@@ -78,6 +80,7 @@ class UPinpointUpdateNode<Key, Sort : USort>(
     val keyInfo: USymbolicCollectionKeyInfo<Key, *>,
     internal val value: UExpr<Sort>,
     override val guard: UBoolExpr,
+    override val ownership: MutabilityOwnership
 ) : UUpdateNode<Key, Sort> {
     override fun includesConcretely(key: Key, precondition: UBoolExpr) =
         this.key == key && (guard == guard.ctx.trueExpr || guard == precondition)
@@ -114,7 +117,7 @@ class UPinpointUpdateNode<Key, Sort : USort>(
 
         val transformedValue = composer.compose(value)
         val res = if (predicate(transformedValue)) {
-            matchingWrites += transformedValue with guard
+            matchingWrites += GuardedExpr(transformedValue, guard, ownership)
             null
         } else {
             this
@@ -127,7 +130,7 @@ class UPinpointUpdateNode<Key, Sort : USort>(
     }
 
     override fun addGuard(condition: UBoolExpr): UUpdateNode<Key, Sort> =
-        UPinpointUpdateNode(key, keyInfo, value, condition.ctx.mkAnd(guard, condition))
+        UPinpointUpdateNode(key, keyInfo, value, condition.ctx.mkAnd(guard, condition), ownership)
 
     override fun toString(): String = "{$key <- $value}".takeIf { guard.isTrue } ?: "{$key <- $value | $guard}"
 }
@@ -141,6 +144,7 @@ class URangedUpdateNode<CollectionId : USymbolicCollectionId<SrcKey, Sort, Colle
     val sourceCollection: USymbolicCollection<CollectionId, SrcKey, Sort>,
     val adapter: USymbolicCollectionAdapter<SrcKey, DstKey>,
     override val guard: UBoolExpr,
+    override val ownership: MutabilityOwnership,
 ) : UUpdateNode<DstKey, Sort> {
 
     override fun includesConcretely(
@@ -210,7 +214,7 @@ class URangedUpdateNode<CollectionId : USymbolicCollectionId<SrcKey, Sort, Colle
         val resultUpdateNode = if (splitCollection === sourceCollection) {
             this
         } else {
-            URangedUpdateNode(splitCollection, adapter, composer.compose(guard))
+            URangedUpdateNode(splitCollection, adapter, composer.compose(guard), ownership)
         }
 
         val nodeExcludesKey = ctx.mkNot(nodeIncludesKey)
@@ -241,7 +245,7 @@ class URangedUpdateNode<CollectionId : USymbolicCollectionId<SrcKey, Sort, Colle
     }
 
     override fun addGuard(condition: UBoolExpr): UUpdateNode<DstKey, Sort> =
-        URangedUpdateNode(sourceCollection, adapter, condition.ctx.mkAnd(guard, condition))
+        URangedUpdateNode(sourceCollection, adapter, condition.ctx.mkAnd(guard, condition), ownership)
 
     override fun toString(): String =
         "{${adapter.toString(sourceCollection)}${if (guard.isTrue) "" else " | $guard"}}"

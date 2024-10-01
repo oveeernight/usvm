@@ -1,5 +1,6 @@
 package org.usvm
 
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.constraints.UPathConstraints
 import org.usvm.memory.UMemory
 import org.usvm.merging.UMergeable
@@ -12,6 +13,7 @@ typealias StateId = UInt
 abstract class UState<Type, Method, Statement, Context, Target, State>(
     // TODO: add interpreter-specific information
     val ctx: Context,
+    initOwnership: MutabilityOwnership,
     open val callStack: UCallStack<Method, Statement>,
     open val pathConstraints: UPathConstraints<Type>,
     open val memory: UMemory<Type, Method>,
@@ -33,11 +35,20 @@ abstract class UState<Type, Method, Statement, Context, Target, State>(
      */
     val id: StateId = ctx.getNextStateId()
 
+    open var ownership = initOwnership
+        protected set
+
     /**
-     * Creates new state structurally identical to this.
+     * Creates new state structurally identical to this. If this and clone ownership are not specified, creates fresh
+     * ones.
+     *
      * If [newConstraints] is null, clones [pathConstraints]. Otherwise, uses [newConstraints] in cloned state.
      */
-    abstract fun clone(newConstraints: UPathConstraints<Type>? = null): State
+    abstract fun clone(
+        thisOwnership: MutabilityOwnership = MutabilityOwnership(),
+        cloneOwnership: MutabilityOwnership = MutabilityOwnership(),
+        newConstraints: UPathConstraints<Type>? = null,
+    ): State
 
     override fun mergeWith(other: State, by: Unit): State? = null
 

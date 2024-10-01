@@ -5,15 +5,9 @@ import io.ksmt.cache.structurallyEqual
 import io.ksmt.expr.KExpr
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
-import org.usvm.UAddressSort
-import org.usvm.UCollectionReading
-import org.usvm.UContext
-import org.usvm.UHeapRef
-import org.usvm.UNullRef
-import org.usvm.USort
-import org.usvm.UTransformer
-import org.usvm.asTypedTransformer
+import org.usvm.*
 import org.usvm.collection.map.USymbolicMapKey
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 
 class UAllocatedRefMapWithInputKeysReading<MapType, Sort : USort> internal constructor(
     ctx: UContext<*>,
@@ -25,6 +19,9 @@ class UAllocatedRefMapWithInputKeysReading<MapType, Sort : USort> internal const
         require(transformer is UTransformer<*, *>) { "Expected a UTransformer, but got: $transformer" }
         return transformer.asTypedTransformer<MapType, USort>().transform(this)
     }
+
+    override fun readingConflict(composer: ConflictsComposer<*, *>): MutabilityOwnership =
+        composer.asTypedComposer<MapType, USort>().getReadingConflict(this)
 
     override fun internEquals(other: Any): Boolean =
         structurallyEqual(
@@ -53,6 +50,9 @@ class UInputRefMapWithAllocatedKeysReading<MapType, Sort : USort> internal const
         require(transformer is UTransformer<*, *>) { "Expected a UTransformer, but got: $transformer" }
         return transformer.asTypedTransformer<MapType, USort>().transform(this)
     }
+
+    override fun readingConflict(composer: ConflictsComposer<*, *>): MutabilityOwnership =
+        composer.asTypedComposer<MapType, USort>().getReadingConflict(this)
 
     override fun internEquals(other: Any): Boolean =
         structurallyEqual(
@@ -86,6 +86,9 @@ class UInputRefMapWithInputKeysReading<MapType, Sort : USort> internal construct
         require(transformer is UTransformer<*, *>) { "Expected a UTransformer, but got: $transformer" }
         return transformer.asTypedTransformer<MapType, USort>().transform(this)
     }
+
+    override fun readingConflict(composer: ConflictsComposer<*, *>): MutabilityOwnership =
+        composer.asTypedComposer<MapType, USort>().getReadingConflict(this)
 
     override fun internEquals(other: Any): Boolean =
         structurallyEqual(

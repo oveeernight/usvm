@@ -1,12 +1,13 @@
 package org.usvm.memory
 
 import io.ksmt.utils.asExpr
-import kotlinx.collections.immutable.PersistentMap
 import org.usvm.UBoolExpr
 import org.usvm.UComposer
 import org.usvm.UConcreteHeapRef
 import org.usvm.UExpr
 import org.usvm.USort
+import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.isFalse
 import org.usvm.isTrue
 import org.usvm.uctx
@@ -116,7 +117,8 @@ data class USymbolicCollection<out CollectionId : USymbolicCollectionId<Key, Sor
     override fun write(
         key: Key,
         value: UExpr<Sort>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollection<CollectionId, Key, Sort> {
         assert(value.sort == sort)
 
@@ -129,14 +131,15 @@ data class USymbolicCollection<out CollectionId : USymbolicCollectionId<Key, Sor
                 initialGuard = guard,
                 ignoreNullRefs = false,
                 blockOnConcrete = { newUpdates, (valueRef, valueGuard) ->
-                    newUpdates.splitWrite(key, valueRef.asExpr(sort), valueGuard) { it is UConcreteHeapRef }
+                    // TODO simplify
+                    newUpdates.splitWrite(key, valueRef.asExpr(sort), ownership, valueGuard) { it is UConcreteHeapRef }
                 },
                 blockOnSymbolic = { newUpdates, (valueRef, valueGuard) ->
-                    newUpdates.splitWrite(key, valueRef.asExpr(sort), valueGuard) { it is UConcreteHeapRef }
+                    newUpdates.splitWrite(key, valueRef.asExpr(sort), ownership, valueGuard) { it is UConcreteHeapRef }
                 }
             )
         } else {
-            updates.write(key, value, guard)
+            updates.write(key, value, guard, ownership)
         }
 
 
@@ -162,7 +165,8 @@ data class USymbolicCollection<out CollectionId : USymbolicCollectionId<Key, Sor
         guardBuilder: GuardBuilder,
         composer: UComposer<*, *>?,
     ): USymbolicCollection<CollectionId, Key, Sort> {
-        val splitUpdates = updates.read(key, composer).split(key, predicate, matchingWrites, guardBuilder, composer)
+        val splitUpdates =
+            updates.read(key, composer).split(key, predicate, matchingWrites, guardBuilder, composer)
 
         return if (splitUpdates === updates) {
             this
@@ -207,13 +211,67 @@ data class USymbolicCollection<out CollectionId : USymbolicCollectionId<Key, Sor
     fun <OtherCollectionId : USymbolicCollectionId<SrcKey, Sort, OtherCollectionId>, SrcKey> copyRange(
         fromCollection: USymbolicCollection<OtherCollectionId, SrcKey, Sort>,
         adapter: USymbolicCollectionAdapter<SrcKey, Key>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollection<CollectionId, Key, Sort> {
-        val updatesCopy = updates.copyRange(fromCollection, adapter, guard)
+        val updatesCopy = updates.copyRange(fromCollection, adapter, guard, ownership)
         return this.copy(updates = updatesCopy)
     }
 
     override fun read(key: Key): UExpr<Sort> = read(key, composer = null)
+
+//    fun localizeConflict(key: Key, composer: ConflictsComposer<*, *>?): MutabilityOwnership {
+//        if (sort == sort.uctx.addressSort) {
+//            val guardBuilder = GuardBuilder(sort.uctx.trueExpr)
+//            val matchingWrites = ArrayList<GuardedExpr<UExpr<Sort>>>()
+//            val splitCollection = split(key, { it is UConcreteHeapRef }, matchingWrites, guardBuilder, composer)
+//            if (matchingWrites.isEmpty()) {
+//                // reading from [splitCollection] must unambiguous: either it is lastUpdatedElement or default
+//                // non-symbolic value if [splitCollection] is empty
+//                val conflictOwnership = if (splitCollection.updates.isEmpty()) {
+//                    // reading default value
+//                    sort.uctx.defaultOwnership
+//                } else {
+//                    val lastUpdatedElement = splitCollection.updates.lastUpdatedElementOrNull()
+//                    if (lastUpdatedElement != null && lastUpdatedElement.includesSymbolically(key, composer).isTrue) {
+//                        lastUpdatedElement.ownership
+//                    } else if (composer != null) {
+//                        collectionId.localizeConflict(splitCollection, key, composer)
+//                    }
+//
+//                    error("Reading from $splitCollection by key $key is ambiguous.")
+//
+//                }
+//                return conflictOwnership
+//
+//            }
+//
+//            // reading must be unambiguous
+//            val firstMatchingWrite = matchingWrites.first()
+//            require(matchingWrites.size == 1 && firstMatchingWrite.guard.isTrue && firstMatchingWrite.ownership != null)
+//            return firstMatchingWrite.ownership
+//        }
+//
+//        val readUpdates = updates.read(key, composer)
+//        if (readUpdates.isEmpty()) {
+//            return sort.uctx.defaultOwnership
+//        }
+//
+//        val lastUpdatedElement = readUpdates.lastUpdatedElementOrNull()
+//        if (lastUpdatedElement != null && lastUpdatedElement.includesSymbolically(key, composer).isTrue) {
+//            return lastUpdatedElement.ownership
+//        } else if (composer != null) {
+//            val localizedRegion = if (readUpdates === this.updates) {
+//                this
+//            } else {
+//                this.copy(updates = readUpdates)
+//            }
+//            return collectionId.localizeConflict(localizedRegion, key, composer)
+//        }
+//
+//        error("Reading from $this by key $key is ambiguous.")
+//    }
+
 
     override fun toString(): String =
         buildString {
@@ -245,16 +303,17 @@ class GuardBuilder(nonMatchingUpdates: UBoolExpr) {
         get() = nonMatchingUpdatesGuard.isFalse
 }
 
-inline fun <K, VSort : USort> PersistentMap<K, UExpr<VSort>>.guardedWrite(
+inline fun <K, VSort : USort> UPersistentHashMap<K, UExpr<VSort>>.guardedWrite(
     key: K,
     value: UExpr<VSort>,
     guard: UBoolExpr,
-    defaultValue: () -> UExpr<VSort>
-): PersistentMap<K, UExpr<VSort>> {
+    ownership: MutabilityOwnership,
+    defaultValue: () -> UExpr<VSort>,
+): UPersistentHashMap<K, UExpr<VSort>> {
     val guardedValue = guard.uctx.mkIte(
         guard,
         { value },
         { get(key) ?: defaultValue() }
     )
-    return put(key, guardedValue)
+    return put(key, guardedValue, ownership)
 }

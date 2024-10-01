@@ -16,6 +16,7 @@ import org.usvm.UHeapRef
 import org.usvm.USizeSort
 import org.usvm.collection.array.UAllocatedArrayId
 import org.usvm.collection.array.UInputArrayId
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.mkSizeExpr
 import org.usvm.regions.SetRegion
 import org.usvm.regions.emptyRegionTree
@@ -26,12 +27,14 @@ import kotlin.test.assertTrue
 
 class MemoryRegionTest {
     private lateinit var ctx: UContext<USizeSort>
+    private lateinit var ownership: MutabilityOwnership
 
     @BeforeEach
     fun initializeContext() {
         val components: UComponents<Type, USizeSort> = mockk()
         every { components.mkTypeSystem(any()) } returns mockk()
         ctx = UContext(components)
+        ownership = MutabilityOwnership()
         every { components.mkSizeExprProvider(any()) } answers { UBv32SizeExprProvider(ctx) }
     }
 
@@ -53,11 +56,11 @@ class MemoryRegionTest {
             val treeUpdates = UTreeUpdates<UHeapRef, SetRegion<UHeapRef>, UBv32Sort>(
                 updates = emptyRegionTree(),
                 keyInfo
-            ).write(address, 1.toBv(), mkTrue())
-                .write(address, 2.toBv(), mkTrue())
-                .write(address, 3.toBv(), mkTrue())
-                .write(address, 4.toBv(), mkTrue())
-                .write(address, 5.toBv(), mkTrue())
+            ).write(address, 1.toBv(), mkTrue(), ownership)
+                .write(address, 2.toBv(), trueExpr, ownership)
+                .write(address, 3.toBv(), trueExpr, ownership)
+                .write(address, 4.toBv(), trueExpr, ownership)
+                .write(address, 5.toBv(), trueExpr, ownership)
 
             assertNotNull(treeUpdates.singleOrNull())
         }
@@ -78,14 +81,14 @@ class MemoryRegionTest {
             val treeUpdates = UTreeUpdates<UHeapRef, SetRegion<UHeapRef>, UBv32Sort>(
                 updates = emptyRegionTree(),
                 keyInfo
-            ).write(address, 1.toBv(), guard)
-                .write(address, 2.toBv(), anotherGuard)
+            ).write(address, 1.toBv(), guard, ownership)
+                .write(address, 2.toBv(), anotherGuard, ownership)
 
            assertEquals(2, treeUpdates.toList().size)
 
             val anotherTreeUpdates = treeUpdates
-                .write(address, 3.toBv(), anotherGuard)
-                .write(address, 4.toBv(), guard)
+                .write(address, 3.toBv(), anotherGuard, ownership)
+                .write(address, 4.toBv(), guard, ownership)
 
             assertEquals(3, anotherTreeUpdates.toList().size)
         }
@@ -98,15 +101,15 @@ class MemoryRegionTest {
 
         val memoryRegion = UAllocatedArrayId<_, _, USizeSort>(mockk<Type>(), sizeSort, 0)
             .emptyRegion()
-            .write(idx1, mkBv(0), trueExpr)
-            .write(idx2, mkBv(1), trueExpr)
+            .write(idx1, mkBv(0), trueExpr, ownership)
+            .write(idx2, mkBv(1), trueExpr, ownership)
 
         val updatesBefore = memoryRegion.updates.toList()
         assertEquals(2, updatesBefore.size)
         assertTrue(updatesBefore.first().includesConcretely(idx1, trueExpr))
         assertTrue(updatesBefore.last().includesConcretely(idx2, trueExpr))
 
-        val memoryRegionAfter = memoryRegion.write(idx2, mkBv(2), trueExpr)
+        val memoryRegionAfter = memoryRegion.write(idx2, mkBv(2), trueExpr, ownership)
 
         val updatesAfter = memoryRegionAfter.updates.toList()
         assertEquals(2, updatesAfter.size)
@@ -141,7 +144,7 @@ class MemoryRegionTest {
                 val idx = indices.random(random)
                 val value = refs.random(random)
 
-                memoryRegion = memoryRegion.write(ref to idx, value, trueExpr)
+                memoryRegion = memoryRegion.write(ref to idx, value, trueExpr, ownership)
             }
 
             val readRef = symbolicRefs.random(random)
