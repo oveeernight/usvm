@@ -86,6 +86,10 @@ class TrieNode<E>(
         return (bitmap and (positionMask - 1)).countOneBits()
     }
 
+    // 100011000
+    // 000001111
+    // 000010000
+
     private fun elementAtIndex(index: Int): E {
         @Suppress("UNCHECKED_CAST")
         return buffer[index] as E

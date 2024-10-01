@@ -117,7 +117,7 @@ class UPinpointUpdateNode<Key, Sort : USort>(
 
         val transformedValue = composer.compose(value)
         val res = if (predicate(transformedValue)) {
-            matchingWrites += transformedValue with guard
+            matchingWrites += GuardedExpr(transformedValue, guard, ownership)
             null
         } else {
             this

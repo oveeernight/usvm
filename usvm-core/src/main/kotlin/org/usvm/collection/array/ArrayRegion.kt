@@ -197,7 +197,7 @@ internal class UArrayMemoryRegion<ArrayType, Sort : USort, USizeSort : USort>(
         ownership: MutabilityOwnership,
     ): UArrayMemoryRegion<ArrayType, Sort, USizeSort> {
         val arrayId = UAllocatedArrayId<_, _, USizeSort>(arrayType, sort, address)
-        val newCollection = arrayId.initializedArray(content, operationGuard)
+        val newCollection = arrayId.initializedArray(content, operationGuard, ownership)
         return UArrayMemoryRegion(allocatedArrays.put(address, newCollection, ownership), inputArray)
     }
 }

@@ -73,7 +73,7 @@ class TrieNode<K, V>(
     private var dataMap: Int,
     private var nodeMap: Int,
     buffer: Array<Any?>,
-    private val ownedBy: MutabilityOwnership?
+    private var ownedBy: MutabilityOwnership?
 ) : Iterable<Map.Entry<K, V>> {
     constructor(dataMap: Int, nodeMap: Int, buffer: Array<Any?>) : this(dataMap, nodeMap, buffer, null)
 
@@ -103,6 +103,10 @@ class TrieNode<K, V>(
     internal fun entryKeyIndex(positionMask: Int): Int {
         return ENTRY_SIZE * (dataMap and (positionMask - 1)).countOneBits()
     }
+
+    // 00100110 // node
+    // 11010001 // data
+    // 00100000
 
     /** Gets the index in buffer of the subtrie node entry corresponding to the position specified by [positionMask]. */
     internal fun nodeIndex(positionMask: Int): Int {
@@ -890,8 +894,18 @@ class TrieNode<K, V>(
 
     operator fun contains(key: K) = containsKey(key)
 
-    fun put(key: K, value: V, owner: MutabilityOwnership): TrieNode<K, V> =
-        mutablePut(key.hashCode(), key, value, 0, owner)
+    class IteratorOwner(val base: MutabilityOwnership?): MutabilityOwnership()
+
+    fun put(key: K, value: V, owner: MutabilityOwnership): TrieNode<K, V> {
+        val thisOwner = ownedBy
+        if (thisOwner is IteratorOwner) {
+            if (thisOwner.base === owner) {
+                ownedBy = owner
+            }
+        }
+
+        return mutablePut(key.hashCode(), key, value, 0, owner)
+    }
 
     fun remove(key: K, owner: MutabilityOwnership): TrieNode<K, V> =
         removeWithChangeInfo(key, owner).first
@@ -927,7 +941,10 @@ class TrieNode<K, V>(
 
     override fun hashCode(): Int = sumOf { it.hashCode() }
 
-    override fun iterator(): Iterator<Map.Entry<K, V>> = UPersistentHashMapEntriesIterator(this)
+    override fun iterator(): Iterator<Map.Entry<K, V>> {
+        this.ownedBy = IteratorOwner(this.ownedBy)
+        return UPersistentHashMapEntriesIterator(this)
+    }
 
     companion object {
         internal val EMPTY = TrieNode<Nothing, Nothing>(0, 0, emptyArray())

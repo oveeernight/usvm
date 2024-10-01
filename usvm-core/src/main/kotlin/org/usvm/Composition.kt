@@ -23,70 +23,9 @@ import org.usvm.regions.Region
 @Suppress("MemberVisibilityCanBePrivate")
 open class  UComposer<Type, USizeSort : USort>(
     ctx: UContext<USizeSort>,
-    val memory: UReadOnlyMemory<Type>,
-    val ownership: MutabilityOwnership
+    open val memory: UReadOnlyMemory<Type>,
+    open val ownership: MutabilityOwnership
 ) : UExprTransformer<Type, USizeSort>(ctx) {
-
-    fun collectConflicts(expr: UBoolExpr): MutableList<UBoolExpr> {
-        val conflicts = mutableListOf<UBoolExpr>()
-        if (compose(expr).isFalse) {
-            collectConflictingExpressions(expr, conflicts, ctx.falseExpr)
-        }
-        return conflicts
-    }
-
-    private fun UAndExpr.collectConflicts(conflictingValue: UBoolExpr) : List<UBoolExpr> =
-        when {
-            // at least 1 arg is conflicting
-            conflictingValue.isFalse -> this.args.filter { compose(it).isFalse }
-            // all args are conflicting
-            conflictingValue.isTrue -> this.args
-
-            else -> error("Unexpected conflicting value $conflictingValue")
-        }
-
-    private fun UOrExpr.collectConflicts(conflictingValue: UBoolExpr) : List<UBoolExpr> =
-        when {
-            // all args are conflicting
-            conflictingValue.isFalse -> this.args
-            // at least 1 arg is conflicting
-            conflictingValue.isTrue -> this.args.filter { compose(it).isTrue }
-
-            else -> error("Unexpected conflicting value $conflictingValue")
-        }
-
-    private fun collectConflictingExpressions(
-        expr: UBoolExpr,
-        acc: MutableList<UBoolExpr>,
-        conflictingValue: UBoolExpr
-    ) {
-        when (expr) {
-            is UAndExpr -> expr.collectConflicts(conflictingValue)
-                .forEach { collectConflictingExpressions(it, acc, conflictingValue) }
-
-            is UOrExpr -> expr.collectConflicts(conflictingValue)
-                .forEach { collectConflictingExpressions(it, acc, conflictingValue) }
-
-            is UNotExpr -> {
-                val arg = expr.arg
-                val invertedConflictingValue = if (conflictingValue.isTrue) ctx.falseExpr else ctx.trueExpr
-                when (arg) {
-                    // !(!A) <=> A
-//                    is UNotExpr -> collectConflictingExpressions(arg.arg, acc)
-
-                    is UAndExpr -> arg.collectConflicts(invertedConflictingValue)
-                        .forEach { collectConflictingExpressions(it, acc, invertedConflictingValue) }
-
-                    is UOrExpr -> arg.collectConflicts(invertedConflictingValue)
-                        .forEach { collectConflictingExpressions(it, acc, invertedConflictingValue) }
-
-                    else -> acc.add(expr)
-                }
-            }
-
-            else -> acc.add(expr)
-        }
-    }
 
     open fun <Sort : USort> compose(expr: UExpr<Sort>): UExpr<Sort> = apply(expr)
 

@@ -37,14 +37,16 @@ class TSState(
     forkPoints,
     targets
 ) {
-    override fun clone(newConstraints: UPathConstraints<EtsType>?): TSState {
-        val newThisOwnership = MutabilityOwnership()
-        val cloneOwnership = MutabilityOwnership()
+    override fun clone(
+        thisOwnership: MutabilityOwnership,
+        cloneOwnership: MutabilityOwnership,
+        newConstraints: UPathConstraints<EtsType>?,
+    ): TSState {
         val clonedConstraints = newConstraints?.also {
-            this.pathConstraints.changeOwnership(newThisOwnership)
+            this.pathConstraints.changeOwnership(thisOwnership)
             it.changeOwnership(cloneOwnership)
-        } ?: pathConstraints.clone(newThisOwnership, cloneOwnership)
-        this.ownership = newThisOwnership
+        } ?: pathConstraints.clone(thisOwnership, cloneOwnership)
+        this.ownership = thisOwnership
 
         return TSState(
             ctx,
@@ -52,7 +54,7 @@ class TSState(
             entrypoint,
             callStack.clone(),
             clonedConstraints,
-            memory.clone(clonedConstraints.typeConstraints, newThisOwnership, cloneOwnership),
+            memory.clone(clonedConstraints.typeConstraints, thisOwnership, cloneOwnership),
             models,
             pathNode,
             forkPoints,

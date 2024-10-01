@@ -5,14 +5,8 @@ import io.ksmt.cache.structurallyEqual
 import io.ksmt.expr.KExpr
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
-import org.usvm.UCollectionReading
-import org.usvm.UContext
-import org.usvm.UExpr
-import org.usvm.UHeapRef
-import org.usvm.UNullRef
-import org.usvm.USort
-import org.usvm.UTransformer
-import org.usvm.asTypedTransformer
+import org.usvm.*
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 
 class UAllocatedArrayReading<ArrayType, Sort : USort, USizeSort : USort> internal constructor(
     ctx: UContext<USizeSort>,
@@ -23,6 +17,9 @@ class UAllocatedArrayReading<ArrayType, Sort : USort, USizeSort : USort> interna
         require(transformer is UTransformer<*, *>) { "Expected a UTransformer, but got: $transformer" }
         return transformer.asTypedTransformer<ArrayType, USizeSort>().transform(this)
     }
+
+    override fun readingConflict(composer: ConflictsComposer<*, *>): MutabilityOwnership =
+        composer.asTypedComposer<ArrayType, USizeSort>().getReadingConflict(this)
 
     override fun internEquals(other: Any): Boolean =
         structurallyEqual(
@@ -50,6 +47,10 @@ class UInputArrayReading<ArrayType, Sort : USort, USizeSort : USort> internal co
     init {
         require(address !is UNullRef)
     }
+
+    override fun readingConflict(composer: ConflictsComposer<*, *>): MutabilityOwnership =
+        composer.asTypedComposer<ArrayType, USizeSort>().getReadingConflict(this)
+
 
     override fun accept(transformer: KTransformerBase): KExpr<Sort> {
         require(transformer is UTransformer<*, *>) { "Expected a UTransformer, but got: $transformer" }

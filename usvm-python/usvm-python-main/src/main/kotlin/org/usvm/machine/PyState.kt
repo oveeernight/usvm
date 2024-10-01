@@ -61,15 +61,17 @@ class PyState(
     forkPoints,
     targets,
 ) {
-    override fun clone(newConstraints: UPathConstraints<PythonType>?): PyState {
+    override fun clone(
+        thisOwnership: MutabilityOwnership,
+        cloneOwnership: MutabilityOwnership,
+        newConstraints: UPathConstraints<PythonType>?,
+    ): PyState {
         require(newConstraints is PyPathConstraints?)
-        val newThisOwnership = MutabilityOwnership()
-        val cloneOwnership = MutabilityOwnership()
         val newPathConstraints = newConstraints?.also {
-            this.pathConstraints.changeOwnership(newThisOwnership)
+            this.pathConstraints.changeOwnership(thisOwnership)
             it.changeOwnership(cloneOwnership)
-        } ?: pathConstraints.clone(newThisOwnership, cloneOwnership)
-        val newMemory = memory.clone(newPathConstraints.typeConstraints, newThisOwnership, cloneOwnership)
+        } ?: pathConstraints.clone(thisOwnership, cloneOwnership)
+        val newMemory = memory.clone(newPathConstraints.typeConstraints, thisOwnership, cloneOwnership)
         return PyState(
             ctx,
             cloneOwnership,

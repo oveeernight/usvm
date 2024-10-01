@@ -7,6 +7,7 @@ import org.usvm.UComposer
 import org.usvm.UConcreteHeapAddress
 import org.usvm.UExpr
 import org.usvm.USort
+import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.compose
 import org.usvm.memory.UPinpointUpdateNode
 import org.usvm.memory.USymbolicCollection
@@ -76,13 +77,14 @@ class UAllocatedArrayId<ArrayType, Sort : USort, USizeSort : USort> internal con
 
     fun initializedArray(
         content: Map<UExpr<USizeSort>, UExpr<Sort>>,
-        guard: UBoolExpr
+        guard: UBoolExpr,
+        ownership: MutabilityOwnership,
     ): USymbolicCollection<UAllocatedArrayId<ArrayType, Sort, USizeSort>, UExpr<USizeSort>, Sort> {
         val emptyRegionTree = emptyRegionTree<USizeRegion, UUpdateNode<UExpr<USizeSort>, Sort>>()
 
         val entries = content.entries.associate { (key, value) ->
             val region = keyInfo().keyToRegion(key)
-            val update = UPinpointUpdateNode(key, keyInfo(), value, guard)
+            val update = UPinpointUpdateNode(key, keyInfo(), value, guard, ownership)
             region to (update to emptyRegionTree)
         }
 

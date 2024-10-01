@@ -566,4 +566,6 @@ data class UTreeUpdates<Key, Reg : Region<Reg>, Sort : USort>(
     }
 }
 
+class OwnedExpr<Sort : USort>(val value: UExpr<Sort>, val ownership: MutabilityOwnership)
+
 //endregion

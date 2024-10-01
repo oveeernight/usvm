@@ -76,6 +76,7 @@ internal data class UAllocatedRefMapWithAllocatedKeysId(
 internal class URefMapMemoryRegion<MapType, ValueSort : USort>(
     private val valueSort: ValueSort,
     private val mapType: MapType,
+    // TODO ownership
     private var allocatedMapWithAllocatedKeys: UPersistentHashMap<UAllocatedRefMapWithAllocatedKeysId, UExpr<ValueSort>> = persistentHashMapOf(),
     private var inputMapWithAllocatedKeys: UPersistentHashMap<UInputRefMapWithAllocatedKeysId<MapType, ValueSort>, UInputRefMapWithAllocatedKeys<MapType, ValueSort>> = persistentHashMapOf(),
     private var allocatedMapWithInputKeys: UPersistentHashMap<UAllocatedRefMapWithInputKeysId<MapType, ValueSort>, UAllocatedRefMapWithInputKeys<MapType, ValueSort>> = persistentHashMapOf(),
@@ -416,5 +417,9 @@ internal class URefMapMemoryRegion<MapType, ValueSort : USort>(
         val mergedGuard = guard.uctx.mkAnd(srcContains, guard)
 
         write(result, mkDstKeyId(srcKeyAddress), srcValue, mergedGuard)
+    }
+
+    override fun localizeConflict(key: URefMapEntryLValue<MapType, ValueSort>): MutabilityOwnership {
+        TODO("Not yet implemented")
     }
 }

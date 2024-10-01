@@ -1,6 +1,5 @@
 package org.usvm.utils
 
-import jdk.nashorn.internal.ir.Statement
 import org.usvm.*
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.model.UModelBase

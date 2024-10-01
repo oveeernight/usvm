@@ -43,20 +43,22 @@ class SampleState(
     forkPoints,
     targets
 ) {
-    override fun clone(newConstraints: UPathConstraints<SampleType>?): SampleState {
-        val newThisOwnership = MutabilityOwnership()
-        val cloneOwnership = MutabilityOwnership()
+    override fun clone(
+        thisOwnership: MutabilityOwnership,
+        cloneOwnership: MutabilityOwnership,
+        newConstraints: UPathConstraints<SampleType>?,
+    ): SampleState {
         val clonedConstraints = newConstraints?.also {
-            this.pathConstraints.changeOwnership(newThisOwnership)
+            this.pathConstraints.changeOwnership(thisOwnership)
             it.changeOwnership(cloneOwnership)
-        } ?: pathConstraints.clone(newThisOwnership, cloneOwnership)
+        } ?: pathConstraints.clone(thisOwnership, cloneOwnership)
         return SampleState(
             ctx,
             cloneOwnership,
             entrypoint,
             callStack.clone(),
             clonedConstraints,
-            memory.clone(clonedConstraints.typeConstraints, newThisOwnership, cloneOwnership),
+            memory.clone(clonedConstraints.typeConstraints, thisOwnership, cloneOwnership),
             models,
             pathNode,
             forkPoints,

@@ -131,6 +131,7 @@ data class USymbolicCollection<out CollectionId : USymbolicCollectionId<Key, Sor
                 initialGuard = guard,
                 ignoreNullRefs = false,
                 blockOnConcrete = { newUpdates, (valueRef, valueGuard) ->
+                    // TODO simplify
                     newUpdates.splitWrite(key, valueRef.asExpr(sort), ownership, valueGuard) { it is UConcreteHeapRef }
                 },
                 blockOnSymbolic = { newUpdates, (valueRef, valueGuard) ->
@@ -164,7 +165,8 @@ data class USymbolicCollection<out CollectionId : USymbolicCollectionId<Key, Sor
         guardBuilder: GuardBuilder,
         composer: UComposer<*, *>?,
     ): USymbolicCollection<CollectionId, Key, Sort> {
-        val splitUpdates = updates.read(key, composer).split(key, predicate, matchingWrites, guardBuilder, composer)
+        val splitUpdates =
+            updates.read(key, composer).split(key, predicate, matchingWrites, guardBuilder, composer)
 
         return if (splitUpdates === updates) {
             this
@@ -217,6 +219,59 @@ data class USymbolicCollection<out CollectionId : USymbolicCollectionId<Key, Sor
     }
 
     override fun read(key: Key): UExpr<Sort> = read(key, composer = null)
+
+//    fun localizeConflict(key: Key, composer: ConflictsComposer<*, *>?): MutabilityOwnership {
+//        if (sort == sort.uctx.addressSort) {
+//            val guardBuilder = GuardBuilder(sort.uctx.trueExpr)
+//            val matchingWrites = ArrayList<GuardedExpr<UExpr<Sort>>>()
+//            val splitCollection = split(key, { it is UConcreteHeapRef }, matchingWrites, guardBuilder, composer)
+//            if (matchingWrites.isEmpty()) {
+//                // reading from [splitCollection] must unambiguous: either it is lastUpdatedElement or default
+//                // non-symbolic value if [splitCollection] is empty
+//                val conflictOwnership = if (splitCollection.updates.isEmpty()) {
+//                    // reading default value
+//                    sort.uctx.defaultOwnership
+//                } else {
+//                    val lastUpdatedElement = splitCollection.updates.lastUpdatedElementOrNull()
+//                    if (lastUpdatedElement != null && lastUpdatedElement.includesSymbolically(key, composer).isTrue) {
+//                        lastUpdatedElement.ownership
+//                    } else if (composer != null) {
+//                        collectionId.localizeConflict(splitCollection, key, composer)
+//                    }
+//
+//                    error("Reading from $splitCollection by key $key is ambiguous.")
+//
+//                }
+//                return conflictOwnership
+//
+//            }
+//
+//            // reading must be unambiguous
+//            val firstMatchingWrite = matchingWrites.first()
+//            require(matchingWrites.size == 1 && firstMatchingWrite.guard.isTrue && firstMatchingWrite.ownership != null)
+//            return firstMatchingWrite.ownership
+//        }
+//
+//        val readUpdates = updates.read(key, composer)
+//        if (readUpdates.isEmpty()) {
+//            return sort.uctx.defaultOwnership
+//        }
+//
+//        val lastUpdatedElement = readUpdates.lastUpdatedElementOrNull()
+//        if (lastUpdatedElement != null && lastUpdatedElement.includesSymbolically(key, composer).isTrue) {
+//            return lastUpdatedElement.ownership
+//        } else if (composer != null) {
+//            val localizedRegion = if (readUpdates === this.updates) {
+//                this
+//            } else {
+//                this.copy(updates = readUpdates)
+//            }
+//            return collectionId.localizeConflict(localizedRegion, key, composer)
+//        }
+//
+//        error("Reading from $this by key $key is ambiguous.")
+//    }
+
 
     override fun toString(): String =
         buildString {
