@@ -1,4 +1,4 @@
-package org.usvm.state
+package org.usvm.machine.state
 
 import org.example.ilinstances.IlMethod
 import org.example.ilinstances.IlType
@@ -20,7 +20,7 @@ class IlState(
     ownership: MutabilityOwnership,
     override val entrypoint: IlMethod,
     callStack: UCallStack<IlMethod, IlStmt> = UCallStack(),
-    pathConstraints: UPathConstraints<IlType>,
+    pathConstraints: UPathConstraints<IlType> = UPathConstraints(ctx, ownership),
     memory: UMemory<IlType, IlMethod> = UMemory(ctx, ownership, pathConstraints.typeConstraints),
     models: List<UModelBase<IlType>> = listOf(),
     pathNode: PathNode<IlStmt> = PathNode.root(),
