@@ -22,6 +22,7 @@ class IlContext(private val publication: IlPublication, components: IlComponents
     val longSort = bv64Sort
     val floatSort = fp32Sort
     val doubleSort = fp64Sort
+    val voidSort by lazy { VoidSort(this) }
 
     val sizeSort = bv32Sort
 
@@ -29,6 +30,8 @@ class IlContext(private val publication: IlPublication, components: IlComponents
     val shortBitSize = 16u
     val intBitSize = 32u
     val intLongSize = 64u
+
+    val void by lazy { VoidValue(this) }
 
     val mockType = findTypeOrReportAbsence("Mock")
 
