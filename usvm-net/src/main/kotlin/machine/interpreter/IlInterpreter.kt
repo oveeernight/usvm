@@ -1,5 +1,6 @@
 package org.usvm.machine.interpreter
 
+import io.ksmt.expr.KExpr
 import io.ksmt.utils.asExpr
 import org.example.ilinstances.IlMethod
 import org.example.ilinstances.IlReferenceType
@@ -11,10 +12,10 @@ import org.usvm.api.allocateStaticRef
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.forkblacklists.UForkBlackList
 import org.usvm.machine.IlContext
-import org.usvm.machine.state.IlState
-import org.usvm.machine.state.lastStmt
-import org.usvm.machine.state.paramsWithThisCount
-import org.usvm.machine.state.toLocalIdx
+import org.usvm.machine.IlMachineOptions
+import org.usvm.machine.VoidValue
+import org.usvm.machine.state.*
+import org.usvm.machine.write
 import org.usvm.memory.URegisterStackLValue
 import org.usvm.solver.USatResult
 
@@ -23,24 +24,29 @@ typealias IlStepScope = StepScope<IlState, IlType, IlStmt, IlContext>
 
 class IlInterpreter(
     private val ctx: IlContext,
+    private val ilOptions: IlMachineOptions,
     val forkBlackList: UForkBlackList<IlState, IlStmt> = UForkBlackList.createDefault()
 ) : UInterpreter<IlState>() {
-    private lateinit var currMethod: IlMethod
+
+    private val strings = mutableMapOf<String, UConcreteHeapRef>()
+    fun stringAllocator(string: String) = strings.getOrPut(string) {
+        ctx.allocateConcreteRef()
+    }
 
     private val typeInstances = mutableMapOf<IlType, UConcreteHeapRef>()
-    private fun allocateTypeInstance(type: IlType): UConcreteHeapRef =
+    private fun typesAlloactor(type: IlType): UConcreteHeapRef =
         typeInstances.getOrPut(type) { ctx.allocateStaticRef() }
 
     private val methodLocals = mutableMapOf<IlMethod, MutableMap<String, Int>>()
-    private fun mapMethodLocals(local: IlLocal): Pair<Int, IlType> =
+    private fun mapMethodLocals(method: IlMethod, local: IlLocal): Pair<Int, IlType> =
         when (local) {
-            is IlArgument -> methodLocals.getOrPut(currMethod) {
+            is IlArgument -> methodLocals.getOrPut(method) {
                 mutableMapOf()
             }.getOrPut(local.name) { 0 } to local.paramType
 
-            is IlLocalVar -> (currMethod.paramsWithThisCount() + local.index) to local.type
+            is IlLocalVar -> (method.paramsWithThisCount() + local.index) to local.type
 
-            is IlErrVar -> (currMethod.paramsWithThisCount() + currMethod.locals.size + local.index) to local.type
+            is IlErrVar -> (method.paramsWithThisCount() + method.locals.size + local.index) to local.type
 
             else -> error("mapMethodLocals: unexpected local $local")
         }
@@ -104,15 +110,31 @@ class IlInterpreter(
     }
 
     private fun visitAssignStmt(scope: IlStepScope, stmt: IlAssignStmt) {
-        TODO()
+        val resolver = mkExprResolver(scope)
+        val lvalue = resolver.resolveULValue(stmt.lhs)
+        val rvalue = resolver.resolve(stmt.rhs)
+        scope.doWithState {
+            memory.write(lvalue, rvalue)
+            newStmt(stmt.next(scope))
+        }
+
+        // TODO handle calls in rhs when cfg will be available
     }
 
     private fun visitGotoStmt(scope: IlStepScope, stmt: IlGotoStmt) {
-        TODO()
+        scope.doWithState {
+            newStmt(stmt.target)
+        }
     }
 
     private fun visitIfStmt(scope: IlStepScope, stmt: IlIfStmt) {
-        TODO()
+        val resolver = mkExprResolver(scope)
+        val condition = resolver.resolve(stmt.condition).asExpr(ctx.boolSort)
+        val (posStmt, negStmt) = stmt.target to stmt.next(scope)
+        scope.forkWithBlackList(condition, posStmt, negStmt,
+            blockOnTrueState = { newStmt(posStmt) },
+            blockOnFalseState = { newStmt(negStmt) }
+        )
     }
 
     private fun visitCallStmt(scope: IlStepScope, stmt: IlCallStmt) {
@@ -124,7 +146,12 @@ class IlInterpreter(
     }
 
     private fun visitReturnStmt(scope: IlStepScope, stmt: IlReturnStmt) {
-        TODO()
+        val resolver = mkExprResolver(scope)
+        val value = stmt.value?.let { resolver.resolve(it) }
+            ?: ctx.void
+        scope.doWithState {
+            returnValue(value)
+        }
     }
 
     private fun visitThrowStmt(scope: IlStepScope, stmt: IlThrowStmt) {
@@ -146,4 +173,15 @@ class IlInterpreter(
     private fun visitEndFinallyStmt(scope: IlStepScope, stmt: IlEndFinallyStmt) {
         TODO()
     }
+
+    //TODO inefficient
+    private fun IlStmt.next(stepScope: IlStepScope) = stepScope.calcOnState {
+        val method = callStack.lastMethod()
+        val body = method.body
+        val currIndex = body.indexOf(this@next)
+        body[currIndex + 1]
+    }
+
+    private fun mkExprResolver(scope: IlStepScope) =
+        IlExprResolver(ctx, scope, ilOptions, ::stringAllocator, ::typesAlloactor, ::mapMethodLocals)
 }
