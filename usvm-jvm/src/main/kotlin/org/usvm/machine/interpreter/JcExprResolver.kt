@@ -1095,6 +1095,8 @@ class JcSimpleValueResolver(
 
             val valuesArrayDescriptor = arrayDescriptorOf(stringValueField.type as JcArrayType)
             val elementType = requireNotNull(stringValueField.type.ifArrayGetElementType)
+            // TODO if [value.value] is already allocated, we reallocate content-array.
+            // consider lookup in [resolveStringConstant] here
             val charArrayRef = memory.allocateArrayInitialized(
                 valuesArrayDescriptor,
                 typeToSort(elementType),

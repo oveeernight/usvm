@@ -2,13 +2,12 @@ package org.usvm.machine.state
 
 import org.example.ilinstances.IlMethod
 import org.example.ilinstances.IlType
-import org.jacodb.api.net.ilinstances.IlExpr
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.usvm.*
 import org.usvm.api.allocateConcreteRef
-import org.usvm.machine.IlMethodResult
+import org.usvm.machine.interpreter.IlConcreteCallStmt
+import org.usvm.machine.interpreter.IlMethodResult
 
-val IlState.lastStmt get() = pathNode.statement
 fun IlState.newStmt(stmt: IlStmt) {
     pathNode += stmt
 }
@@ -28,4 +27,13 @@ fun IlState.throwException(type: IlType, frame: UStackTraceFrame<IlMethod, IlStm
     val ref = ctx.allocateConcreteRef()
     memory.types.allocate(ref.address, type)
     methodResult = IlMethodResult.Exception(ref, type, frame.method, frame.instruction)
+}
+
+fun IlState.insertConcreteCallStmt(method: IlMethod, args: List<UExpr<out USort>>) =
+    newStmt(IlConcreteCallStmt(method, args, currentStatement))
+
+fun IlState.callMethod(method: IlMethod, args: List<UExpr<out USort>>, returnSite: IlStmt) {
+    callStack.push(method, returnSite)
+    memory.stack.push(args.toTypedArray(), method.locals.size)
+    newStmt(method.body.first())
 }
