@@ -3,34 +3,46 @@ package org.usvm.machine.interpreter
 import org.example.ilinstances.IlMethod
 import org.example.ilinstances.IlType
 import org.jacodb.api.net.core.IlStmtVisitor
-import org.jacodb.api.net.ilinstances.IlExpr
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.usvm.UExpr
+import org.usvm.UHeapRef
 import org.usvm.USort
 
 sealed interface IlTransparentStatement : IlStmt {
     val originalStmt: IlStmt
 }
 
-sealed interface IlMethodCallBaseStmt : IlTransparentStatement {
+interface TransparentMethodCallBaseStmt : IlTransparentStatement{
     val method: IlMethod
+}
 
-    override fun <T> accept(visitor: IlStmtVisitor<T>): T {
-        error("Unexpected call on transparent statement $this")
-    }
+
+interface MethodCall {
+    val method: IlMethod
+    val args: List<UExpr<out USort>>
+    val returnSite: IlStmt
 }
 
 
 
 data class IlMethodEntryPointStmt(
     override val method: IlMethod,
-    override val originalStmt: IlStmt,
-    val entrypointArgs: List<Pair<IlType, UExpr<out USort>>>
-) : IlMethodCallBaseStmt
+    val refArgs: List<Pair<IlType, UHeapRef>>
+) : TransparentMethodCallBaseStmt {
+    override val originalStmt = method.body.first()
 
+    override fun <T> accept(visitor: IlStmtVisitor<T>): T {
+        error("IlMethodEntryPointStmt: visitor should not be called on transparent instructions")
+    }
+}
 
-interface IlMethodCall {
-    val method: IlMethod
-    val args: List<UExpr<out USort>>
-    val returnSite: IlStmt
+data class IlConcreteCallStmt(
+    override val method: IlMethod,
+    override val args: List<UExpr<out USort>>,
+    override val returnSite: IlStmt,
+) : MethodCall, TransparentMethodCallBaseStmt {
+    override val originalStmt = returnSite
+    override fun <T> accept(visitor: IlStmtVisitor<T>): T {
+        error("IlConcreteCall: visitor should not be called on transparent instructions")
+    }
 }

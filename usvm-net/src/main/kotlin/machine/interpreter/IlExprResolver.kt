@@ -2,6 +2,7 @@ package org.usvm.machine.interpreter
 
 import io.ksmt.utils.asExpr
 import org.example.ilinstances.IlMethod
+import org.example.ilinstances.IlParameter
 import org.example.ilinstances.IlType
 import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
@@ -13,6 +14,7 @@ import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.IlContext
 import org.usvm.machine.IlMachineOptions
 import org.usvm.machine.USizeSort
+import org.usvm.machine.state.insertConcreteCallStmt
 import org.usvm.machine.state.throwException
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
@@ -24,11 +26,11 @@ class IlExprResolver(
     getOrMkStringConst: (String) -> UConcreteHeapRef,
     getOrMkTypeRef: (IlType) -> UConcreteHeapRef,
     val mapMethodLocalToIdx: (IlMethod, IlLocal) -> Pair<Int, IlType>,
-) : IlExprVisitor<UExpr<out USort>> {
+) : IlExprVisitor<UExpr<out USort>?> {
 
     private val constResolver = IlConstResolver(ctx, scope, getOrMkStringConst, getOrMkTypeRef)
 
-    fun resolve(expr: IlExpr, type: IlType = ctx.mockType) : UExpr<out USort> = expr.accept(this)
+    fun resolve(expr: IlExpr, type: IlType = ctx.mockType) : UExpr<out USort>? = expr.accept(this)
 
     override fun visitIlNullConst(const: IlNull): UExpr<out USort> = constResolver.visitIlNullConst(const)
     override fun visitIlStringConst(const: IlStringConst): UExpr<out USort> = constResolver.visitIlStringConst(const)
@@ -48,22 +50,22 @@ class IlExprResolver(
     override fun visitIlArrayConst(const: IlArrayConst): UExpr<out USort> = constResolver.visitIlArrayConst(const)
     override fun visitIlTypeRefConst(const: IlTypeRef): UExpr<out USort> = constResolver.visitIlTypeRefConst(const)
 
-    override fun visitErrVar(expr: IlErrVar): UExpr<out USort> {
+    override fun visitErrVar(expr: IlErrVar): UExpr<out USort>? {
         val key = localVarToLValue(expr)
         return scope.calcOnState { memory.read(key) }
     }
 
-    override fun visitIlArg(expr: IlArgument): UExpr<out USort>  {
+    override fun visitIlArg(expr: IlArgument): UExpr<out USort>?  {
         val key = localVarToLValue(expr)
         return scope.calcOnState { memory.read(key) }
     }
 
-    override fun visitIlLocalVar(expr: IlLocalVar): UExpr<out USort> {
+    override fun visitIlLocalVar(expr: IlLocalVar): UExpr<out USort>? {
         val key = localVarToLValue(expr)
         return scope.calcOnState { memory.read(key) }
     }
 
-    fun resolveULValue(expr: IlExpr) : ULValue<*, *> {
+    fun resolveLValue(expr: IlExpr) : ULValue<*, *>? {
         return when (expr) {
             is IlArrayAccess -> arrayAccessToLValue(expr)
             is IlFieldAccess -> fieldAccessToLValue(expr)
@@ -80,11 +82,11 @@ class IlExprResolver(
         return URegisterStackLValue<USort>(sort, idx)
     }
 
-    private fun arrayAccessToLValue(expr: IlArrayAccess): UArrayIndexLValue<*, *, *> = with(ctx) {
-        val arrayRef = expr.array.accept(this@IlExprResolver).asExpr(addressSort)
+    private fun arrayAccessToLValue(expr: IlArrayAccess): UArrayIndexLValue<*, *, *>? = with(ctx) {
+        val arrayRef = expr.array.accept(this@IlExprResolver)?.asExpr(addressSort) ?: return null
         checkNullPointer(arrayRef)
 
-        val index = expr.index.accept(this@IlExprResolver).asExpr(sizeSort)
+        val index = expr.index.accept(this@IlExprResolver)?.asExpr(sizeSort) ?: return null
 
         val arrayType = ctx.mockType
         val len = UArrayLengthLValue(arrayRef, arrayType, sizeSort).let {
@@ -98,11 +100,11 @@ class IlExprResolver(
         lvalue
     }
 
-    private fun fieldAccessToLValue(expr: IlFieldAccess): UFieldLValue<*, *> {
+    private fun fieldAccessToLValue(expr: IlFieldAccess): UFieldLValue<*, *>? {
         val fieldIsStatic = expr.receiver == null
         val field = expr.field
         if (!fieldIsStatic) {
-            val instance = expr.receiver!!.accept(this).asExpr(ctx.addressSort)
+            val instance = expr.receiver!!.accept(this)?.asExpr(ctx.addressSort) ?: return null
             checkNullPointer(instance)
             val flv = UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
             return flv
@@ -138,39 +140,84 @@ class IlExprResolver(
     }
 
 
-    override fun visitIlArrayAccess(expr: IlArrayAccess): UExpr<out USort> = scope.calcOnState {
-        val key = arrayAccessToLValue(expr)
+    override fun visitIlArrayAccess(expr: IlArrayAccess): UExpr<out USort>? = scope.calcOnState {
+        val key = arrayAccessToLValue(expr) ?: return@calcOnState null
         memory.read(key)
     }
 
-    override fun visitIlFieldAccess(expr: IlFieldAccess): UExpr<out USort> = scope.calcOnState {
-        val key = fieldAccessToLValue(expr)
+    override fun visitIlFieldAccess(expr: IlFieldAccess): UExpr<out USort>? = scope.calcOnState {
+        val key = fieldAccessToLValue(expr) ?: return@calcOnState null
         memory.read(key)
     }
 
-    override fun visitIlArrayLength(expr: IlArrayLengthExpr): UExpr<out USort> {
-        val arrayRef = expr.array.accept(this).asExpr(ctx.addressSort)
+    override fun visitIlArrayLength(expr: IlArrayLengthExpr): UExpr<out USort>? {
+        val arrayRef = expr.array.accept(this)?.asExpr(ctx.addressSort) ?: return null
         checkNullPointer(arrayRef)
         val key = UArrayLengthLValue(arrayRef, ctx.mockType, ctx.sizeSort)
         return scope.calcOnState { memory.read(key) }
     }
 
-    override fun visitIlBinaryOp(expr: IlBinaryOp): UExpr<out USort> {
+    override fun visitIlBinaryOp(expr: IlBinaryOp): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlBoxExpr(expr: IlBoxExpr): UExpr<out USort> {
+    override fun visitIlBoxExpr(expr: IlBoxExpr): UExpr<out USort>? {
         val resolved = expr.operand.accept(this)
 
         TODO("Not yet implemented")
     }
 
-    override fun visitIlCall(expr: IlCall): UExpr<out USort> {
-        TODO("Not yet implemented")
+    // TODO check instance can execute the method
+    override fun visitIlCall(expr: IlCall): UExpr<out USort>? {
+        val args = expr.args
+        val method = expr.method
+        val params = method.parametes
+        val (instance, funArgs) = if (true) {
+            args[0] to args.subList(1, args.size)
+        } else {
+            null to args
+        }
+        return checkCall(instance, method, funArgs, params) { args -> scope.doWithState { insertConcreteCallStmt(method, args) } }
     }
 
-    override fun visitIlCastClassExpr(expr: IlCastClassExpr): UExpr<out USort> = scope.calcOnState {
-        val e = expr.operand.accept(this@IlExprResolver).asExpr(ctx.addressSort)
+    private fun checkCall(
+        instance: IlExpr?,
+        method: IlMethod,
+        args: List<IlExpr>,
+        parameters: List<IlParameter>,
+        onBeforeCall: IlStepScope.(List<UExpr<out USort>>) -> Unit
+    ) : UExpr<out USort>? {
+        if (instance != null) {
+            val resolvedInstance = resolve(instance)?.asExpr(ctx.addressSort) ?: return null
+            checkNullPointer(resolvedInstance)
+        }
+
+        val resolvedArgs = args.zip(parameters).map { (arg, param) -> resolve(arg, param.paramType) ?: return null }
+
+        return resolveCall { onBeforeCall(resolvedArgs) }
+    }
+
+    private fun resolveCall(onBeforeCall: IlStepScope.() -> Unit): UExpr<out USort>? {
+        val methodRes = scope.calcOnState { methodResult }
+        return when (methodRes) {
+            is IlMethodResult.BeforeCall -> {
+                scope.onBeforeCall()
+                null
+            }
+
+            is IlMethodResult.Success -> {
+                scope.doWithState { methodResult = IlMethodResult.BeforeCall }
+                methodRes.result
+            }
+
+            is IlMethodResult.Exception -> {
+                error("Exceptions should be handled earlier")
+            }
+        }
+    }
+
+    override fun visitIlCastClassExpr(expr: IlCastClassExpr): UExpr<out USort>? = scope.calcOnState {
+        val e = expr.operand.accept(this@IlExprResolver)?.asExpr(ctx.addressSort) ?: return@calcOnState null
         val currType = ctx.mockType
         val expectedType = expr.expectedType
         if (!ctx.typeSystem<IlType>().isSupertype(supertype = expectedType, type = currType)){
@@ -194,68 +241,68 @@ class IlExprResolver(
         }
     }
 
-    override fun visitIlConvExpr(expr: IlConvExpr): UExpr<out USort> {
+    override fun visitIlConvExpr(expr: IlConvExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlFieldRefConst(const: IlFieldRef): UExpr<out USort> {
+    override fun visitIlFieldRefConst(const: IlFieldRef): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlInitExpr(expr: IlInitExpr): UExpr<out USort> = TODO()
+    override fun visitIlInitExpr(expr: IlInitExpr): UExpr<out USort>? = TODO()
 
-    override fun visitIlIsInstExpr(expr: IlIsInstExpr): UExpr<out USort> = scope.calcOnState {
-        val instance = expr.operand.accept(this@IlExprResolver).asExpr(ctx.addressSort)
+    override fun visitIlIsInstExpr(expr: IlIsInstExpr): UExpr<out USort>? = scope.calcOnState {
+        val instance = expr.operand.accept(this@IlExprResolver)?.asExpr(ctx.addressSort) ?: return@calcOnState null
         memory.types.evalIsSubtype(instance, expr.expectedType)
     }
 
-    override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort> {
+    override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): UExpr<out USort> {
+    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlMethodRefConst(const: IlMethodRef): UExpr<out USort> {
+    override fun visitIlMethodRefConst(const: IlMethodRef): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlNewArrayExpr(expr: IlNewArrayExpr): UExpr<out USort> = scope.calcOnState {
+    override fun visitIlNewArrayExpr(expr: IlNewArrayExpr): UExpr<out USort>? = scope.calcOnState {
         val arrayType = expr.elementType
-        val size = expr.size.accept(this@IlExprResolver).asExpr(ctx.sizeSort)
+        val size = expr.size.accept(this@IlExprResolver)?.asExpr(ctx.sizeSort) ?: return@calcOnState null
         memory.allocateArray(arrayType, ctx.sizeSort, size)
     }
 
-    override fun visitIlNewExpr(expr: IlNewExpr): UExpr<out USort> = scope.calcOnState {
+    override fun visitIlNewExpr(expr: IlNewExpr): UExpr<out USort>? = scope.calcOnState {
         memory.allocConcrete(expr.type)
     }
 
-    override fun visitIlSizeOfExpr(expr: IlSizeOfExpr): UExpr<out USort> {
+    override fun visitIlSizeOfExpr(expr: IlSizeOfExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlStackAllocExpr(expr: IlStackAllocExpr): UExpr<out USort> {
+    override fun visitIlStackAllocExpr(expr: IlStackAllocExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlTempVar(expr: IlTempVar): UExpr<out USort> {
+    override fun visitIlTempVar(expr: IlTempVar): UExpr<out USort>? {
         TODO("will be removed")
     }
 
-    override fun visitIlUnaryOp(expr: IlUnaryOp): UExpr<out USort> {
+    override fun visitIlUnaryOp(expr: IlUnaryOp): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlUnboxExpr(expr: IlUnboxExpr): UExpr<out USort> {
+    override fun visitIlUnboxExpr(expr: IlUnboxExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlUnmanagedDerefExpr(expr: IlUnmanagedDerefExpr): UExpr<out USort> {
+    override fun visitIlUnmanagedDerefExpr(expr: IlUnmanagedDerefExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlUnmanagedRefExpr(expr: IlUnmanagedRefExpr): UExpr<out USort> {
+    override fun visitIlUnmanagedRefExpr(expr: IlUnmanagedRefExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
 }

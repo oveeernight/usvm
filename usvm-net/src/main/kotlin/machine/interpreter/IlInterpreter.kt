@@ -1,6 +1,5 @@
 package org.usvm.machine.interpreter
 
-import io.ksmt.expr.KExpr
 import io.ksmt.utils.asExpr
 import org.example.ilinstances.IlMethod
 import org.example.ilinstances.IlReferenceType
@@ -13,7 +12,6 @@ import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.forkblacklists.UForkBlackList
 import org.usvm.machine.IlContext
 import org.usvm.machine.IlMachineOptions
-import org.usvm.machine.VoidValue
 import org.usvm.machine.state.*
 import org.usvm.machine.write
 import org.usvm.memory.URegisterStackLValue
@@ -89,9 +87,10 @@ class IlInterpreter(
     }
 
     override fun step(state: IlState): StepResult<IlState> {
-        val stmt = state.lastStmt
+        val stmt = state.currentStatement
         val scope = IlStepScope(state, forkBlackList)
         when (stmt) {
+            is TransparentMethodCallBaseStmt -> visitTransparentCall(scope, stmt)
             is IlAssignStmt -> visitAssignStmt(scope, stmt)
             is IlGotoStmt -> visitGotoStmt(scope, stmt)
             is IlIfStmt -> visitIfStmt(scope, stmt)
@@ -109,10 +108,20 @@ class IlInterpreter(
         return scope.stepResult()
     }
 
+    private fun visitTransparentCall(scope: IlStepScope, stmt: TransparentMethodCallBaseStmt) {
+        val resolver = mkExprResolver(scope)
+        when (stmt) {
+            is IlConcreteCallStmt -> {
+                scope.doWithState { callMethod(stmt.method, stmt.args, stmt.returnSite) }
+            }
+            else -> TODO()
+        }
+    }
+
     private fun visitAssignStmt(scope: IlStepScope, stmt: IlAssignStmt) {
         val resolver = mkExprResolver(scope)
-        val lvalue = resolver.resolveULValue(stmt.lhs)
-        val rvalue = resolver.resolve(stmt.rhs)
+        val lvalue = resolver.resolveLValue(stmt.lhs) ?: return
+        val rvalue = resolver.resolve(stmt.rhs) ?: return
         scope.doWithState {
             memory.write(lvalue, rvalue)
             newStmt(stmt.next(scope))
@@ -129,7 +138,7 @@ class IlInterpreter(
 
     private fun visitIfStmt(scope: IlStepScope, stmt: IlIfStmt) {
         val resolver = mkExprResolver(scope)
-        val condition = resolver.resolve(stmt.condition).asExpr(ctx.boolSort)
+        val condition = resolver.resolve(stmt.condition)?.asExpr(ctx.boolSort) ?: return
         val (posStmt, negStmt) = stmt.target to stmt.next(scope)
         scope.forkWithBlackList(condition, posStmt, negStmt,
             blockOnTrueState = { newStmt(posStmt) },
@@ -155,7 +164,12 @@ class IlInterpreter(
     }
 
     private fun visitThrowStmt(scope: IlStepScope, stmt: IlThrowStmt) {
-        TODO()
+        val resolver = mkExprResolver(scope)
+        val exception = resolver.resolve(stmt.value)?.asExpr(ctx.addressSort) ?: return
+        scope.doWithState {
+            throwException(ctx.mockType, callStack.stackTrace(currentStatement).last())
+        }
+
     }
 
     private fun visitRethrowStmt(scope: IlStepScope, stmt: IlRethrowStmt) {
