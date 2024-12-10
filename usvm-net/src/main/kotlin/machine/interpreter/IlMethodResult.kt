@@ -1,8 +1,8 @@
 package org.usvm.machine.interpreter
 
-import org.example.ilinstances.IlMethod
-import org.example.ilinstances.IlType
+import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
+import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.UConcreteHeapRef
 import org.usvm.UExpr
 import org.usvm.USort
