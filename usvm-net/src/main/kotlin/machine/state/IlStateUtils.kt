@@ -1,9 +1,11 @@
 package org.usvm.machine.state
 
-import org.example.ilinstances.IlMethod
-import org.example.ilinstances.IlType
+import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
-import org.usvm.*
+import org.jacodb.api.net.ilinstances.IlType
+import org.usvm.UExpr
+import org.usvm.USort
+import org.usvm.UStackTraceFrame
 import org.usvm.api.allocateConcreteRef
 import org.usvm.machine.interpreter.IlConcreteCallStmt
 import org.usvm.machine.interpreter.IlMethodResult
@@ -20,8 +22,8 @@ fun IlState.returnValue(value: UExpr<out USort>) {
     returnSite?.let { memory.stack.pop(); newStmt(it) }
 }
 
-fun IlMethod.toLocalIdx(idx: Int): Int = if (this.resolved) idx else idx + 1
-fun IlMethod.paramsWithThisCount() : Int = toLocalIdx(parametes.size)
+fun IlMethod.toLocalIdx(idx: Int): Int = if (this.isStatic) idx else idx + 1
+fun IlMethod.paramsWithThisCount() : Int = toLocalIdx(parameters.size)
 
 fun IlState.throwException(type: IlType, frame: UStackTraceFrame<IlMethod, IlStmt>) {
     val ref = ctx.allocateConcreteRef()
@@ -34,6 +36,6 @@ fun IlState.insertConcreteCallStmt(method: IlMethod, args: List<UExpr<out USort>
 
 fun IlState.callMethod(method: IlMethod, args: List<UExpr<out USort>>, returnSite: IlStmt) {
     callStack.push(method, returnSite)
-    memory.stack.push(args.toTypedArray(), method.locals.size)
-    newStmt(method.body.first())
+//    memory.stack.push(args.toTypedArray(), method.locals.size)
+//    newStmt(method.body.first())
 }

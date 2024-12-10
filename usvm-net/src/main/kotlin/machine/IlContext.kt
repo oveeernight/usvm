@@ -1,17 +1,16 @@
 package org.usvm.machine
 
-import org.example.ilinstances.IlArrayType
-import org.example.ilinstances.IlClassType
-import org.example.ilinstances.IlReferenceType
-import org.example.ilinstances.IlType
 import org.jacodb.api.net.IlPublication
 import org.jacodb.api.net.generated.models.IlFieldDto
 import org.jacodb.api.net.generated.models.TypeId
-import org.jacodb.api.net.ilinstances.IlArrayAccess
 import org.jacodb.api.net.ilinstances.IlField
+import org.jacodb.api.net.ilinstances.IlType
+import org.jacodb.api.net.ilinstances.impl.IlArrayType
+import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
+import org.jacodb.api.net.ilinstances.impl.IlReferenceType
+import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
 import org.usvm.UBv32Sort
 import org.usvm.UContext
-import org.usvm.UNullRef
 import org.usvm.USort
 
 typealias USizeSort = UBv32Sort
@@ -45,7 +44,7 @@ class IlContext(private val publication: IlPublication, components: IlComponents
             attrs = emptyList()
         )
 
-        IlField(systemType, dto, publication)
+        IlFieldImpl(systemType as IlTypeImpl, dto, publication)
     }
 
     fun typeToSort(type: IlType): USort {
