@@ -9,32 +9,46 @@ import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
 import org.jacodb.api.net.ilinstances.impl.IlReferenceType
 import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
+import org.jacodb.api.net.publication.IlPredefinedTypesExt.int32
 import org.usvm.UBv32Sort
 import org.usvm.UContext
 import org.usvm.USort
 
 typealias USizeSort = UBv32Sort
 
-class IlContext(private val publication: IlPublication, components: IlComponents) : UContext<USizeSort>(components) {
+class IlContext(val publication: IlPublication, components: IlComponents) : UContext<USizeSort>(components) {
+    val boolType by lazy { findTypeOrReportAbsence("Bool") }
+    val charType by lazy { findTypeOrReportAbsence("Char") }
+    val int8Type by lazy { findTypeOrReportAbsence("SByte") }
+    val int16Type by lazy {findTypeOrReportAbsence("Short") }
+    val int32Type by lazy { findTypeOrReportAbsence("Int") }
+    val int64Type by lazy { findTypeOrReportAbsence("Long") }
+    val uint8Type by lazy { findTypeOrReportAbsence("Byte") }
+    val uint16Type by lazy { findTypeOrReportAbsence("UShort") }
+    val uint32Type by lazy { findTypeOrReportAbsence("UInt") }
+    val uint64Type by lazy { findTypeOrReportAbsence("ULong") }
+    val floatType by lazy { findTypeOrReportAbsence("Float") }
+    val doubleType by lazy { findTypeOrReportAbsence("Double") }
+
+    val objectType by lazy { findTypeOrReportAbsence("Object") }
+    val systemType by lazy { findTypeOrReportAbsence("Type") }
+
     val byteSort = bv8Sort
     val charSort = bv16Sort
     val longSort = bv64Sort
     val floatSort = fp32Sort
     val doubleSort = fp64Sort
     val voidSort by lazy { VoidSort(this) }
-
     val sizeSort = bv32Sort
 
-    val bytesBitSize = 8u
+    val byteBitSize = 8u
     val shortBitSize = 16u
     val intBitSize = 32u
-    val intLongSize = 64u
+    val longBitSize = 64u
 
     val void by lazy { VoidValue(this) }
 
     val mockType = findTypeOrReportAbsence("Mock")
-
-    val systemType by lazy { findTypeOrReportAbsence("System.Type")}
 
     val syntheticTypeField : IlField by lazy {
         val dto = IlFieldDto(
@@ -55,14 +69,17 @@ class IlContext(private val publication: IlPublication, components: IlComponents
         }
     }
 
-    val charType = findTypeOrReportAbsence("Char")
-
     fun arrayDescriptorOf(type: IlArrayType): IlType {
-        TODO()
+        return if (isPrimitiveType(type.elementType)) {
+            type.elementType
+        } else {
+            objectType
+        }
     }
 
     fun arrayTypeOf(elemType: IlType): IlArrayType {
-        TODO()
+        // TODO need jacodb api for creating array types from element types
+        return findTypeOrReportAbsence("${elemType.fullname}[]") as IlArrayType
     }
 
     val indexOutOfRangeException: IlType = findTypeOrReportAbsence(indexOutOfRangeExceptionName)
@@ -71,6 +88,8 @@ class IlContext(private val publication: IlPublication, components: IlComponents
 
     private fun findTypeOrReportAbsence(typeName: String): IlType =
         publication.findIlTypeOrNull(typeName) ?: error("$typeName was not found in publication")
+
+    private fun isPrimitiveType(type: IlType): Boolean = TODO()
 
 }
 
