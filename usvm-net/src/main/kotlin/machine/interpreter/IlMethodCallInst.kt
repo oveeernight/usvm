@@ -3,6 +3,7 @@ package org.usvm.machine.interpreter
 import org.jacodb.api.net.core.IlStmtVisitor
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
+import org.jacodb.api.net.ilinstances.IlStmtLocation
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.UExpr
 import org.usvm.UHeapRef
@@ -13,7 +14,7 @@ sealed interface IlTransparentStatement : IlStmt {
 }
 
 interface TransparentMethodCallBaseStmt : IlTransparentStatement{
-    val method: IlMethod
+    override val method: IlMethod
 }
 
 
@@ -30,6 +31,8 @@ data class IlMethodEntryPointStmt(
     val refArgs: List<Pair<IlType, UHeapRef>>
 ) : TransparentMethodCallBaseStmt {
     override val originalStmt = TODO()
+    override val location: IlStmtLocation
+        get() = TODO()
 //    method.rawInstList.first()
 
     override fun <T> accept(visitor: IlStmtVisitor<T>): T {
@@ -43,6 +46,9 @@ data class IlConcreteCallStmt(
     override val returnSite: IlStmt,
 ) : MethodCall, TransparentMethodCallBaseStmt {
     override val originalStmt = returnSite
+    override val location: IlStmtLocation
+        get() = TODO("Not yet implemented")
+
     override fun <T> accept(visitor: IlStmtVisitor<T>): T {
         error("IlConcreteCall: visitor should not be called on transparent instructions")
     }

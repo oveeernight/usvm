@@ -20,8 +20,8 @@ interface DecoderApi<T> {
     fun createStringConst(value: String): T
     fun createNullConst(type: IlType): T
 
-    fun createArray(elementType: IlType, size: Int): T
-    fun createObject(type: IlType): T
+    fun createArray(elementType: IlType, size: Int, address: Int): T
+    fun createObject(type: IlType, address: Int): T
 
     fun setArrayIndex(array: T, index: Int, value: T)
     fun setObjectField(obj: T, field: IlField, value: T)

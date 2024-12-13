@@ -24,12 +24,14 @@ class IlTestExecutorDecoderApi(val ctx: IlContext): DecoderApi<IlTestExpr> {
     override fun createDoubleConst(value: Double): IlTestExpr = IlTestConst.DoubleConst(value, ctx.doubleType)
     override fun createStringConst(value: String): IlTestExpr = IlTestConst.StringConst(value, ctx.doubleType)
     override fun createNullConst(type: IlType): IlTestExpr = IlTestConst.NullConst(type)
-    override fun createArray(elementType: IlType, size: Int): IlTestExpr = IlArray(elementType, size)
-    override fun createObject(type: IlType): IlTestExpr = IlTestCall.NewInstance(type)
+    override fun createArray(elementType: IlType, size: Int, address: Int): IlTestExpr =
+        ArrayInstance(elementType, size, address)
+    override fun createObject(type: IlType, address: Int): IlTestExpr =
+        ObjectInstance(type, address)
 
     override fun callMethod(method: IlMethod, args: List<IlTestExpr>): IlTestExpr {
         return if (method.isStatic) IlTestCall.StaticMethodCall(method, args)
-        else IlTestCall.InstanceMethodCall(args[0], method, args.drop(1))
+        else IlTestCall.InstanceMethodCall(args[0], method, args.drop(1)).also { arrangeStmts.add(it) }
     }
 
     override fun setObjectField(obj: IlTestExpr, field: IlField, value: IlTestExpr) {
