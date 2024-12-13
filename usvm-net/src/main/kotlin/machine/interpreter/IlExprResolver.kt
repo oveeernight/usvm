@@ -20,7 +20,7 @@ class IlExprResolver(
     val ctx: IlContext,
     val scope: IlStepScope,
     val machineOptions: IlMachineOptions,
-    getOrMkStringConst: (String) -> UConcreteHeapRef,
+    getOrMkStringConst: MutableMap<String, UConcreteHeapRef>,
     getOrMkTypeRef: (IlType) -> UConcreteHeapRef,
     val mapMethodLocalToIdx: (IlMethod, IlLocal) -> Pair<Int, IlType>,
 ) : IlExprVisitor<UExpr<out USort>?> {
