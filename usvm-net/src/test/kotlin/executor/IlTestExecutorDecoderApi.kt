@@ -5,7 +5,6 @@ import org.jacodb.api.net.ilinstances.*
 import org.usvm.machine.IlContext
 
 class IlTestExecutorDecoderApi(val ctx: IlContext): DecoderApi<IlTestExpr> {
-    private val publication = ctx.publication
     private val arrangeStmts = mutableListOf<IlTestStmt>()
 
     fun arrangeStmts(): List<IlTestStmt> = arrangeStmts
