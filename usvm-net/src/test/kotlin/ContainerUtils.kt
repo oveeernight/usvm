@@ -1,15 +1,16 @@
-import org.example.ilinstances.IlMethod
 import org.jacodb.api.net.IlPublication
+import org.jacodb.api.net.ilinstances.IlMethod
 import java.io.File
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.javaConstructor
 
-fun getPublicationAssembly(samplesPath: String) : List<File> = TODO()
+//fun getPublicationAssembly(samplesPath: String) : List<File> = TODO()
 
-fun IlPublication.getMethodByName(f: KFunction<*>): IlMethod =
-    findIlTypeOrNull(f.declaringClass().name)!!.methods.find { it.name == f.name }!!
+fun IlPublication.getMethodByName(f: KFunction<*>): IlMethod{
+    val name = f.declaringClass.name
+    return findIlTypeOrNull(name)!!.methods.find { it.name.lowercase() == f.name.lowercase() }!!
+}
 
 
-fun KFunction<*>.declaringClass(): Class<*> =
-    (javaMethod ?: javaConstructor)?.declaringClass!!
+private val KFunction<*>.declaringClass: Class<*>  get() = (javaMethod ?: javaConstructor)?.declaringClass!!

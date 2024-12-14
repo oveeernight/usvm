@@ -18,7 +18,7 @@ import org.usvm.solver.USatResult
 
 typealias IlStepScope = StepScope<IlState, IlType, IlStmt, IlContext>
 
-
+@Suppress("UNUSED_PARAMETER")
 class IlInterpreter(
     private val ctx: IlContext,
     private val appGraph: IlApplicationGraph,
@@ -109,7 +109,7 @@ class IlInterpreter(
     }
 
     private fun visitTransparentCall(scope: IlStepScope, stmt: TransparentMethodCallBaseStmt) {
-        val resolver = mkExprResolver(scope)
+//        val resolver = mkExprResolver(scope)
         when (stmt) {
             is IlMethodEntryPointStmt -> {
                 // TODO init statics someday
@@ -170,8 +170,8 @@ class IlInterpreter(
     }
 
     private fun visitThrowStmt(scope: IlStepScope, stmt: IlThrowStmt) {
-        val resolver = mkExprResolver(scope)
-        val exception = resolver.resolve(stmt.value)?.asExpr(ctx.addressSort) ?: return
+//        val resolver = mkExprResolver(scope)
+//        val exception = resolver.resolve(stmt.value)?.asExpr(ctx.addressSort) ?: return
         scope.doWithState {
             throwException(stmt.value.type, callStack.stackTrace(currentStatement).last())
         }

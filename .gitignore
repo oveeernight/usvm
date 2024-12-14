@@ -18,3 +18,6 @@ run_python_with_gdb.sh
 
 # Ignore Kotlin build directory
 .kotlin/
+
+usvm-net/src/test/dotnet/samples/obj
+usvm-net/src/test/dotnet/samples/bin
