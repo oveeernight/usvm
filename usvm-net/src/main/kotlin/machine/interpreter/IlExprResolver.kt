@@ -97,9 +97,12 @@ class IlExprResolver(
         val len = UArrayLengthLValue(arrayRef, arrayType, sizeSort).let {
             scope.calcOnState { memory.read(it) }
         }
-        checkArrayIndexBounds(index, len)
+
         val maxArrayLengthConstr = mkBvUnsignedLessExpr(len, machineOptions.maxArraySize.toBv(sizeSort))
         scope.assert(maxArrayLengthConstr)
+
+        checkArrayIndexBounds(index, len)
+
 
         val lvalue = UArrayIndexLValue(typeToSort(elementType), arrayRef, index, arrayType)
         lvalue
@@ -116,7 +119,9 @@ class IlExprResolver(
         TODO("static fields")
     }
 
+    @Suppress("UNREACHABLE_CODE")
     private fun checkNullPointer(ref: UHeapRef) = with(ctx) {
+        return@with
         val constr = ref neq nullRef
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(

@@ -4,7 +4,6 @@ import org.jacodb.api.net.core.IlConstVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.usvm.UConcreteHeapRef
 import org.usvm.UExpr
-import org.usvm.UHeapRef
 import org.usvm.USort
 import org.usvm.api.allocateArrayInitialized
 import org.usvm.collection.field.UFieldLValue
@@ -45,20 +44,20 @@ class IlConstResolver(
     }
 
     override fun visitIlInt8Const(const: IlInt8Constant): UExpr<out USort> = with(ctx) {
-        mkBv(const.value, byteSort)
+        mkBv(const.value, int8sort)
     }
 
 
     override fun visitIlInt16Const(const: IlInt16Constant): UExpr<out USort> = with(ctx) {
-        mkBv(const.value, byteSort)
+        mkBv(const.value, int16sort)
     }
 
     override fun visitIlInt32Const(const: IlInt32Constant): UExpr<out USort> = with(ctx) {
-        mkBv(const.value, byteSort)
+        mkBv(const.value, int32sort)
     }
 
     override fun visitIlInt64Const(const: IlInt64Constant): UExpr<out USort> = with(ctx) {
-        mkBv(const.value, byteSort)
+        mkBv(const.value, int64sort)
     }
 
     override fun visitIlUInt8Const(const: IlUInt8Constant): UExpr<out USort> = with(ctx) {

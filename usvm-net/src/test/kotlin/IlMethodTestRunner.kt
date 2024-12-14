@@ -25,7 +25,8 @@ open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTy
         val machineOptions = UMachineOptions()
         val ilOptions = IlMachineOptions()
         val machine = IlMachine(publication, machineOptions, ilOptions)
-        machine.analyze(listOf(ilMethod))
+        val states = machine.analyze(listOf(ilMethod))
+        println(states)
     }
 
     companion object {
