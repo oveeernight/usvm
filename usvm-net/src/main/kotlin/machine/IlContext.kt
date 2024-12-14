@@ -15,16 +15,16 @@ import org.usvm.USort
 typealias USizeSort = UBv32Sort
 
 class IlContext(val publication: IlPublication, components: IlComponents) : UContext<USizeSort>(components) {
-    val boolType by lazy { findTypeOrReportAbsence("Bool") }
+    val boolType by lazy { findTypeOrReportAbsence("Boolean") }
     val charType by lazy { findTypeOrReportAbsence("Char") }
     val int8Type by lazy { findTypeOrReportAbsence("SByte") }
-    val int16Type by lazy {findTypeOrReportAbsence("Short") }
-    val int32Type by lazy { findTypeOrReportAbsence("Int") }
-    val int64Type by lazy { findTypeOrReportAbsence("Long") }
+    val int16Type by lazy { findTypeOrReportAbsence("Int16") }
+    val int32Type by lazy { findTypeOrReportAbsence("Int32") }
+    val int64Type by lazy { findTypeOrReportAbsence("Int64") }
     val uint8Type by lazy { findTypeOrReportAbsence("Byte") }
-    val uint16Type by lazy { findTypeOrReportAbsence("UShort") }
-    val uint32Type by lazy { findTypeOrReportAbsence("UInt") }
-    val uint64Type by lazy { findTypeOrReportAbsence("ULong") }
+    val uint16Type by lazy { findTypeOrReportAbsence("UInt16") }
+    val uint32Type by lazy { findTypeOrReportAbsence("UInt32") }
+    val uint64Type by lazy { findTypeOrReportAbsence("UInt64") }
     val floatType by lazy { findTypeOrReportAbsence("Float") }
     val doubleType by lazy { findTypeOrReportAbsence("Double") }
     val stringType by lazy { findTypeOrReportAbsence("String") }
@@ -32,10 +32,11 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val objectType by lazy { findTypeOrReportAbsence("Object") }
     val systemType by lazy { findTypeOrReportAbsence("Type") }
 
-    val byteSort = bv8Sort
+    val int8sort = bv8Sort
     val charSort = bv16Sort
-    val shortSort = bv16Sort
-    val longSort = bv64Sort
+    val int16sort = bv16Sort
+    val int32sort = bv32Sort
+    val int64sort = bv64Sort
     val floatSort = fp32Sort
     val doubleSort = fp64Sort
     val voidSort by lazy { VoidSort(this) }
@@ -49,7 +50,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val void by lazy { VoidValue(this) }
 
     // TODO should be removed
-    val mockType = findTypeOrReportAbsence("Mock")
+//    val mockType = findTypeOrReportAbsence("Mock")
 
     val syntheticTypeField : IlField by lazy {
         val dto = IlFieldDto(
@@ -67,10 +68,10 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
         return when (type) {
             boolType -> boolSort
             charType -> charSort
-            int8Type -> byteSort
-            int16Type -> shortSort
+//            int8Type -> byteSort
+            int16Type -> int16sort
             int32Type -> sizeSort
-            int64Type -> longSort
+            int64Type -> int64sort
             else -> addressSort
         }
     }
@@ -88,18 +89,20 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
         return findTypeOrReportAbsence("${elemType.fullname}[]") as IlArrayType
     }
 
-    val indexOutOfRangeException: IlType = findTypeOrReportAbsence(indexOutOfRangeExceptionName)
-    val nullReferenceException: IlType = findTypeOrReportAbsence(nullReferenceExceptionName)
-    val invalidCastException: IlType = findTypeOrReportAbsence(invalidCastExceptionName)
+    val indexOutOfRangeException: IlType by lazy { findTypeOrReportAbsence(indexOutOfRangeExceptionName) }
+    val nullReferenceException: IlType by lazy { findTypeOrReportAbsence(nullReferenceExceptionName) }
+    val invalidCastException: IlType by lazy { findTypeOrReportAbsence(invalidCastExceptionName) }
 
     private fun findTypeOrReportAbsence(typeName: String): IlType =
-        publication.findIlTypeOrNull(typeName) ?: error("$typeName was not found in publication")
+        publication.findIlTypeOrNull("${SYSTEM_PREFIX}${typeName}") ?: error("$typeName was not found in publication")
 
+    // TODO fix
     fun isPrimitiveType(type: IlType): Boolean =
-        type == int8Type || type == int16Type || type == int32Type || type == int64Type || type == charType || type == boolType
+        type == uint8Type || type == int32Type || type == int64Type || type == charType || type == boolType
 
 }
 
-const val indexOutOfRangeExceptionName = "System.IndexOutOfRangeException"
-const val nullReferenceExceptionName = "System.NullReferenceException"
-const val invalidCastExceptionName = "System.InvalidCastException"
+private val SYSTEM_PREFIX = "System."
+const val indexOutOfRangeExceptionName = "IndexOutOfRangeException"
+const val nullReferenceExceptionName = "NullReferenceException"
+const val invalidCastExceptionName = "InvalidCastException"

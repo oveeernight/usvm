@@ -37,7 +37,7 @@ class IlInterpreter(
         when (local) {
             is IlArgument -> methodLocals.getOrPut(method) {
                 mutableMapOf()
-            }.getOrPut(local.name) { method.toLocalIdx(local.index) } to local.type
+            }.getOrPut(local.name) { local.index } to local.type
 
             is IlLocalVar -> (method.paramsWithThisCount() + local.index) to local.type
 
@@ -54,11 +54,11 @@ class IlInterpreter(
 
         with(ctx) {
             // TODO type constraints on abstract
-            if (!method.isStatic) {
-                val thisLValue = URegisterStackLValue(addressSort, 0)
-                val ref = state.memory.read(thisLValue).asExpr(addressSort)
-                state.pathConstraints += ref neq nullRef
-            }
+//            if (!method.isStatic) {
+//                val thisLValue = URegisterStackLValue(addressSort, 0)
+//                val ref = state.memory.read(thisLValue).asExpr(addressSort)
+//                state.pathConstraints += ref neq nullRef
+//            }
             val entrypointArgs = mutableListOf<Pair<IlType, UHeapRef>>()
 
             method.parameters.forEachIndexed { idx, param ->
@@ -66,8 +66,8 @@ class IlInterpreter(
                 if (!isPrimitiveType(type)) {
                     val paramLValue = URegisterStackLValue(typeToSort(type), method.toLocalIdx(idx))
                     val paramRValue = state.memory.read(paramLValue).asExpr(addressSort)
-                    val constr = ctx.mkIsSubtypeExpr(paramRValue, param.type)
-                    state.pathConstraints += constr
+//                    val constr = ctx.mkIsSubtypeExpr(paramRValue, param.type)
+//                    state.pathConstraints += constr
                     entrypointArgs += type to paramRValue
                 }
             }
@@ -89,6 +89,9 @@ class IlInterpreter(
     override fun step(state: IlState): StepResult<IlState> {
         val stmt = state.currentStatement
         val scope = IlStepScope(state, forkBlackList)
+        //TODO  handle exceptions
+//        if (state.methodResult is IlMethodResult.Exception) return scope.stepResult()
+
         when (stmt) {
             is TransparentMethodCallBaseStmt -> visitTransparentCall(scope, stmt)
             is IlAssignStmt -> visitAssignStmt(scope, stmt)
@@ -127,6 +130,8 @@ class IlInterpreter(
         val resolver = mkExprResolver(scope)
         val lvalue = resolver.resolveLValue(stmt.lhv) ?: return
         val rvalue = resolver.resolve(stmt.rhv) ?: return
+
+        // TODO check array store exception (inappropriate subtype, sort, etc)
         scope.doWithState {
             memory.write(lvalue, rvalue)
             newStmt(stmt.next())

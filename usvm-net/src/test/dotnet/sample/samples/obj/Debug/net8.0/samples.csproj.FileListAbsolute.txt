@@ -1,0 +1,12 @@
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Debug/net8.0/samples.deps.json
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Debug/net8.0/samples.dll
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Debug/net8.0/samples.pdb
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/obj/Debug/net8.0/samples.GeneratedMSBuildEditorConfig.editorconfig
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/obj/Debug/net8.0/samples.AssemblyInfoInputs.cache
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/obj/Debug/net8.0/samples.AssemblyInfo.cs
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/obj/Debug/net8.0/samples.csproj.CoreCompileInputs.cache
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/obj/Debug/net8.0/samples.sourcelink.json
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/obj/Debug/net8.0/samples.dll
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/obj/Debug/net8.0/refint/samples.dll
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/obj/Debug/net8.0/samples.pdb
+/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/obj/Debug/net8.0/ref/samples.dll
