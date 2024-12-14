@@ -9,7 +9,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.20")
 
     testImplementation(kotlin("test"))
-    implementation("com.github.petrukhinandrew:jacodb:36fa9cbb85724446510054ba641bcb1bcf5e50d7")
+    implementation("com.github.petrukhinandrew:jacodb:e84e4996aaf68619df2f3aaa0820e7fa66a2cded")
 }
 
 

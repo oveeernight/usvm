@@ -2,11 +2,13 @@ package org.usvm.machine.interpreter
 
 import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.*
+import org.jacodb.api.net.ilinstances.impl.IlMethodImpl
 import org.jacodb.api.net.ilinstances.impl.IlReferenceType
 import org.usvm.*
 import org.usvm.api.allocateStaticRef
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.forkblacklists.UForkBlackList
+import org.usvm.machine.IlApplicationGraph
 import org.usvm.machine.IlContext
 import org.usvm.machine.IlMachineOptions
 import org.usvm.machine.state.*
@@ -19,6 +21,7 @@ typealias IlStepScope = StepScope<IlState, IlType, IlStmt, IlContext>
 
 class IlInterpreter(
     private val ctx: IlContext,
+    private val appGraph: IlApplicationGraph,
     private val ilOptions: IlMachineOptions,
     val forkBlackList: UForkBlackList<IlState, IlStmt> = UForkBlackList.createDefault()
 ) : UInterpreter<IlState>() {
@@ -34,7 +37,7 @@ class IlInterpreter(
         when (local) {
             is IlArgument -> methodLocals.getOrPut(method) {
                 mutableMapOf()
-            }.getOrPut(local.name) { 0 } to local.type
+            }.getOrPut(local.name) { method.toLocalIdx(local.index) } to local.type
 
             is IlLocalVar -> (method.paramsWithThisCount() + local.index) to local.type
 
@@ -50,18 +53,18 @@ class IlInterpreter(
         val state = IlState(ctx, initOwnership, method)
 
         with(ctx) {
-            val thisLValue = URegisterStackLValue(addressSort, 0)
-            val ref = state.memory.read(thisLValue).asExpr(addressSort)
-            state.pathConstraints += ref neq nullRef
             // TODO type constraints on abstract
-
-
+            if (!method.isStatic) {
+                val thisLValue = URegisterStackLValue(addressSort, 0)
+                val ref = state.memory.read(thisLValue).asExpr(addressSort)
+                state.pathConstraints += ref neq nullRef
+            }
             val entrypointArgs = mutableListOf<Pair<IlType, UHeapRef>>()
 
             method.parameters.forEachIndexed { idx, param ->
                 val type = param.type
-                if (type is IlReferenceType) {
-                    val paramLValue = URegisterStackLValue(typeToSort(type), idx + 1)
+                if (!isPrimitiveType(type)) {
+                    val paramLValue = URegisterStackLValue(typeToSort(type), method.toLocalIdx(idx))
                     val paramRValue = state.memory.read(paramLValue).asExpr(addressSort)
                     val constr = ctx.mkIsSubtypeExpr(paramRValue, param.type)
                     state.pathConstraints += constr
@@ -74,10 +77,13 @@ class IlInterpreter(
             state.models = listOf(model)
 
             state.callStack.push(method, returnSite = null)
-//            state.memory.stack.push(method.parameters.size, method.locals.size)
-
-            TODO()
+            method as? IlMethodImpl ?: error("Unexpected method type for now")
+            val localsSize = method.locals.size + method.temps.size + method.errs.size
+            state.memory.stack.push(method.parameters.size, localsSize)
+            state.newStmt(IlMethodEntryPointStmt(method, entrypointArgs))
         }
+
+        return state
     }
 
     override fun step(state: IlState): StepResult<IlState> {
@@ -105,10 +111,15 @@ class IlInterpreter(
     private fun visitTransparentCall(scope: IlStepScope, stmt: TransparentMethodCallBaseStmt) {
         val resolver = mkExprResolver(scope)
         when (stmt) {
+            is IlMethodEntryPointStmt -> {
+                // TODO init statics someday
+                scope.doWithState { newStmt(appGraph.entryPoints(stmt.method).first()) }
+            }
+
             is IlConcreteCallStmt -> {
                 scope.doWithState { callMethod(stmt.method, stmt.args, stmt.returnSite) }
             }
-            else -> TODO()
+            else -> error("visitTransparentCall: unexpected call ${stmt.method}")
         }
     }
 
@@ -118,7 +129,7 @@ class IlInterpreter(
         val rvalue = resolver.resolve(stmt.rhv) ?: return
         scope.doWithState {
             memory.write(lvalue, rvalue)
-//            newStmt(stmt.next(scope))
+            newStmt(stmt.next())
         }
 
         // TODO handle calls in rhs when cfg will be available
@@ -126,19 +137,19 @@ class IlInterpreter(
 
     private fun visitGotoStmt(scope: IlStepScope, stmt: IlGotoStmt) {
         scope.doWithState {
-//            val lastMethod = callStack.lastMethod().
-//            newStmt(callStack.lastMethod().raw stmt.target)
+            val target = stmt.method.instList[stmt.target]
+            newStmt(target)
         }
     }
 
     private fun visitIfStmt(scope: IlStepScope, stmt: IlIfStmt) {
         val resolver = mkExprResolver(scope)
         val condition = resolver.resolve(stmt.condition)?.asExpr(ctx.boolSort) ?: return
-        val (posStmt, negStmt) = stmt.target to stmt.next(scope)
-//        scope.forkWithBlackList(condition, posStmt, negStmt,
-//            blockOnTrueState = { newStmt(posStmt) },
-//            blockOnFalseState = { newStmt(negStmt) }
-//        )
+        val (posStmt, negStmt) = stmt.method.instList[stmt.target] to stmt.next()
+        scope.forkWithBlackList(condition, posStmt, negStmt,
+            blockOnTrueState = { newStmt(posStmt) },
+            blockOnFalseState = { newStmt(negStmt) }
+        )
     }
 
     private fun visitCallStmt(scope: IlStepScope, stmt: IlCallStmt) {
@@ -162,7 +173,7 @@ class IlInterpreter(
         val resolver = mkExprResolver(scope)
         val exception = resolver.resolve(stmt.value)?.asExpr(ctx.addressSort) ?: return
         scope.doWithState {
-            throwException(ctx.mockType, callStack.stackTrace(currentStatement).last())
+            throwException(stmt.value.type, callStack.stackTrace(currentStatement).last())
         }
 
     }
@@ -183,13 +194,8 @@ class IlInterpreter(
         TODO()
     }
 
-    //TODO inefficient
-    private fun IlStmt.next(stepScope: IlStepScope) = stepScope.calcOnState {
-        val method = callStack.lastMethod()
-//        val body = method.body
-//        val currIndex = body.indexOf(this@next)
-//        body[currIndex + 1]
-    }
+    //TODO inefficient?
+    private fun IlStmt.next() : IlStmt = location.method.instList[location.index + 1]
 
     private fun mkExprResolver(scope: IlStepScope) =
         IlExprResolver(ctx, scope, ilOptions, strings, ::typesAlloactor, ::mapMethodLocals)

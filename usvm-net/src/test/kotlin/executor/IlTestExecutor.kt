@@ -40,7 +40,4 @@ private class MemoryScope(
     }
 }
 
-class IlTest(
-    val arrange: List<IlTestStmt>,
-    val callMethod: IlTestExpr
-)
+class IlTest(val arrange: List<IlTestStmt>, val callMethod: IlTestExpr)

@@ -7,9 +7,7 @@ import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
-import org.jacodb.api.net.ilinstances.impl.IlReferenceType
 import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
-import org.jacodb.api.net.publication.IlPredefinedTypesExt.int32
 import org.usvm.UBv32Sort
 import org.usvm.UContext
 import org.usvm.USort
@@ -36,6 +34,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     val byteSort = bv8Sort
     val charSort = bv16Sort
+    val shortSort = bv16Sort
     val longSort = bv64Sort
     val floatSort = fp32Sort
     val doubleSort = fp64Sort
@@ -49,6 +48,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     val void by lazy { VoidValue(this) }
 
+    // TODO should be removed
     val mockType = findTypeOrReportAbsence("Mock")
 
     val syntheticTypeField : IlField by lazy {
@@ -63,10 +63,15 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     }
 
     fun typeToSort(type: IlType): USort {
-        TODO()
-        when (type) {
-            is IlReferenceType -> addressSort
-            // TODO predefined primitives
+        // TODO unsigned
+        return when (type) {
+            boolType -> boolSort
+            charType -> charSort
+            int8Type -> byteSort
+            int16Type -> shortSort
+            int32Type -> sizeSort
+            int64Type -> longSort
+            else -> addressSort
         }
     }
 
@@ -90,7 +95,8 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     private fun findTypeOrReportAbsence(typeName: String): IlType =
         publication.findIlTypeOrNull(typeName) ?: error("$typeName was not found in publication")
 
-    private fun isPrimitiveType(type: IlType): Boolean = TODO()
+    fun isPrimitiveType(type: IlType): Boolean =
+        type == int8Type || type == int16Type || type == int32Type || type == int64Type || type == charType || type == boolType
 
 }
 

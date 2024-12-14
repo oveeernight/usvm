@@ -1,8 +1,5 @@
 package executor
 
-import org.jacodb.api.net.ilinstances.IlField
-import org.jacodb.api.net.ilinstances.IlMethod
-import org.jacodb.api.net.ilinstances.IlType
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -15,6 +12,9 @@ data class TypeRepr(val asm: String, val moduleToken: Int, val typeToken: Int, v
 
 @Serializable
 data class MethodRepr(val declType: TypeRepr, val signature: String, val name: String)
+
+@Serializable
+data class FieldRepr(val type: TypeRepr, val name: String)
 
 enum class StmtKind {
     BOOL, CHAR, INT8, INT16, INT32, INT64, UINT8, UINT16, UINT32, UINT64, FLOAT, DOUBLE,
@@ -141,7 +141,7 @@ sealed interface ArrangeStmt : IlTestStmt {
     class SetObjectField(
         override val kind: StmtKind,
         override val instance: IlTestExpr,
-        val field: IlField,
+        val field: FieldRepr,
         val value: IlTestExpr
     ) : ArrangeStmt
 }

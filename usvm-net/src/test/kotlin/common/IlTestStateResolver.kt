@@ -181,5 +181,4 @@ abstract class IlTestStateResolver<T>(
     }
 
     private enum class ResolveMode { MODEL, STATE_MEMORY }
-
 }

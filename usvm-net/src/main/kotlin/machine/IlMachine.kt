@@ -18,8 +18,9 @@ class IlMachine(
     private val ilOptions: IlMachineOptions) : UMachine<IlState>() {
     private val components = IlComponents()
     private val ctx = IlContext(publication, components)
-    private val interpreter = IlInterpreter(ctx, ilOptions, UForkBlackList.createDefault())
-    private val applicationGraph = IlApplicationGraph(publication)
+    private val applicationGraph = IlApplicationGraph()
+    private val interpreter = IlInterpreter(ctx, applicationGraph,  ilOptions, UForkBlackList.createDefault())
+
 
     fun analyze(methods: List<IlMethod>): List<IlState> {
         val initialStates = mutableMapOf<IlMethod, IlState>()
