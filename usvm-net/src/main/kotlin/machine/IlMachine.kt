@@ -15,7 +15,8 @@ import org.usvm.statistics.collectors.AllStatesCollector
 class IlMachine(
     publication: IlPublication,
     private val options: UMachineOptions,
-    private val ilOptions: IlMachineOptions) : UMachine<IlState>() {
+    private val ilOptions: IlMachineOptions
+) : UMachine<IlState>() {
     private val components = IlComponents()
     private val ctx = IlContext(publication, components)
     private val applicationGraph = IlApplicationGraph()
