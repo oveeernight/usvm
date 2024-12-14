@@ -3,6 +3,7 @@ package org.usvm.machine.interpreter
 import io.ksmt.utils.asExpr
 import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
+import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.usvm.*
 import org.usvm.api.allocateArray
 import org.usvm.collection.array.UArrayIndexLValue
@@ -15,6 +16,7 @@ import org.usvm.machine.state.insertConcreteCallStmt
 import org.usvm.machine.state.throwException
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
+import kotlin.math.exp
 
 class IlExprResolver(
     val ctx: IlContext,
@@ -27,7 +29,7 @@ class IlExprResolver(
 
     private val constResolver = IlConstResolver(ctx, scope, getOrMkStringConst, getOrMkTypeRef)
 
-    fun resolve(expr: IlExpr, type: IlType = ctx.mockType) : UExpr<out USort>? = expr.accept(this)
+    fun resolve(expr: IlExpr, type: IlType = expr.type) : UExpr<out USort>? = expr.accept(this)
 
     override fun visitIlNullConst(const: IlNull): UExpr<out USort> = constResolver.visitIlNullConst(const)
     override fun visitIlStringConst(const: IlStringConstant): UExpr<out USort> = constResolver.visitIlStringConst(const)
@@ -57,6 +59,11 @@ class IlExprResolver(
         return scope.calcOnState { memory.read(key) }
     }
 
+    override fun visitIlTempVar(expr: IlTempVar): UExpr<out USort> {
+        val key = localVarToLValue(expr)
+        return scope.calcOnState { memory.read(key) }
+    }
+
     override fun visitIlLocalVar(expr: IlLocalVar): UExpr<out USort>? {
         val key = localVarToLValue(expr)
         return scope.calcOnState { memory.read(key) }
@@ -80,20 +87,21 @@ class IlExprResolver(
     }
 
     private fun arrayAccessToLValue(expr: IlArrayAccess): UArrayIndexLValue<*, *, *>? = with(ctx) {
-        val arrayRef = expr.array.accept(this@IlExprResolver)?.asExpr(addressSort) ?: return null
+        val elementType = (expr.array.type as IlArrayType).elementType
+        val arrayRef = resolve(expr.array)?.asExpr(addressSort) ?: return null
         checkNullPointer(arrayRef)
 
-        val index = expr.index.accept(this@IlExprResolver)?.asExpr(sizeSort) ?: return null
+        val index = resolve(expr.index)?.asExpr(sizeSort) ?: return null
 
-        val arrayType = ctx.mockType
+        val arrayType = ctx.arrayDescriptorOf(expr.array.type as IlArrayType)
         val len = UArrayLengthLValue(arrayRef, arrayType, sizeSort).let {
             scope.calcOnState { memory.read(it) }
         }
         checkArrayIndexBounds(index, len)
-        val boundConstr = mkBvUnsignedLessExpr(len, machineOptions.maxArraySize.toBv(sizeSort))
-        scope.assert(boundConstr)
+        val maxArrayLengthConstr = mkBvUnsignedLessExpr(len, machineOptions.maxArraySize.toBv(sizeSort))
+        scope.assert(maxArrayLengthConstr)
 
-        val lvalue = UArrayIndexLValue(typeToSort(mockType), arrayRef, index, arrayType)
+        val lvalue = UArrayIndexLValue(typeToSort(elementType), arrayRef, index, arrayType)
         lvalue
     }
 
@@ -101,10 +109,9 @@ class IlExprResolver(
         val fieldIsStatic = expr.instance == null
         val field = expr.field
         if (!fieldIsStatic) {
-            val instance = expr.instance!!.accept(this)?.asExpr(ctx.addressSort) ?: return null
+            val instance = resolve(expr.instance!!)?.asExpr(ctx.addressSort) ?: return null
             checkNullPointer(instance)
-            val flv = UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
-            return flv
+            return UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
         }
         TODO("static fields")
     }
@@ -148,9 +155,10 @@ class IlExprResolver(
     }
 
     override fun visitIlArrayLength(expr: IlArrayLengthExpr): UExpr<out USort>? {
-        val arrayRef = expr.array.accept(this)?.asExpr(ctx.addressSort) ?: return null
+        val arrayRef = resolve(expr.array)?.asExpr(ctx.addressSort) ?: return null
         checkNullPointer(arrayRef)
-        val key = UArrayLengthLValue(arrayRef, ctx.mockType, ctx.sizeSort)
+        val arrayDesc = ctx.arrayDescriptorOf(expr.array.type as IlArrayType)
+        val key = UArrayLengthLValue(arrayRef, arrayDesc, ctx.sizeSort)
         return scope.calcOnState { memory.read(key) }
     }
 
@@ -169,7 +177,7 @@ class IlExprResolver(
         val args = expr.args
         val method = expr.method
         val params = method.parameters
-        val (instance, funArgs) = if (true) {
+        val (instance, funArgs) = if (method.isStatic) {
             args[0] to args.subList(1, args.size)
         } else {
             null to args
@@ -214,8 +222,8 @@ class IlExprResolver(
     }
 
     override fun visitIlConvExpr(expr: IlConvCastExpr): UExpr<out USort>? = scope.calcOnState {
-        val e = expr.operand.accept(this@IlExprResolver)?.asExpr(ctx.addressSort) ?: return@calcOnState null
-        val currType = ctx.mockType
+        val e = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@calcOnState null
+        val currType = expr.type
         val expectedType = expr.expectedType
         if (!ctx.typeSystem<IlType>().isSupertype(supertype = expectedType, type = currType)){
             checkClassCast(e, expectedType)
@@ -275,10 +283,6 @@ class IlExprResolver(
 
     override fun visitIlStackAllocExpr(expr: IlStackAllocExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
-    }
-
-    override fun visitIlTempVar(expr: IlTempVar): UExpr<out USort>? {
-        TODO("will be removed")
     }
 
     override fun visitIlUnaryOp(expr: IlUnaryOp): UExpr<out USort>? {

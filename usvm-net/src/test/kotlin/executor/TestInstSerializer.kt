@@ -8,7 +8,7 @@ class SerializationContext {
     val serializationCache = mutableMapOf<IlTestStmt, StmtId>()
 }
 
-class TestInstSerializer(private val ctx: IlContext) {
+class TestInнstSerializer(private val ctx: IlContext) {
     val context = SerializationContext()
 
     private val defaultPath = ""
