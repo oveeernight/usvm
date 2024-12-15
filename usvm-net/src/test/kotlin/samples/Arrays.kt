@@ -9,4 +9,9 @@ class Arrays : IlMethodTestRunner() {
     fun arrayStore() {
         runMethod(method = ::arrayStore)
     }
+
+    @Test
+    fun arraySimpleBranch() {
+        runMethod(method = ::arraySimpleBranch)
+    }
 }
