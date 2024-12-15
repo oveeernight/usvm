@@ -1,22 +1,28 @@
 package executor
 
 import common.IlTestStateResolver
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.machine.IlContext
+import org.usvm.machine.logger
 import org.usvm.machine.state.IlState
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.UModelBase
 
 class IlTestExecutor(val state: IlState, val method: IlMethod) {
 //    private val runner = ConcreteTestRunner()
-    fun execute() {
+@OptIn(ExperimentalSerializationApi::class)
+fun execute() {
         val model = state.models.first()
         val memory = state.memory
 
         val scope = MemoryScope(state.ctx, method, model, memory)
         val test = scope.createTest()
-        println(test)
+        logger.info  {"Test serialized: ${prettyJson.encodeToString(test)}"  }
 //        runner.run(test)
     }
 
@@ -40,4 +46,11 @@ private class MemoryScope(
     }
 }
 
+@Serializable
 class IlTest(val arrange: List<IlTestStmt>, val callMethod: IlTestExpr)
+
+@ExperimentalSerializationApi
+private val prettyJson = Json {
+    prettyPrint = true
+    prettyPrintIndent = " "
+}

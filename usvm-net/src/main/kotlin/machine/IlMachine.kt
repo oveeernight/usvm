@@ -1,5 +1,6 @@
 package org.usvm.machine
 
+import mu.KLogging
 import org.jacodb.api.net.IlPublication
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.usvm.UMachine
@@ -9,9 +10,10 @@ import org.usvm.machine.interpreter.IlInterpreter
 import org.usvm.machine.interpreter.IlMethodResult
 import org.usvm.ps.createPathSelector
 import org.usvm.machine.state.IlState
-import org.usvm.statistics.ApplicationGraph
 import org.usvm.statistics.TimeStatistics
 import org.usvm.statistics.collectors.AllStatesCollector
+
+val logger = object : KLogging() {}.logger
 
 class IlMachine(
     publication: IlPublication,

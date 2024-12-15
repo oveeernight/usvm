@@ -4,14 +4,17 @@ import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
-import org.jacodb.api.net.ilinstances.impl.IlPrimitiveType
-import org.jacodb.api.net.ilinstances.impl.IlReferenceType
-import org.usvm.*
+import org.usvm.UConcreteHeapAddress
+import org.usvm.UExpr
+import org.usvm.UHeapRef
+import org.usvm.USort
+import org.usvm.UConcreteHeapRef
+import org.usvm.NULL_ADDRESS
+import org.usvm.INITIAL_STATIC_ADDRESS
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.IlContext
-import org.usvm.machine.state.toLocalIdx
 import org.usvm.machine.tryBool
 import org.usvm.machine.tryInt16
 import org.usvm.machine.tryInt32
@@ -24,7 +27,6 @@ import org.usvm.memory.ULValue
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.memory.URegisterStackLValue
 import org.usvm.model.UModelBase
-import org.usvm.types.single
 
 abstract class IlTestStateResolver<T>(
     val ctx: IlContext,
@@ -44,7 +46,7 @@ abstract class IlTestStateResolver<T>(
             ResolveMode.STATE_MEMORY -> stateMemory
         }
 
-    fun <Sort: USort> resolve(expr: UExpr<Sort>, type: IlType): T {
+    fun <Sort: USort> resolve(expr: UExpr<out Sort>, type: IlType): T {
         return when {
             ctx.isPrimitiveType(type) -> resolvePrimitive(expr, type)
             else -> resolveReference(expr.asExpr(ctx.addressSort), type)
