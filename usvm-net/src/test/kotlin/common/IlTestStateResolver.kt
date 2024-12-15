@@ -6,13 +6,7 @@ import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.jacodb.api.net.ilinstances.impl.IlPrimitiveType
 import org.jacodb.api.net.ilinstances.impl.IlReferenceType
-import org.usvm.UConcreteHeapAddress
-import org.usvm.UExpr
-import org.usvm.UHeapRef
-import org.usvm.USort
-import org.usvm.UConcreteHeapRef
-import org.usvm.isStatic
-import org.usvm.INITIAL_INPUT_ADDRESS
+import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
@@ -51,10 +45,10 @@ abstract class IlTestStateResolver<T>(
         }
 
     fun <Sort: USort> resolve(expr: UExpr<Sort>, type: IlType): T {
-        return when (type) {
-            is IlPrimitiveType -> resolvePrimitive(expr, type)
-            is IlReferenceType -> resolveReference(expr.asExpr(ctx.addressSort), type)
-            else -> error("Unexpected type ${type.name}")
+        return when {
+            ctx.isPrimitiveType(type) -> resolvePrimitive(expr, type)
+            else -> resolveReference(expr.asExpr(ctx.addressSort), type)
+//            else -> error("Unexpected type ${type.name}")
         }
     }
 
@@ -75,14 +69,14 @@ abstract class IlTestStateResolver<T>(
 
     protected fun resolveArgs(): List<T> =
         method.parameters.mapIndexed { i, param ->
-            URegisterStackLValue(ctx.typeToSort(param.type), method.toLocalIdx(i)).let { resolveLValue(it, param.type) }
+            URegisterStackLValue(ctx.typeToSort(param.type), i).let { resolveLValue(it, param.type) }
         }
 
     private fun <Sort: USort> resolvePrimitive(expr: UExpr<Sort>, type: IlType): T = with(ctx) {
         when (type) {
             boolType -> decoderApi.createBoolConst(resolveBool(expr))
             charType -> decoderApi.createCharConst(resolveChar(expr))
-            int8Type -> decoderApi.createInt8Const(resolveInt8(expr))
+//            int8Type -> decoderApi.createInt8Const(resolveInt8(expr))
             int16Type -> decoderApi.createInt16Const(resolveInt16(expr))
             int32Type -> decoderApi.createInt32Const(resolveInt32(expr))
             int64Type -> decoderApi.createInt64Const(resolveInt64(expr))
@@ -104,14 +98,18 @@ abstract class IlTestStateResolver<T>(
     private fun resolveReference(heapRef: UHeapRef, type: IlType): T {
         val evaledRef = model.eval(heapRef) as UConcreteHeapRef
 
-        val types = if (evaledRef.isStatic) {
-            memory.types.getTypeStream(evaledRef)
-        } else {
-            assert(evaledRef.address <= INITIAL_INPUT_ADDRESS)
-            model.types.getTypeStream(evaledRef)
-        }.filterBySupertype(type)
+        if (evaledRef.address == NULL_ADDRESS) {
+            return decoderApi.createNullConst(type)
+        }
 
-        val runtimeType = types.single()
+//        val types = if (evaledRef.isStatic) {
+//            memory.types.getTypeStream(evaledRef)
+//        } else {
+//            assert(evaledRef.address <= INITIAL_INPUT_ADDRESS)
+//            model.types.getTypeStream(evaledRef)
+//        }.filterBySupertype(type)
+
+        val runtimeType = type
 
         return resolveCyclic(evaledRef, runtimeType) {
             when (runtimeType) {
@@ -128,6 +126,7 @@ abstract class IlTestStateResolver<T>(
     }
 
     private fun resolveArray(heapRef: UHeapRef, evaledRef: UConcreteHeapRef, type: IlArrayType): T {
+        val memory = memoryToRead(evaledRef)
         val descriptor = ctx.arrayDescriptorOf(type)
         val elemType = type.elementType
         val sort = ctx.typeToSort(elemType)
@@ -167,6 +166,7 @@ abstract class IlTestStateResolver<T>(
     private fun resolveObject(heapRef: UHeapRef, evaledRef: UConcreteHeapRef, type: IlType): T {
         val obj = decoderApi.createObject(type, evaledRef.address)
         for (field in type.fields) {
+            val memory = memoryToRead(evaledRef)
             val fieldSort = ctx.typeToSort(field.fieldType)
             val fieldKey = UFieldLValue(fieldSort, heapRef, field)
             val resolvedValue = resolve(memory.read(fieldKey), field.fieldType)
@@ -179,6 +179,9 @@ abstract class IlTestStateResolver<T>(
     private fun <Sort: USort> evalExpr(expr: UExpr<Sort>): UExpr<Sort> {
         return model.eval(expr)
     }
+
+    private fun memoryToRead(evaledRef: UConcreteHeapRef) =
+        if (evaledRef.address <= INITIAL_STATIC_ADDRESS) memory else model
 
     private enum class ResolveMode { MODEL, STATE_MEMORY }
 }

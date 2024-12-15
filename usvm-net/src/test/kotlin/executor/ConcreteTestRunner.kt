@@ -2,7 +2,7 @@ package executor
 
 import java.io.File
 
-class TestRunner {
+class ConcreteTestRunner {
     val executorPath = File("")
     fun run(test: IlTest) {
         println(test)

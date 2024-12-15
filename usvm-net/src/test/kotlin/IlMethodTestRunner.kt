@@ -1,3 +1,4 @@
+import executor.IlTestExecutor
 import org.usvm.UMachineOptions
 import org.usvm.machine.IlMachine
 import org.usvm.machine.IlMachineOptions
@@ -19,6 +20,9 @@ open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTy
     override val coverageRunner: (List<IlTest>) -> IlTypeCoverage
         get() = TODO("Not yet implemented")
     override var options: UMachineOptions = UMachineOptions()
+
+    /** Executes method symbolically and concretely with specific dotnet app
+     */
     protected fun runMethod(method: KFunction<*>) {
         val publication = container.publication
         val ilMethod = publication.getMethodByName(method)
@@ -26,7 +30,11 @@ open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTy
         val ilOptions = IlMachineOptions()
         val machine = IlMachine(publication, machineOptions, ilOptions)
         val states = machine.analyze(listOf(ilMethod))
-        println(states)
+
+        for (state in states.drop(2)) {
+            val executor = IlTestExecutor(state, ilMethod)
+            executor.execute()
+        }
     }
 
     companion object {
