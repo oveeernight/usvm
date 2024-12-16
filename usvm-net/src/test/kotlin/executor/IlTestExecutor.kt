@@ -14,16 +14,16 @@ import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.UModelBase
 
 class IlTestExecutor(val state: IlState, val method: IlMethod) {
-//    private val runner = ConcreteTestRunner()
-@OptIn(ExperimentalSerializationApi::class)
-fun execute() {
+//    private val concreteRunner = ConcreteTestRunner()
+    @OptIn(ExperimentalSerializationApi::class)
+    fun execute() {
         val model = state.models.first()
         val memory = state.memory
-
         val scope = MemoryScope(state.ctx, method, model, memory)
         val test = scope.createTest()
-        logger.info  {"Test serialized: ${prettyJson.encodeToString(test)}"  }
-//        runner.run(test)
+
+        logger.info  {"Test serialized: ${prettyJson.encodeToString(test)}" }
+//        concreteRunner.run(test)
     }
 
 }
