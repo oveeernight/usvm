@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+
+
+message TypeRepr {
+    string asm = 1;
+    int32 moduleToken = 2;
+    int32 typeToken = 3;
+    repeated TypeRepr genericArgs = 4;
+}
+
+message MethodRepr {
+    TypeRepr declType = 1;
+    string name = 2;
+    string signature = 3;
+}
+
+message FieldRepr {
+  TypeRepr typeRepr = 1;
+  string name = 2;
+}
+
+message BoolConst {
+  bool value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message CharConst {
+  int32 value = 1;
+  TypeRepr typeRepr = 2;
+}

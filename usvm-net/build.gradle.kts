@@ -1,6 +1,7 @@
 plugins {
     id("usvm.kotlin-conventions")
     kotlin("plugin.serialization") version "1.9.20"
+    id("com.google.protobuf") version "0.9.4"
 }
 
 dependencies {
@@ -16,12 +17,17 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.20")
 
+    implementation("com.google.protobuf:protobuf-kotlin:3.22.2")
+
+
     testImplementation(kotlin("test"))
     implementation("com.github.petrukhinandrew:jacodb:e84e4996aaf68619df2f3aaa0820e7fa66a2cded")
 }
 
+
 task<Exec>("dotnet-samples") {
-    commandLine("dotnet publish /home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples")
+    workingDir(rootProject.rootDir)
+    commandLine("dotnet", "publish", "usvm-net/src/test/dotnet/samples")
 }
 
 tasks.test {

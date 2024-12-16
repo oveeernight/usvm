@@ -14,6 +14,13 @@ public class Arrays
         return 2;
     }
 
+    public int StringIndex(string a, int i) {
+        if (a[i] == 'h') {
+            return 1;
+        }
+        return 2;
+    }
+
     public byte Rofl() {
         Int16 xx = 5;
         Console.WriteLine(xx);

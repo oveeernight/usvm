@@ -31,7 +31,7 @@ open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTy
         val machine = IlMachine(publication, machineOptions, ilOptions)
         val states = machine.analyze(listOf(ilMethod))
 
-        for (state in states.drop(2)) {
+        for (state in states) {
             val executor = IlTestExecutor(state, ilMethod)
             executor.execute()
         }
