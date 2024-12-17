@@ -3,71 +3,71 @@
 
 package testrunner.expressions;
 
-@kotlin.jvm.JvmName("-initializeconstructorCall")
-public inline fun constructorCall(block: testrunner.expressions.ConstructorCallKt.Dsl.() -> kotlin.Unit): testrunner.expressions.TestExpressions.ConstructorCall =
-  testrunner.expressions.ConstructorCallKt.Dsl._create(testrunner.expressions.TestExpressions.ConstructorCall.newBuilder()).apply { block() }._build()
-public object ConstructorCallKt {
+@kotlin.jvm.JvmName("-initializemethodCall")
+public inline fun methodCall(block: testrunner.expressions.MethodCallKt.Dsl.() -> kotlin.Unit): testrunner.expressions.TestExpressions.MethodCall =
+  testrunner.expressions.MethodCallKt.Dsl._create(testrunner.expressions.TestExpressions.MethodCall.newBuilder()).apply { block() }._build()
+public object MethodCallKt {
   @kotlin.OptIn(com.google.protobuf.kotlin.OnlyForUseByGeneratedProtoCode::class)
   @com.google.protobuf.kotlin.ProtoDslMarker
   public class Dsl private constructor(
-    private val _builder: testrunner.expressions.TestExpressions.ConstructorCall.Builder
+    private val _builder: testrunner.expressions.TestExpressions.MethodCall.Builder
   ) {
     public companion object {
       @kotlin.jvm.JvmSynthetic
       @kotlin.PublishedApi
-      internal fun _create(builder: testrunner.expressions.TestExpressions.ConstructorCall.Builder): Dsl = Dsl(builder)
+      internal fun _create(builder: testrunner.expressions.TestExpressions.MethodCall.Builder): Dsl = Dsl(builder)
     }
 
     @kotlin.jvm.JvmSynthetic
     @kotlin.PublishedApi
-    internal fun _build(): testrunner.expressions.TestExpressions.ConstructorCall = _builder.build()
+    internal fun _build(): testrunner.expressions.TestExpressions.MethodCall = _builder.build()
 
     /**
-     * <code>.MethodRepr method = 1;</code>
+     * <code>.MethodRepr methodRepr = 1;</code>
      */
-    public var method: testrunner.expressions.TestExpressions.MethodRepr
-      @JvmName("getMethod")
-      get() = _builder.getMethod()
-      @JvmName("setMethod")
+    public var methodRepr: testrunner.expressions.TestExpressions.MethodRepr
+      @JvmName("getMethodRepr")
+      get() = _builder.getMethodRepr()
+      @JvmName("setMethodRepr")
       set(value) {
-        _builder.setMethod(value)
+        _builder.setMethodRepr(value)
       }
     /**
-     * <code>.MethodRepr method = 1;</code>
+     * <code>.MethodRepr methodRepr = 1;</code>
      */
-    public fun clearMethod() {
-      _builder.clearMethod()
+    public fun clearMethodRepr() {
+      _builder.clearMethodRepr()
     }
     /**
-     * <code>.MethodRepr method = 1;</code>
-     * @return Whether the method field is set.
+     * <code>.MethodRepr methodRepr = 1;</code>
+     * @return Whether the methodRepr field is set.
      */
-    public fun hasMethod(): kotlin.Boolean {
-      return _builder.hasMethod()
+    public fun hasMethodRepr(): kotlin.Boolean {
+      return _builder.hasMethodRepr()
     }
 
     /**
-     * <code>.TypeRepr returnType = 2;</code>
+     * <code>.TypeRepr returnTypeRepr = 2;</code>
      */
-    public var returnType: testrunner.expressions.TestExpressions.TypeRepr
-      @JvmName("getReturnType")
-      get() = _builder.getReturnType()
-      @JvmName("setReturnType")
+    public var returnTypeRepr: testrunner.expressions.TestExpressions.TypeRepr
+      @JvmName("getReturnTypeRepr")
+      get() = _builder.getReturnTypeRepr()
+      @JvmName("setReturnTypeRepr")
       set(value) {
-        _builder.setReturnType(value)
+        _builder.setReturnTypeRepr(value)
       }
     /**
-     * <code>.TypeRepr returnType = 2;</code>
+     * <code>.TypeRepr returnTypeRepr = 2;</code>
      */
-    public fun clearReturnType() {
-      _builder.clearReturnType()
+    public fun clearReturnTypeRepr() {
+      _builder.clearReturnTypeRepr()
     }
     /**
-     * <code>.TypeRepr returnType = 2;</code>
-     * @return Whether the returnType field is set.
+     * <code>.TypeRepr returnTypeRepr = 2;</code>
+     * @return Whether the returnTypeRepr field is set.
      */
-    public fun hasReturnType(): kotlin.Boolean {
-      return _builder.hasReturnType()
+    public fun hasReturnTypeRepr(): kotlin.Boolean {
+      return _builder.hasReturnTypeRepr()
     }
 
     /**
@@ -144,12 +144,12 @@ public object ConstructorCallKt {
   }
 }
 @kotlin.jvm.JvmSynthetic
-public inline fun testrunner.expressions.TestExpressions.ConstructorCall.copy(block: testrunner.expressions.ConstructorCallKt.Dsl.() -> kotlin.Unit): testrunner.expressions.TestExpressions.ConstructorCall =
-  testrunner.expressions.ConstructorCallKt.Dsl._create(this.toBuilder()).apply { block() }._build()
+public inline fun testrunner.expressions.TestExpressions.MethodCall.copy(block: testrunner.expressions.MethodCallKt.Dsl.() -> kotlin.Unit): testrunner.expressions.TestExpressions.MethodCall =
+  testrunner.expressions.MethodCallKt.Dsl._create(this.toBuilder()).apply { block() }._build()
 
-public val testrunner.expressions.TestExpressions.ConstructorCallOrBuilder.methodOrNull: testrunner.expressions.TestExpressions.MethodRepr?
-  get() = if (hasMethod()) getMethod() else null
+public val testrunner.expressions.TestExpressions.MethodCallOrBuilder.methodReprOrNull: testrunner.expressions.TestExpressions.MethodRepr?
+  get() = if (hasMethodRepr()) getMethodRepr() else null
 
-public val testrunner.expressions.TestExpressions.ConstructorCallOrBuilder.returnTypeOrNull: testrunner.expressions.TestExpressions.TypeRepr?
-  get() = if (hasReturnType()) getReturnType() else null
+public val testrunner.expressions.TestExpressions.MethodCallOrBuilder.returnTypeReprOrNull: testrunner.expressions.TestExpressions.TypeRepr?
+  get() = if (hasReturnTypeRepr()) getReturnTypeRepr() else null
 
