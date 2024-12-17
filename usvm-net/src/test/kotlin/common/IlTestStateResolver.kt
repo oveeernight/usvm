@@ -15,6 +15,7 @@ import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.IlContext
+import org.usvm.machine.interpreter.IlMethodResult
 import org.usvm.machine.tryBool
 import org.usvm.machine.tryInt16
 import org.usvm.machine.tryInt32
@@ -31,6 +32,7 @@ import org.usvm.model.UModelBase
 abstract class IlTestStateResolver<T>(
     val ctx: IlContext,
     val method: IlMethod,
+    val result: IlMethodResult,
     val model: UModelBase<IlType>,
     val stateMemory: UReadOnlyMemory<IlType>
 ) {

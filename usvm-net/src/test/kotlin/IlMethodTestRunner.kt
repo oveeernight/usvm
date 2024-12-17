@@ -38,9 +38,9 @@ open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTy
     }
 
     companion object {
-        private val samplesAsm = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Release/net8.0/samples.dll"
-        private val tacBuilderPath: String = "/home/rnpozharskiy/work/dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/"
-
+        val samplesAsm = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Release/net8.0/samples.dll"
+        val tacBuilderPath: String = "/home/rnpozharskiy/work/dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/"
+        val executorPath: String = "/home/rnpozharskiy/work/test-executor/Application/bin/Debug/net8.0"
 //        private val assemblies: List<File> by lazy {
 //            getPublicationAssembly(samplesAsm)
 //        }
