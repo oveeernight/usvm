@@ -5,6 +5,9 @@ import testrunner.expressions.*
 import common.DecoderApi
 import org.jacodb.api.net.ilinstances.*
 import org.usvm.machine.IlContext
+import org.usvm.machine.logger
+import org.usvm.util.logException
+import kotlin.math.log
 
 class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
     private val arrangeStmts = mutableListOf<Message>()
@@ -28,15 +31,15 @@ class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
     override fun createUInt16Const(value: UShort): Message =
         uInt16Const { this.value = value.toInt(); typeRepr = ctx.uint16Type.toTypeRepr() }
     override fun createUInt32Const(value: UInt): Message =
-        uInt32Const { this.value = value.toInt(); ctx.uint32Type.toTypeRepr() }
+        uInt32Const { this.value = value.toInt(); typeRepr = ctx.uint32Type.toTypeRepr() }
     override fun createUInt64Const(value: ULong): Message =
-        uInt64Const { this.value = value.toLong(); ctx.uint64Type.toTypeRepr() }
+        uInt64Const { this.value = value.toLong(); typeRepr = ctx.uint64Type.toTypeRepr() }
     override fun createFloatConst(value: Float): Message =
-        floatConst { this.value = value; ctx.floatType.toTypeRepr() }
+        floatConst { this.value = value; typeRepr = ctx.floatType.toTypeRepr() }
     override fun createDoubleConst(value: Double): Message =
-        doubleConst { this.value = value; ctx.doubleType.toTypeRepr() }
+        doubleConst { this.value = value; typeRepr = ctx.doubleType.toTypeRepr() }
     override fun createStringConst(value: String): Message =
-       stringConst { this.value = value; ctx.stringType.toTypeRepr() }
+       stringConst { this.value = value; typeRepr = ctx.stringType.toTypeRepr() }
     override fun createNullConst(type: IlType): Message =
         nullConst { typeRepr = type.toTypeRepr() }
     override fun createArray(elementType: IlType, size: Int, address: Int): Message =
@@ -48,7 +51,7 @@ class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
         cyclicReference { typeRepr = type.toTypeRepr(); this.address = address }
     // TODO ctor call
     override fun callMethod(method: IlMethod, args: List<Message>): Message {
-        val argsPacked = args.map { com.google.protobuf.Any.pack(it) }
+        val argsPacked = args.map { it.pack() }
         val returnType = method.returnType.toTypeRepr()
         val methodRepr = method.toMethodRepr()
         return methodCall {
@@ -56,54 +59,68 @@ class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
             this.methodRepr = methodRepr
             this.args.addAll(argsPacked)
         }
+
 //            .also { arrangeStmts.add(it) }
     }
 
     override fun setObjectField(obj: Message, field: IlField, value: Message) {
         obj as TestExpressions.ObjectInstance
-        val valueAsAny = value as? com.google.protobuf.Any ?: com.google.protobuf.Any.pack(value)
+        val valueAsAny = value.pack()
         val set = setObjectField {
             this.instance = obj
             this.fieldRepr = field.toFieldRepr()
             this.value = valueAsAny
         }
+
+        logger.info { "serialized field setter: $set" }
+
         arrangeStmts += set
     }
 
     override fun setArrayIndex(array: Message, index: Int, value: Message) {
         array as TestExpressions.ArrayInstance
-        val valueAsAny = value as? com.google.protobuf.Any ?: com.google.protobuf.Any.pack(value)
+        val valueAsAny = value.pack()
         val set = setArrayIndex {
-            this.instance = instance
+            this.instance = array
             this.index = index
             this.value = valueAsAny
         }
+
+        logger.info { "serialized array set: $set "}
         arrangeStmts += set
     }
 }
 
 private fun IlType.toTypeRepr(): TestExpressions.TypeRepr {
+    val mdlToken = moduleToken
+    val tpToken = typeToken
     val type = typeRepr {
         asm = asmName
-        moduleToken = moduleToken
-        typeToken = typeToken
+        moduleToken = mdlToken
+        typeToken = tpToken
     }
-
     type.genericArgsList.addAll(genericArgs.map { it.toTypeRepr() })
 
     return type
 }
 
 
-private fun IlMethod.toMethodRepr(): TestExpressions.MethodRepr =
-   methodRepr {
-       declType = declaringType.toTypeRepr()
-       signature = signature
-       name = name
-   }
+private fun IlMethod.toMethodRepr(): TestExpressions.MethodRepr {
+    val declType = declaringType
+    val signature = signature
+    val name = name
+    return methodRepr {
+        this.declType = declType.toTypeRepr()
+        this.signature = signature
+        this.name = name
+    }
+}
 
 private fun IlField.toFieldRepr(): TestExpressions.FieldRepr =
     fieldRepr {
         typeRepr = fieldType.toTypeRepr()
         name = name
     }
+
+
+private fun Message.pack() = com.google.protobuf.Any.pack(this)

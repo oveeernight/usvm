@@ -61,15 +61,15 @@ abstract class IlTestStateResolver<T>(
         return resolve(expr, type)
     }
 
-    protected fun resolveThis(): T {
-        val declaringType = method.declaringType
-        return if (method.isStatic) {
-            decoderApi.createNullConst(declaringType)
-        } else {
-            val stackKey = URegisterStackLValue(ctx.typeToSort(declaringType), 0)
-            resolveLValue(stackKey, declaringType)
-        }
-    }
+//    protected fun resolveThis(): T {
+//        val declaringType = method.declaringType
+//        return if (method.isStatic) {
+//            decoderApi.createNullConst(declaringType)
+//        } else {
+//            val stackKey = URegisterStackLValue(ctx.typeToSort(declaringType), 0)
+//            resolveLValue(stackKey, declaringType)
+//        }
+//    }
 
     protected fun resolveArgs(): List<T> =
         method.parameters.mapIndexed { i, param ->
