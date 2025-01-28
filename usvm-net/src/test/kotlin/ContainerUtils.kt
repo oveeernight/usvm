@@ -1,6 +1,5 @@
 import org.jacodb.api.net.IlPublication
 import org.jacodb.api.net.ilinstances.IlMethod
-import java.io.File
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.javaConstructor
