@@ -1,10 +1,8 @@
-import executor.IlTestExecutor
+import executor.IlTestConcreteExecutor
 import org.usvm.UMachineOptions
 import org.usvm.machine.IlMachine
 import org.usvm.machine.IlMachineOptions
-import org.usvm.machine.logger
 import org.usvm.test.util.TestRunner
-import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -26,7 +24,6 @@ open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTy
      */
     protected fun runMethod(method: KFunction<*>) {
         val publication = container.publication
-        val allTypes = publication.allTypes
         val ilMethod = publication.getMethodByName(method)
         val machineOptions = UMachineOptions()
         val ilOptions = IlMachineOptions()
@@ -34,7 +31,7 @@ open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTy
         val states = machine.analyze(listOf(ilMethod))
 
         for (state in states) {
-            val executor = IlTestExecutor(state, ilMethod)
+            val executor = IlTestConcreteExecutor(state, ilMethod)
             executor.execute()
         }
     }

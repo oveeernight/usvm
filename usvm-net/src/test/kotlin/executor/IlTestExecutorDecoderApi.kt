@@ -5,11 +5,8 @@ import testrunner.expressions.*
 import common.DecoderApi
 import org.jacodb.api.net.ilinstances.*
 import org.usvm.machine.IlContext
-import org.usvm.machine.logger
-import org.usvm.util.logException
-import kotlin.math.log
 
-class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
+class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> {
     private val arrangeStmts = mutableListOf<Message>()
 
     fun arrangeStmts(): List<Message> = arrangeStmts
@@ -59,8 +56,6 @@ class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
             this.methodRepr = methodRepr
             this.args.addAll(argsPacked)
         }
-
-//            .also { arrangeStmts.add(it) }
     }
 
     override fun setObjectField(obj: Message, field: IlField, value: Message) {
@@ -71,8 +66,6 @@ class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
             this.fieldRepr = field.toFieldRepr()
             this.value = valueAsAny
         }
-
-        logger.info { "serialized field setter: $set" }
 
         arrangeStmts += set
     }
@@ -86,7 +79,6 @@ class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
             this.value = valueAsAny
         }
 
-        logger.info { "serialized array set: $set "}
         arrangeStmts += set
     }
 }
@@ -116,11 +108,14 @@ private fun IlMethod.toMethodRepr(): TestExpressions.MethodRepr {
     }
 }
 
-private fun IlField.toFieldRepr(): TestExpressions.FieldRepr =
-    fieldRepr {
-        typeRepr = fieldType.toTypeRepr()
-        name = name
+private fun IlField.toFieldRepr(): TestExpressions.FieldRepr {
+    val name = name
+    val typeRepr = fieldType.toTypeRepr()
+    return fieldRepr {
+        this.typeRepr = typeRepr
+        this.name = name
     }
+}
 
 
 private fun Message.pack() = com.google.protobuf.Any.pack(this)
