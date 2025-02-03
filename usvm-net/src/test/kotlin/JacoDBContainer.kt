@@ -34,13 +34,14 @@ class JacoDBContainer(
 
 
             publication = database.publication(
+                assemblies,
                 listOf(
                     IlPublicationCache(settings.publicationCacheSettings),
                     IlMethodInstructionsFeature(),
-//                IlApproximations
                 )
             )
         }
+        server.close()
     }
 
     companion object {
