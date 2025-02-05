@@ -12,7 +12,7 @@ import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.UModelBase
 import testrunner.expressions.*
 
-class IlTestExecutor() {
+class IlTestExecutor {
     private val concreteRunner = ConcreteTestRunner()
     fun execute(state: IlState, method: IlMethod) : TestExpressions.ExecutionResult {
         val model = state.models.first()
@@ -20,7 +20,7 @@ class IlTestExecutor() {
         val scope = MemoryScope(state.ctx, method, state.methodResult, model, memory)
         val test = scope.createTest()
 
-        logger.error  {"Test serialized: $test" }
+//        logger.error  {"Test serialized: $test" }
         return concreteRunner.run(test)
     }
 
@@ -38,10 +38,10 @@ class IlTestExecutor() {
             val arrange = decoderApi.arrangeStmts().map { com.google.protobuf.Any.pack(it) }
             val methodCall = decoderApi.callMethod(method, args)
             val resultAsMessage = when (result) {
-                is IlMethodResult.Success -> result.result
-                is IlMethodResult.Exception -> result.exception
+                is IlMethodResult.Success -> resolve(result.result, method.returnType)
+                is IlMethodResult.Exception -> resolve(result.exception, result.type)
                 else -> TODO()
-            }.let { resolve(it, method.returnType) }
+            }
             val test = ilTest {
                 arrangeStmts.addAll(arrange)
                 call = com.google.protobuf.Any.pack(methodCall)

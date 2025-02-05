@@ -6,17 +6,6 @@ plugins {
     id("com.google.protobuf") version "0.9.4"
 }
 
-//sourceSets {
-//    main {
-//        java {
-//            srcDirs += File("/home/rnpozharskiy/work/usvm/usvm-net/src/test/kotlin/executor/generated/java")
-//        }
-//        kotlin {
-//            srcDirs += File("/home/rnpozharskiy/work/usvm/usvm-net/src/test/kotlin/executor/generated/kotlin")
-//        }
-//    }
-//}
-
 dependencies {
     implementation(project(":usvm-core"))
     implementation(Libs.rd_core)
@@ -29,10 +18,12 @@ dependencies {
 
 
     testImplementation(kotlin("test"))
-    testImplementation("io.grpc:grpc-kotlin-stub:1.4.0")
-    testImplementation("io.grpc:grpc-protobuf:1.70.0")
     testImplementation("com.google.protobuf:protobuf-java:4.29.0")
     testImplementation("com.google.protobuf:protobuf-kotlin:4.29.0")
+    testImplementation("io.grpc:grpc-kotlin-stub:1.4.0")
+//    testImplementation("io.grpc:grpc-stub:1.70.0")
+    testImplementation("io.grpc:grpc-protobuf:1.70.0")
+    testImplementation("io.grpc:grpc-okhttp:1.70.0")
     testImplementation(Libs.logback)
 
     implementation("com.github.petrukhinandrew:jacodb:75dec37e320da87c31a17ed013bd350d57b9b615")
@@ -44,23 +35,51 @@ protobuf {
     }
 
     plugins {
-        create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.70"
+        id("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.70.0"
         }
-        create("grpckt") {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.4.0@jdk8@jar"
+        id("grpckt") {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.4.0:jdk8@jar"
         }
     }
 
     generateProtoTasks {
-        all().forEach {
-            it.plugins {
-                create("grpc")
-                create("grpckt")
-            }
+        ofSourceSet("test").forEach {
             it.builtins {
-                id("kotlin")
+                java {}
+//                create("java")
+//                create("java") {
+//                    outputSubDir = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/java"
+//                }
+                create("kotlin") {
+                    outputSubDir = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/kotlin"
+                }
             }
+
+            it.plugins {
+                id("grpc") {
+                    outputSubDir = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/java/grpc"
+                }
+
+                id("grpckt") {
+                    outputSubDir = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/kotlin/grpc"
+                }
+
+            }
+        }
+    }
+}
+
+sourceSets {
+    test {
+        java {
+            srcDirs += File("/home/rnpozharskiy/work/usvm/usvm-net/src/test/java")
+            srcDirs += File("/home/rnpozharskiy/work/usvm/usvm-net/src/test/java/grpc")
+        }
+        kotlin {
+            srcDirs += File("/home/rnpozharskiy/work/usvm/usvm-net/src/test/kotlin")
+            srcDirs += File("/home/rnpozharskiy/work/usvm/usvm-net/src/test/kotlin/grpc")
+
         }
     }
 }

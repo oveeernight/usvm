@@ -41,7 +41,7 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
         val samplesAsmPath = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Release/net8.0/publish/samples.dll"
         val samplesAsmName = "samples, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
         val tacBuilderPath: String = "/home/rnpozharskiy/work/dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/"
-        val executorPath: String = "/home/rnpozharskiy/work/test-executor/Application/bin/Debug/net8.0"
+        val executorPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.Application/bin/Debug/net8.0"
 //        private val assemblies: List<File> by lazy {
 //            getPublicationAssembly(samplesAsm)
 //        }
