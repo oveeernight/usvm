@@ -12,16 +12,16 @@ import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.UModelBase
 import testrunner.expressions.*
 
-class IlTestExecutor(private val state: IlState, private val method: IlMethod) {
-    private val concreteRunner = ConcreteTestRunner(timeoutSec = 5)
-    fun execute() {
+class IlTestExecutor() {
+    private val concreteRunner = ConcreteTestRunner()
+    fun execute(state: IlState, method: IlMethod) : TestExpressions.ExecutionResult {
         val model = state.models.first()
         val memory = state.memory
         val scope = MemoryScope(state.ctx, method, state.methodResult, model, memory)
         val test = scope.createTest()
 
-        logger.error  {"Test serialized: ${test}" }
-        concreteRunner.run(test)
+        logger.error  {"Test serialized: $test" }
+        return concreteRunner.run(test)
     }
 
     private class MemoryScope(
