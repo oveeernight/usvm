@@ -1,32 +1,41 @@
 package executor
 
 import IlMethodTestRunner
+import io.grpc.ManagedChannelBuilder
+import kotlinx.coroutines.runBlocking
 import org.usvm.machine.logger
+import testrunner.expressions.ConcreteExecutorGrpcKt
 import testrunner.expressions.TestExpressions
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-class ConcreteTestRunner(val timeoutSec: Int) {
-    fun run(test: TestExpressions.IlTest) {
+class ConcreteTestRunner() {
+    fun run(test: TestExpressions.IlTest) : TestExpressions.ExecutionResult {
         val samplesPath = IlMethodTestRunner.samplesAsmPath
         val executorPath = IlMethodTestRunner.executorPath
         val executorDir = File(executorPath)
-        val file = File.createTempFile("serialized-test", ".txt")
-        file.writeBytes(test.toByteArray())
-        val filePath = file.absolutePath;
-        val proc = ProcessBuilder().command("./Application", "--src", samplesPath, "--test", filePath)
+        val proc = ProcessBuilder().command("./Application", "--src", samplesPath)
             .directory(executorDir)
             .start()
 
-        proc.waitFor(timeoutSec.toLong(), TimeUnit.SECONDS)
+        val port = 8980
+        val channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build()
+        val stub = ConcreteExecutorGrpcKt.ConcreteExecutorCoroutineStub(channel)
 
-        val output = proc.inputStream.bufferedReader().readText()
+        val result = runBlocking {
+            stub.execute(test)
+        }
+
+        val isSuccess = result.resultCase == TestExpressions.ExecutionResult.ResultCase.SUCCESS
+        require(isSuccess) {
+            val failReason = result.fail.reason
+            "Some executions failed:\n$failReason"
+        }
+
         val error = proc.errorStream.bufferedReader().readText()
-        logger.info {"got an answer from dotnet"}
-        logger.info { "output: $output" }
-        logger.info { "error: $error" }
-        logger.info { "exit value: ${proc.exitValue()}" }
+        if (proc.exitValue() != 0)
+            logger.error { "Internal error occured while concrete executing: $error" }
+        return result
     }
 
-//    val f = methodCall.argsList.add(int)
 }
