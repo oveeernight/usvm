@@ -11,17 +11,29 @@ import org.usvm.machine.state.IlState
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.UModelBase
 import testrunner.expressions.*
+import java.io.Closeable
+import kotlin.math.log
 
-class IlTestExecutor {
-    private val concreteRunner = ConcreteTestRunner()
-    fun execute(state: IlState, method: IlMethod) : TestExpressions.ExecutionResult {
-        val model = state.models.first()
-        val memory = state.memory
-        val scope = MemoryScope(state.ctx, method, state.methodResult, model, memory)
-        val test = scope.createTest()
+class IlTestExecutor : Closeable {
+    private val dotnetProc : Process = RunnerProcessBuilder.build().start()
+    private val concreteRunner = ConcreteTestRunner(dotnetProc)
+
+    fun execute(states: List<IlState>, method: IlMethod) : TestExpressions.ExecutionResult {
+        val tests = states.map { state ->
+            val model = state.models.first()
+            val memory = state.memory
+            val scope = MemoryScope(state.ctx, method, state.methodResult, model, memory)
+            scope.createTest()
+        }
+
+        val batch = ilTestBatch {
+            this.tests.addAll(tests)
+        }
 
 //        logger.error  {"Test serialized: $test" }
-        return concreteRunner.run(test)
+        val res = concreteRunner.run(batch)
+        logger.error { dotnetProc.inputStream.bufferedReader().readText() }
+        return res
     }
 
     private class MemoryScope(
@@ -51,5 +63,7 @@ class IlTestExecutor {
         }
     }
 
-
+    override fun close() {
+        dotnetProc.destroy()
+    }
 }

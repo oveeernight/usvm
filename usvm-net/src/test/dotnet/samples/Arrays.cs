@@ -2,11 +2,13 @@
 
 public class Arrays
 {
+    [SvmTest(100)]
     public int ArrayStore(int[] a, int i) {
         a[i] = 5;
         return a[i];
     }
 
+    [SvmTest(100)]
     public int ArraySimpleBranch(int[] a, int i) {
         if (a[i] != 42) {
             return 1;
@@ -14,6 +16,7 @@ public class Arrays
         return 2;
     }
 
+    [SvmTest(100)]
     public int StringIndex(string a, int i) {
         if (a[i] == 'h') {
             return 1;
