@@ -1,9 +1,7 @@
 package org.usvm.machine
 
 import org.jacodb.api.net.IlPublication
-import org.jacodb.api.net.generated.models.TypeId
 import org.jacodb.api.net.ilinstances.IlType
-import org.jacodb.api.net.publication.IlPredefinedAsmsExt.mscorelib
 import org.usvm.types.USupportTypeStream
 import org.usvm.types.UTypeStream
 import org.usvm.types.UTypeSystem
@@ -15,9 +13,7 @@ class IlTypeSystem(publication: IlPublication): UTypeSystem<IlType> {
     override val typeOperationsTimeout: Duration
         get() = TODO("Not yet implemented")
 
-    private val topTypeStream by lazy {
-        val objectTypeId = TypeId(typeName = "System.Object", asmName = publication.mscorelib()!!, typeArgs = emptyList())
-        publication.findIlTypeOrNull(objectTypeId)!!.let { USupportTypeStream.from(this, it) } }
+    private val topTypeStream by lazy { publication.findIlTypeOrNull("System.Object")!!.let { USupportTypeStream.from(this, it) } }
     override fun topTypeStream(): UTypeStream<IlType> {
        return topTypeStream
     }

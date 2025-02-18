@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 class ConcreteTestRunner(val timeoutSec: Int) {
     fun run(test: TestExpressions.IlTest) {
-        val samplesPath = IlMethodTestRunner.samplesAsmPath
+        val samplesPath = IlMethodTestRunner.samplesAsm
         val executorPath = IlMethodTestRunner.executorPath
         val executorDir = File(executorPath)
         val file = File.createTempFile("serialized-test", ".txt")

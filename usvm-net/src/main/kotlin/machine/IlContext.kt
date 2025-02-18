@@ -8,7 +8,6 @@ import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
 import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
-import org.jacodb.api.net.publication.IlPredefinedAsmsExt.mscorelib
 import org.usvm.UBv32Sort
 import org.usvm.UContext
 import org.usvm.USort
@@ -16,8 +15,6 @@ import org.usvm.USort
 typealias USizeSort = UBv32Sort
 
 class IlContext(val publication: IlPublication, components: IlComponents) : UContext<USizeSort>(components) {
-    //
-    private val mscorelib by lazy { publication.mscorelib()!! }
     val boolType by lazy { findTypeOrReportAbsence("Boolean") }
     val charType by lazy { findTypeOrReportAbsence("Char") }
     val int8Type by lazy { findTypeOrReportAbsence("SByte") }
@@ -52,14 +49,15 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     val void by lazy { VoidValue(this) }
 
+    // TODO should be removed
+//    val mockType = findTypeOrReportAbsence("Mock")
 
     val syntheticTypeField : IlField by lazy {
         val dto = IlFieldDto(
-            fieldType = TypeId(asmName = mscorelib, typeName = "Type", typeArgs = emptyList()),
+            fieldType = TypeId(asmName = "mscorlib", typeName = "Type"),
             isStatic = false,
             name = "type",
-            attrs = emptyList(),
-            isConstructed = false // idk
+            attrs = emptyList()
         )
 
         IlFieldImpl(systemType as IlTypeImpl, dto, publication)
@@ -95,10 +93,9 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val nullReferenceException: IlType by lazy { findTypeOrReportAbsence(nullReferenceExceptionName) }
     val invalidCastException: IlType by lazy { findTypeOrReportAbsence(invalidCastExceptionName) }
 
-    private fun findTypeOrReportAbsence(typeName: String): IlType {
-        val typeId = TypeId(typeName = "${SYSTEM_PREFIX}${typeName}", asmName = mscorelib, typeArgs = emptyList())
-        return publication.findIlTypeOrNull(typeId) ?: error("$typeName was not found in publication")
-    }
+    private fun findTypeOrReportAbsence(typeName: String): IlType =
+        publication.findIlTypeOrNull("${SYSTEM_PREFIX}${typeName}") ?: error("$typeName was not found in publication")
+
     // TODO fix
     fun isPrimitiveType(type: IlType): Boolean =
         type == uint8Type || type == int32Type || type == int64Type || type == charType || type == boolType

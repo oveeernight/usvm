@@ -20,7 +20,7 @@ class IlTestConcreteExecutor(private val state: IlState, private val method: IlM
         val scope = MemoryScope(state.ctx, method, state.methodResult, model, memory)
         val test = scope.createTest()
 
-        logger.error  {"Test serialized: ${test}" }
+        logger.info  {"Test serialized: ${test}" }
         concreteRunner.run(test)
     }
 
