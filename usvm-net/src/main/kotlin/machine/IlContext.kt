@@ -29,7 +29,6 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val uint64Type by lazy { findTypeOrReportAbsence("ULong") }
     val floatType by lazy { findTypeOrReportAbsence("Float") }
     val doubleType by lazy { findTypeOrReportAbsence("Double") }
-    val stringType by lazy { findTypeOrReportAbsence("String") }
 
     val objectType by lazy { findTypeOrReportAbsence("Object") }
     val systemType by lazy { findTypeOrReportAbsence("Type") }

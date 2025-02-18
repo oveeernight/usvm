@@ -4,6 +4,7 @@ import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.IlReferenceType
 import org.usvm.*
+import org.usvm.api.allocateConcreteRef
 import org.usvm.api.allocateStaticRef
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.forkblacklists.UForkBlackList
@@ -24,6 +25,9 @@ class IlInterpreter(
 ) : UInterpreter<IlState>() {
 
     private val strings = mutableMapOf<String, UConcreteHeapRef>()
+    fun stringAllocator(string: String) = strings.getOrPut(string) {
+        ctx.allocateConcreteRef()
+    }
 
     private val typeInstances = mutableMapOf<IlType, UConcreteHeapRef>()
     private fun typesAlloactor(type: IlType): UConcreteHeapRef =
@@ -151,7 +155,7 @@ class IlInterpreter(
 
     private fun visitReturnStmt(scope: IlStepScope, stmt: IlReturnStmt) {
         val resolver = mkExprResolver(scope)
-        val value = stmt.returnValue?.let { resolver.resolve(it) }
+        val value = stmt.value?.let { resolver.resolve(it) }
             ?: ctx.void
         scope.doWithState {
             returnValue(value)
@@ -192,5 +196,5 @@ class IlInterpreter(
     }
 
     private fun mkExprResolver(scope: IlStepScope) =
-        IlExprResolver(ctx, scope, ilOptions, strings, ::typesAlloactor, ::mapMethodLocals)
+        IlExprResolver(ctx, scope, ilOptions, ::stringAllocator, ::typesAlloactor, ::mapMethodLocals)
 }

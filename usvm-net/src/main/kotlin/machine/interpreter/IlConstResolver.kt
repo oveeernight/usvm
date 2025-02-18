@@ -13,7 +13,7 @@ import org.usvm.machine.IlContext
 class IlConstResolver(
     val ctx: IlContext,
     val scope: IlStepScope,
-    private val strings: MutableMap<String, UConcreteHeapRef>,
+    private val getOrMkStringConst: (String) -> UConcreteHeapRef,
     private val getOrMkTypeRef: (IlType) -> UConcreteHeapRef,
 ): IlConstVisitor<UExpr<out USort>> {
     override fun visitIlArrayConst(const: IlArrayConstant): UExpr<out USort> {
@@ -88,20 +88,16 @@ class IlConstResolver(
     override fun visitIlNullConst(const: IlNull): UExpr<out USort>  = with(ctx) {
         nullRef
     }
-    override fun visitIlStringConst(const: IlStringConstant): UExpr<out USort> {
-        val strRef = strings[const.value]
-        if (strRef != null) return strRef
+    override fun visitIlStringConst(const: IlStringConstant): UExpr<out USort> = scope.calcOnState {
+        val strRef = getOrMkStringConst(const.value)
 
         val values = const.value.asSequence().map { ctx.mkBv(it.code, ctx.charSort) }
         val arrayDesc = ctx.charType
 
-        val charArrayRef = scope.calcOnState {
-            memory.allocateArrayInitialized(arrayDesc, ctx.charSort,  ctx.bv32Sort, values)
-        }
+        val arrRef = memory.allocateArrayInitialized(arrayDesc, ctx.charSort,  ctx.bv32Sort, values)
 
-        strings[const.value] = charArrayRef
-
-        return charArrayRef
+        arrRef
+        TODO("think about it")
     }
     override fun visitIlTypeRefConst(const: IlTypeRef): UExpr<out USort> = resolveTypeRef(const.referencedType)
 
