@@ -3,12 +3,10 @@ import org.usvm.UMachineOptions
 import org.usvm.machine.IlMachine
 import org.usvm.machine.IlMachineOptions
 import org.usvm.test.util.TestRunner
-import testrunner.expressions.TestExpressions
-import testrunner.expressions.TestExpressions.ExecutionResult
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
-open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass<*>, IlTypeCoverage>() {
+open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTypeCoverage>() {
 
     private val container by lazy { JacoDBContainer.getInstanceOrCreate(listOf(samplesAsmPath), tacBuilderPath) }
 
@@ -16,18 +14,21 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
         get() = TODO("Not yet implemented")
     override val checkType: (KClass<*>, KClass<*>) -> Boolean
         get() = TODO("Not yet implemented")
-    override val runner: (KFunction<*>, UMachineOptions) -> List<ExecutionResult>
+    override val runner: (KFunction<*>, UMachineOptions) -> List<IlTest>
         get() = { method, options ->
             val publication = container.publication
             val ilMethod = publication.getMethodByName(method)
             val ilOptions = IlMachineOptions()
             val machine = IlMachine(publication, options, ilOptions)
-            val executor = IlTestExecutor()
-            machine.analyze(listOf(ilMethod)).map {
-                executor.execute(it, ilMethod)
+            val states = machine.analyze(listOf(ilMethod))
+
+            for (state in states) {
+                val executor = IlTestExecutor(state, ilMethod)
+                executor.execute()
             }
         }
-    override val coverageRunner: (List<ExecutionResult>) -> IlTypeCoverage
+        get() = TODO("Not yet implemented")
+    override val coverageRunner: (List<IlTest>) -> IlTypeCoverage
         get() = TODO("Not yet implemented")
     override var options: UMachineOptions = UMachineOptions()
 
