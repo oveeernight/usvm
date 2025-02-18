@@ -21,7 +21,7 @@ class IlComponents(private val typeSystem: IlTypeSystem, private val options: UM
     }
 
     override fun mkTypeSystem(ctx: UContext<UBv32Sort>): UTypeSystem<IlType> {
-        return typeSystem
+        return IlTypeSystem()
     }
 
     override fun <Context : UContext<UBv32Sort>> mkSolver(ctx: Context): USolverBase<IlType> {

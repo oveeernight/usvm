@@ -54,11 +54,11 @@ class IlInterpreter(
 
         with(ctx) {
             // TODO type constraints on abstract
-            if (!method.isStatic) {
-                val thisLValue = URegisterStackLValue(addressSort, 0)
-                val ref = state.memory.read(thisLValue).asExpr(addressSort)
-                state.pathConstraints += !mkHeapRefEq(ref, nullRef)
-            }
+//            if (!method.isStatic) {
+//                val thisLValue = URegisterStackLValue(addressSort, 0)
+//                val ref = state.memory.read(thisLValue).asExpr(addressSort)
+//                state.pathConstraints += ref neq nullRef
+//            }
             val entrypointArgs = mutableListOf<Pair<IlType, UHeapRef>>()
 
             method.parameters.forEachIndexed { idx, param ->

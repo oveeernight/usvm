@@ -1,7 +1,6 @@
 package org.usvm.machine.interpreter
 
 import io.ksmt.utils.asExpr
-import io.ksmt.utils.cast
 import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
@@ -122,8 +121,8 @@ class IlExprResolver(
 
     @Suppress("UNREACHABLE_CODE")
     private fun checkNullPointer(ref: UHeapRef) = with(ctx) {
-//        return@with
-        val constr = !ctx.mkHeapRefEq(ref, nullRef)
+        return@with
+        val constr = ref neq nullRef
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 constr,
@@ -169,10 +168,7 @@ class IlExprResolver(
     }
 
     override fun visitIlBinaryOp(expr: IlBinaryOp): UExpr<out USort>? {
-        val resolved = IlBinaryOperation.resolve(expr)
-        val lhs = resolve(expr.lhs)
-        val rhs = resolve(expr.rhs)
-        return resolved(lhs.cast(), rhs.cast())
+        TODO("Not yet implemented")
     }
 
     override fun visitIlBoxExpr(expr: IlBoxExpr): UExpr<out USort>? {

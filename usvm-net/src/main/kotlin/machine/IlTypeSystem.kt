@@ -1,29 +1,24 @@
 package org.usvm.machine
 
-import org.jacodb.api.net.IlPublication
 import org.jacodb.api.net.ilinstances.IlType
-import org.usvm.types.USupportTypeStream
 import org.usvm.types.UTypeStream
 import org.usvm.types.UTypeSystem
 import kotlin.time.Duration
 
-
-// TODO fix when class hierarchy will be ready
-class IlTypeSystem(publication: IlPublication): UTypeSystem<IlType> {
+class IlTypeSystem: UTypeSystem<IlType> {
     override val typeOperationsTimeout: Duration
         get() = TODO("Not yet implemented")
 
-    private val topTypeStream by lazy { publication.findIlTypeOrNull("System.Object")!!.let { USupportTypeStream.from(this, it) } }
     override fun topTypeStream(): UTypeStream<IlType> {
-       return topTypeStream
+        TODO("Not yet implemented")
     }
 
     override fun findSubtypes(type: IlType): Sequence<IlType> {
-        return emptySequence()
+        TODO("Not yet implemented")
     }
 
     override fun isInstantiable(type: IlType): Boolean {
-        return false
+        TODO("Not yet implemented")
     }
 
     override fun isFinal(type: IlType): Boolean {

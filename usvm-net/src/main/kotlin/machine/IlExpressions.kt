@@ -34,8 +34,6 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     }
 }
 
-val UExpr<out USort>.ilctx get() = ctx as IlContext
-
 @Suppress("UNCHECKED_CAST")
 fun <Sort: USort> UExpr<Sort>.tryBool(): Boolean? = (this as? UBoolExpr)?.isTrue
 fun <Sort: USort> UExpr<Sort>.tryInt8(): Byte? = (this as? KBitVec8Value)?.byteValue

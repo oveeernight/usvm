@@ -18,7 +18,7 @@ class IlMachine(
     private val options: UMachineOptions,
     private val ilOptions: IlMachineOptions
 ) : UMachine<IlState>() {
-    private val typeSystem = IlTypeSystem(publication)
+    private val typeSystem = IlTypeSystem()
     private val components = IlComponents(typeSystem, options)
     private val ctx = IlContext(publication, components)
     private val applicationGraph = IlApplicationGraph()

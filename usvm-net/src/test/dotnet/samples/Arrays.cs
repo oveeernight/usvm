@@ -7,13 +7,6 @@ public class Arrays
         return a[i];
     }
 
-    public int ArraySimpleBranch(int[] a, int i) {
-        if (a[i] != 42) {
-            return 1;
-        }
-        return 2;
-    }
-
     public byte Rofl() {
         Int16 xx = 5;
         Console.WriteLine(xx);
