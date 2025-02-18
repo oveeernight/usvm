@@ -26,6 +26,7 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
             val res = machine.analyze(listOf(ilMethod)).let {
                 executor.execute(it, ilMethod)
             }
+            executor.close()
             listOf(res)
         }
     override val coverageRunner: (List<ExecutionResult>) -> IlTypeCoverage
@@ -33,11 +34,11 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
     override var options: UMachineOptions = UMachineOptions()
 
     companion object {
-        val samplesAsmPath = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Release/net8.0/publish/samples.dll"
+        val samplesAsmPath = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Release/net7.0/publish/samples.dll"
         val samplesAsmName = "samples, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
         val tacBuilderPath: String = "/home/rnpozharskiy/work/dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/"
         val executorPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.Application/bin/Debug/net8.0"
-        val profilerPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/libvsharpCoverage.so"
+        val profilerPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/bin/Debug/net8.0/libvsharpCoverage.so"
 //        private val assemblies: List<File> by lazy {
 //            getPublicationAssembly(samplesAsm)
 //        }
