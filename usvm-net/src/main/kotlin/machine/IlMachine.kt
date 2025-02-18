@@ -6,7 +6,6 @@ import org.usvm.UMachine
 import org.usvm.UMachineOptions
 import org.usvm.forkblacklists.UForkBlackList
 import org.usvm.machine.interpreter.IlInterpreter
-import org.usvm.machine.interpreter.IlMethodResult
 import org.usvm.ps.createPathSelector
 import org.usvm.machine.state.IlState
 import org.usvm.statistics.ApplicationGraph
@@ -18,8 +17,7 @@ class IlMachine(
     private val options: UMachineOptions,
     private val ilOptions: IlMachineOptions
 ) : UMachine<IlState>() {
-    private val typeSystem = IlTypeSystem()
-    private val components = IlComponents(typeSystem, options)
+    private val components = IlComponents()
     private val ctx = IlContext(publication, components)
     private val applicationGraph = IlApplicationGraph()
     private val interpreter = IlInterpreter(ctx, applicationGraph,  ilOptions, UForkBlackList.createDefault())
@@ -41,7 +39,7 @@ class IlMachine(
     }
 
 
-    private fun isStateTerminated(state: IlState) = state.callStack.isEmpty() || state.methodResult is IlMethodResult.Exception
+    private fun isStateTerminated(state: IlState) = state.callStack.isEmpty()
 
     override fun close() {
         TODO()

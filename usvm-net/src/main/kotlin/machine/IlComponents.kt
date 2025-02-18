@@ -1,38 +1,26 @@
 package org.usvm.machine
 
-import io.ksmt.solver.runner.KSolverRunnerManager
 import org.jacodb.api.net.ilinstances.IlType
-import org.usvm.*
-import org.usvm.model.ULazyModelDecoder
-import org.usvm.solver.UExprTranslator
-import org.usvm.solver.USolver
+import org.usvm.UBv32Sort
+import org.usvm.UComponents
+import org.usvm.UContext
+import org.usvm.USizeExprProvider
 import org.usvm.solver.USolverBase
-import org.usvm.solver.UTypeSolver
 import org.usvm.types.UTypeSystem
 
-class IlComponents(private val typeSystem: IlTypeSystem, private val options: UMachineOptions) : UComponents<IlType, UBv32Sort> {
-
-    private val closeableResources = mutableListOf<AutoCloseable>()
-
-    override val useSolverForForks: Boolean = options.useSolverForForks
+class IlComponents : UComponents<IlType, UBv32Sort> {
+    override val useSolverForForks: Boolean
+        get() = TODO("Not yet implemented")
 
     override fun <Context : UContext<UBv32Sort>> mkSizeExprProvider(ctx: Context): USizeExprProvider<UBv32Sort> {
-        return UBv32SizeExprProvider(ctx)
+        TODO("Not yet implemented")
     }
 
     override fun mkTypeSystem(ctx: UContext<UBv32Sort>): UTypeSystem<IlType> {
-        return IlTypeSystem()
+        TODO("Not yet implemented")
     }
 
     override fun <Context : UContext<UBv32Sort>> mkSolver(ctx: Context): USolverBase<IlType> {
-        val translator = UExprTranslator<IlType, USizeSort>(ctx)
-        val decoder = ULazyModelDecoder<IlType>(translator)
-        val solverFactory = SolverFactory.mkFactory(options.runSolverInAnotherProcess)
-        val solver = solverFactory.mkSolver(ctx, options.solverType)
-        val typeSolver = UTypeSolver(typeSystem)
-        closeableResources += solver
-        closeableResources += solverFactory
-
-        return USolverBase(ctx, solver, typeSolver, translator, decoder, options.solverTimeout)
+        TODO("Not yet implemented")
     }
 }

@@ -40,28 +40,9 @@ class IlState(
     ) {
 
     override fun clone(newConstraints: UPathConstraints<IlType>?): IlState {
-        val newThisOwnership = MutabilityOwnership()
-        val cloneOwnership = MutabilityOwnership()
-        val clonedConstraints = newConstraints?.also {
-            this.pathConstraints.changeOwnership(newThisOwnership)
-            it.changeOwnership(newThisOwnership)
-        } ?: pathConstraints.clone(newThisOwnership, cloneOwnership)
-        this.ownership = newThisOwnership
-        return IlState(
-            ctx,
-            newThisOwnership,
-            entrypoint,
-            callStack.clone(),
-            clonedConstraints,
-            memory.clone(clonedConstraints.typeConstraints, newThisOwnership, cloneOwnership),
-            models,
-            pathNode,
-            forkPoints,
-            methodResult,
-            targets.clone()
-        )
+        TODO("Not yet implemented")
     }
 
     override val isExceptional: Boolean
-        get() = methodResult is IlMethodResult.Exception
+        get() = TODO("Not yet implemented")
 }
