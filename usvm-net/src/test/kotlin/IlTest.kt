@@ -1,4 +1,4 @@
-import org.jacodb.api.net.ilinstances.IlMethod
+import org.example.ilinstances.IlMethod
 
 class IlTest(
     val method: IlMethod,

@@ -1,61 +1,44 @@
-import com.jetbrains.rd.framework.impl.RpcTimeouts
-import com.jetbrains.rd.framework.util.NetUtils
+import org.jacodb.api.net.IlDatabase
 import org.jacodb.api.net.IlPublication
 import org.jacodb.api.net.IlSettings
 import org.jacodb.api.net.database.IlDatabaseImpl
-import org.jacodb.api.net.features.IlMethodInstructionsFeature
-import org.jacodb.api.net.generated.models.PublicationRequest
-import org.jacodb.api.net.generated.models.ilModel
-import org.jacodb.api.net.generated.models.ilSigModel
-import org.jacodb.api.net.publication.IlPublicationCache
-import org.jacodb.api.net.rdinfra.RdServer
+import org.jacodb.api.net.rdinfra.NetApiServer
+import java.io.File
 
-@Suppress("UNUSED_PARAMETER")
 class JacoDBContainer(
-    assemblies: List<String>,
+    assemblies: List<File>,
     tacBuilderPath: String,
     builder: IlSettings.() -> Unit
 ) {
-    lateinit var publication: IlPublication
+    val publication: IlPublication = TODO()
 
     init {
-        val settings = IlSettings()
-        val database = IlDatabaseImpl(settings)
-        val freePort = NetUtils.findFreePort(0)
-        val server = RdServer(freePort, tacBuilderPath, database)
-        server.protocol.scheduler.queue {
-            val res =
-                server.protocol.ilModel.ilSigModel.publication.sync(
-                    PublicationRequest(assemblies),
-                    RpcTimeouts.longRunning
-                )
-            database.persistence.persistAsmHierarchy(res.reachableAsms, res.referencedAsms)
-            database.persistence.persistTypes(res.reachableTypes)
-
-
-            publication = database.publication(
-                listOf(
-                    IlPublicationCache(settings.publicationCacheSettings),
-                    IlMethodInstructionsFeature(),
-//                IlApproximations
-                )
-            )
-        }
+        TODO()
+//        val settings = IlSettings()
+//        settings.builder()
+//        val db = IlDatabaseImpl(settings)
+//        val api = NetApiServer(tacBuilderPath, sourceAsmPath, db)
+//        api.requestTestAsm()
+//        val publication = db.typeLoader()
+//        api.close()
+//        this.publication = publication
     }
 
     companion object {
         private lateinit var instance: JacoDBContainer
 
         fun getInstanceOrCreate(
-            sourceAsmPath: List<String>,
+            sourceAsmPath: List<File>,
             tacBuilderPath: String,
             builder: IlSettings.() -> Unit = { }
         ): JacoDBContainer {
-            return if (::instance.isInitialized) {
+            return if (!::instance.isInitialized) {
                 instance
             } else {
                 JacoDBContainer(sourceAsmPath, tacBuilderPath, builder).also { instance = it }
             }
         }
+
+
     }
 }

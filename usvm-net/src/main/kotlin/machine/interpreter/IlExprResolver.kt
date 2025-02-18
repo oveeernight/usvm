@@ -16,8 +16,8 @@ import org.usvm.machine.state.insertConcreteCallStmt
 import org.usvm.machine.state.throwException
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
+import kotlin.math.exp
 
-@Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
 class IlExprResolver(
     val ctx: IlContext,
     val scope: IlStepScope,
@@ -182,12 +182,7 @@ class IlExprResolver(
         } else {
             null to args
         }
-        return checkCall(
-            instance,
-            method,
-            funArgs,
-            params
-        ) { resolvedArgs -> scope.doWithState { insertConcreteCallStmt(method, resolvedArgs) } }
+        return checkCall(instance, method, funArgs, params) { args -> scope.doWithState { insertConcreteCallStmt(method, args) } }
     }
 
     private fun checkCall(

@@ -1,14 +1,12 @@
 import org.usvm.UMachineOptions
-import org.usvm.machine.IlMachine
-import org.usvm.machine.IlMachineOptions
 import org.usvm.test.util.TestRunner
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
-open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTypeCoverage>() {
+class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTypeCoverage>() {
 
-    private val container by lazy { JacoDBContainer.getInstanceOrCreate(listOf(samplesAsm), tacBuilderPath) }
+    private val publication by lazy { JacoDBContainer.getInstanceOrCreate(assemblies, tacBuilderPath) }
 
     override val typeTransformer: (Any?) -> KClass<*>
         get() = TODO("Not yet implemented")
@@ -18,22 +16,16 @@ open class IlMethodTestRunner : TestRunner<IlTest, KFunction<*>, KClass<*>, IlTy
         get() = TODO("Not yet implemented")
     override val coverageRunner: (List<IlTest>) -> IlTypeCoverage
         get() = TODO("Not yet implemented")
-    override var options: UMachineOptions = UMachineOptions()
-    protected fun runMethod(method: KFunction<*>) {
-        val publication = container.publication
-        val ilMethod = publication.getMethodByName(method)
-        val machineOptions = UMachineOptions()
-        val ilOptions = IlMachineOptions()
-        val machine = IlMachine(publication, machineOptions, ilOptions)
-        machine.analyze(listOf(ilMethod))
-    }
+    override var options: UMachineOptions
+        get() = TODO("Not yet implemented")
+        set(value) {}
 
     companion object {
-        private val samplesAsm = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Release/net8.0/samples.dll"
-        private val tacBuilderPath: String = "/home/rnpozharskiy/work/dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/"
+        private val samples = "usvm.usvm-net.test.samples"
+        private val tacBuilderPath: String = TODO()
 
-//        private val assemblies: List<File> by lazy {
-//            getPublicationAssembly(samplesAsm)
-//        }
+        private val assemblies: List<File> by lazy {
+            getPublicationAssembly(samples)
+        }
     }
 }

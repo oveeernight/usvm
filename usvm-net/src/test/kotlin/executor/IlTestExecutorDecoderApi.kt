@@ -37,8 +37,8 @@ class IlTestExecutorDecoderApi(val ctx: IlContext): DecoderApi<IlTestExpr> {
         IlTestConst.StringConst(StmtKind.STRING, value, ctx.stringType.toTypeRepr())
     override fun createNullConst(type: IlType): IlTestExpr =
         IlTestConst.NullConst(StmtKind.NULL, type.toTypeRepr())
-    override fun createArray(elementType: IlType, size: Int, address: Int): IlTestExpr =
-        ArrayInstance(StmtKind.NEW_ARRAY, elementType.toTypeRepr(), size, address)
+    override fun createArray(type: IlType, size: Int, address: Int): IlTestExpr =
+        ArrayInstance(StmtKind.NEW_ARRAY, type.toTypeRepr(), size, address)
     override fun createObject(type: IlType, address: Int): IlTestExpr =
         ObjectInstance(StmtKind.NEW_OBJ, type.toTypeRepr(), address)
 

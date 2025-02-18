@@ -5,7 +5,6 @@ import java.io.File
 class TestRunner {
     val executorPath = File("")
     fun run(test: IlTest) {
-        println(test)
-        ProcessBuilder().command("./TestExecutor").directory(executorPath).start()
+        val t = ProcessBuilder().command("./TestExecutor").directory(executorPath).start()
     }
 }
