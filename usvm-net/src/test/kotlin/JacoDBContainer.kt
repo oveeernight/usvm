@@ -10,6 +10,7 @@ import org.jacodb.api.net.generated.models.ilSigModel
 import org.jacodb.api.net.publication.IlPublicationCache
 import org.jacodb.api.net.rdinfra.RdServer
 
+@Suppress("UNUSED_PARAMETER")
 class JacoDBContainer(
     assemblies: List<String>,
     tacBuilderPath: String,
@@ -19,7 +20,6 @@ class JacoDBContainer(
 
     init {
         val settings = IlSettings()
-        settings.builder()
         val database = IlDatabaseImpl(settings)
         val freePort = NetUtils.findFreePort(0)
         val server = RdServer(freePort, tacBuilderPath, database)

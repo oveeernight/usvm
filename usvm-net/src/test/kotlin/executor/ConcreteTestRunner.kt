@@ -5,7 +5,6 @@ import org.usvm.machine.logger
 import testrunner.expressions.TestExpressions
 import java.io.File
 import java.util.concurrent.TimeUnit
-import kotlin.math.log
 
 class ConcreteTestRunner(val timeoutSec: Int) {
     fun run(test: TestExpressions.IlTest) {
@@ -21,12 +20,9 @@ class ConcreteTestRunner(val timeoutSec: Int) {
 
         proc.waitFor(timeoutSec.toLong(), TimeUnit.SECONDS)
 
-        val output = proc.inputStream.bufferedReader().readText()
-        val error = proc.errorStream.bufferedReader().readText()
+        val response = proc.inputStream.bufferedReader().readText()
         logger.info {"got an answer from dotnet"}
-        logger.info { "output: $output" }
-        logger.info { "error: $error" }
-        logger.info { "exit value: ${proc.exitValue()}" }
+        logger.info { response }
     }
 
 //    val f = methodCall.argsList.add(int)

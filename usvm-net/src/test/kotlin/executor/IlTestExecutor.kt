@@ -20,7 +20,7 @@ class IlTestExecutor(val state: IlState, val method: IlMethod) {
         val scope = MemoryScope(state.ctx, method, state.methodResult, model, memory)
         val test = scope.createTest()
 
-        logger.info  {"Test serialized: ${test}" }
+        logger.info  {"Test serialized: ${test.toString()}" }
         concreteRunner.run(test)
     }
 
@@ -37,11 +37,10 @@ private class MemoryScope(
     override val decoderApi: IlTestExecutorDecoderApi = IlTestExecutorDecoderApi(ctx)
 
     fun createTest(): TestExpressions.IlTest {
-//        val instance = resolveThis()
+        val instance = resolveThis()
         val args = resolveArgs()
-        logger.info { "resolvedArgs: $args" }
         val arrange = decoderApi.arrangeStmts().map { com.google.protobuf.Any.pack(it) }
-        val methodCall = decoderApi.callMethod(method, args)
+        val methodCall = decoderApi.callMethod(method, listOf(instance) + args)
         val resultAsMessage = when (result) {
             is IlMethodResult.Success -> result.result
             is IlMethodResult.Exception -> result.exception
@@ -57,3 +56,11 @@ private class MemoryScope(
         return test
     }
 }
+
+//class IlTest(val arrange: List<Message>, val callMethod: Message)
+
+//@ExperimentalSerializationApi
+//private val prettyJson = Json {
+//    prettyPrint = true
+//    prettyPrintIndent = " "
+//}
