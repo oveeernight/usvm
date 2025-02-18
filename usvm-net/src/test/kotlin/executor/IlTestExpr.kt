@@ -94,7 +94,6 @@ class ArrayInstance(override val kind: StmtKind, override val type: TypeRepr, va
 @Serializable
 class ObjectInstance(override val kind: StmtKind, override val type: TypeRepr, val address: Int) : IlTestExpr
 
-// TODO method generic args
 @Serializable
 sealed interface IlTestCall : IlTestExpr {
     val method: MethodRepr
