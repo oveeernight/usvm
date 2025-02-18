@@ -1,6 +1,6 @@
 package org.usvm.machine
 
-import org.jacodb.api.net.ilinstances.IlType
+import org.example.ilinstances.IlType
 import org.usvm.UExpr
 import org.usvm.USort
 import org.usvm.memory.ULValue

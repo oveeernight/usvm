@@ -1,5 +1,6 @@
 package org.usvm.machine.interpreter
 
+import org.example.ilinstances.IlType
 import org.jacodb.api.net.core.IlConstVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.usvm.UConcreteHeapRef
@@ -16,27 +17,27 @@ class IlConstResolver(
     private val getOrMkStringConst: (String) -> UConcreteHeapRef,
     private val getOrMkTypeRef: (IlType) -> UConcreteHeapRef,
 ): IlConstVisitor<UExpr<out USort>> {
-    override fun visitIlArrayConst(const: IlArrayConstant): UExpr<out USort> {
+    override fun visitIlArrayConst(const: IlArrayConst): UExpr<out USort> {
         TODO("Not yet implemented")
     }
 
-    override fun visitIlBoolConst(const: IlBoolConstant): UExpr<out USort> = with(ctx) {
+    override fun visitIlBoolConst(const: IlBoolConst): UExpr<out USort> = with(ctx) {
         mkBool(const.value)
     }
 
-    override fun visitIlCharConst(const: IlCharConstant): UExpr<out USort> = with(ctx) {
+    override fun visitIlCharConst(const: IlCharConst): UExpr<out USort> = with(ctx) {
         mkBv(const.value.code, charSort)
     }
 
-    override fun visitIlFloatConst(const: IlFloatConstant): UExpr<out USort> = with(ctx) {
+    override fun visitIlFloatConst(const: IlFloatConst): UExpr<out USort> = with(ctx) {
         mkFp(const.value, floatSort)
     }
 
-    override fun visitIlDoubleConst(const: IlDoubleConstant): UExpr<out USort> = with(ctx) {
+    override fun visitIlDoubleConst(const: IlDoubleConst): UExpr<out USort> = with(ctx) {
         mkFp(const.value, doubleSort)
     }
 
-    override fun visitIlEnumConst(const: IlEnumConstant): UExpr<out USort> {
+    override fun visitIlEnumConst(const: IlEnumConst): UExpr<out USort> {
         TODO("Not yet implemented")
     }
 
@@ -44,39 +45,39 @@ class IlConstResolver(
         TODO("Not yet implemented")
     }
 
-    override fun visitIlInt8Const(const: IlInt8Constant): UExpr<out USort> = with(ctx) {
+    override fun visitIlInt8Const(const: IlInt8Const): UExpr<out USort> = with(ctx) {
         mkBv(const.value, byteSort)
     }
 
 
-    override fun visitIlInt16Const(const: IlInt16Constant): UExpr<out USort> = with(ctx) {
+    override fun visitIlInt16Const(const: IlInt16Const): UExpr<out USort> = with(ctx) {
         mkBv(const.value, byteSort)
     }
 
-    override fun visitIlInt32Const(const: IlInt32Constant): UExpr<out USort> = with(ctx) {
+    override fun visitIlInt32Const(const: IlInt32Const): UExpr<out USort> = with(ctx) {
         mkBv(const.value, byteSort)
     }
 
-    override fun visitIlInt64Const(const: IlInt64Constant): UExpr<out USort> = with(ctx) {
+    override fun visitIlInt64Const(const: IlInt64Const): UExpr<out USort> = with(ctx) {
         mkBv(const.value, byteSort)
     }
 
-    override fun visitIlUInt8Const(const: IlUInt8Constant): UExpr<out USort> = with(ctx) {
+    override fun visitIlUInt8Const(const: IlUInt8Const): UExpr<out USort> = with(ctx) {
          TODO()
 //        mkBvUnsigned(const.value, bytesBitSize)
     }
 
-    override fun visitIlUInt16Const(const: IlUInt16Constant): UExpr<out USort> = with(ctx) {
+    override fun visitIlUInt16Const(const: IlUInt16Const): UExpr<out USort> = with(ctx) {
         TODO()
 //        mkBv (const.value, byteSort)
     }
 
-    override fun visitIlUInt32Const(const: IlUInt32Constant): UExpr<out USort> = with(ctx) {
+    override fun visitIlUInt32Const(const: IlUInt32Const): UExpr<out USort> = with(ctx) {
         TODO()
 //            mkBv(const.value, byteSort)
     }
 
-    override fun visitIlUInt64Const(const: IlUInt64Constant): UExpr<out USort> = with(ctx) {
+    override fun visitIlUInt64Const(const: IlUInt64Const): UExpr<out USort> = with(ctx) {
         TODO()
 //            mkBv(const.value, byteSort)
     }
@@ -88,7 +89,7 @@ class IlConstResolver(
     override fun visitIlNullConst(const: IlNull): UExpr<out USort>  = with(ctx) {
         nullRef
     }
-    override fun visitIlStringConst(const: IlStringConstant): UExpr<out USort> = scope.calcOnState {
+    override fun visitIlStringConst(const: IlStringConst): UExpr<out USort> = scope.calcOnState {
         val strRef = getOrMkStringConst(const.value)
 
         val values = const.value.asSequence().map { ctx.mkBv(it.code, ctx.charSort) }

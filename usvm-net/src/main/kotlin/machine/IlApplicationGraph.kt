@@ -1,7 +1,7 @@
 package org.usvm.machine
 
+import org.example.ilinstances.IlMethod
 import org.jacodb.api.net.IlPublication
-import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.usvm.statistics.ApplicationGraph
 

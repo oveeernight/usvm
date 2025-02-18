@@ -1,6 +1,9 @@
 package org.usvm.machine.interpreter
 
 import io.ksmt.utils.asExpr
+import org.example.ilinstances.IlMethod
+import org.example.ilinstances.IlParameter
+import org.example.ilinstances.IlType
 import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.usvm.*
@@ -30,21 +33,21 @@ class IlExprResolver(
     fun resolve(expr: IlExpr, type: IlType = ctx.mockType) : UExpr<out USort>? = expr.accept(this)
 
     override fun visitIlNullConst(const: IlNull): UExpr<out USort> = constResolver.visitIlNullConst(const)
-    override fun visitIlStringConst(const: IlStringConstant): UExpr<out USort> = constResolver.visitIlStringConst(const)
-    override fun visitIlBoolConst(const: IlBoolConstant): UExpr<out USort> = constResolver.visitIlBoolConst(const)
-    override fun visitIlCharConst(const: IlCharConstant): UExpr<out USort> = constResolver.visitIlCharConst(const)
-    override fun visitIlInt8Const(const: IlInt8Constant): UExpr<out USort> = constResolver.visitIlInt8Const(const)
-    override fun visitIlInt16Const(const: IlInt16Constant): UExpr<out USort> = constResolver.visitIlInt16Const(const)
-    override fun visitIlInt32Const(const: IlInt32Constant): UExpr<out USort> = constResolver.visitIlInt32Const(const)
-    override fun visitIlInt64Const(const: IlInt64Constant): UExpr<out USort> = constResolver.visitIlInt64Const(const)
-    override fun visitIlUInt8Const(const: IlUInt8Constant): UExpr<out USort> = constResolver.visitIlUInt8Const(const)
-    override fun visitIlUInt16Const(const: IlUInt16Constant): UExpr<out USort> = constResolver.visitIlUInt16Const(const)
-    override fun visitIlUInt32Const(const: IlUInt32Constant): UExpr<out USort> = constResolver.visitIlUInt32Const(const)
-    override fun visitIlUInt64Const(const: IlUInt64Constant): UExpr<out USort> = constResolver.visitIlUInt64Const(const)
-    override fun visitIlFloatConst(const: IlFloatConstant): UExpr<out USort> = constResolver.visitIlFloatConst(const)
-    override fun visitIlDoubleConst(const: IlDoubleConstant): UExpr<out USort> = constResolver.visitIlDoubleConst(const)
-    override fun visitIlEnumConst(const: IlEnumConstant): UExpr<out USort> = constResolver.visitIlEnumConst(const)
-    override fun visitIlArrayConst(const: IlArrayConstant): UExpr<out USort> = constResolver.visitIlArrayConst(const)
+    override fun visitIlStringConst(const: IlStringConst): UExpr<out USort> = constResolver.visitIlStringConst(const)
+    override fun visitIlBoolConst(const: IlBoolConst): UExpr<out USort> = constResolver.visitIlBoolConst(const)
+    override fun visitIlCharConst(const: IlCharConst): UExpr<out USort> = constResolver.visitIlCharConst(const)
+    override fun visitIlInt8Const(const: IlInt8Const): UExpr<out USort> = constResolver.visitIlInt8Const(const)
+    override fun visitIlInt16Const(const: IlInt16Const): UExpr<out USort> = constResolver.visitIlInt16Const(const)
+    override fun visitIlInt32Const(const: IlInt32Const): UExpr<out USort> = constResolver.visitIlInt32Const(const)
+    override fun visitIlInt64Const(const: IlInt64Const): UExpr<out USort> = constResolver.visitIlInt64Const(const)
+    override fun visitIlUInt8Const(const: IlUInt8Const): UExpr<out USort> = constResolver.visitIlUInt8Const(const)
+    override fun visitIlUInt16Const(const: IlUInt16Const): UExpr<out USort> = constResolver.visitIlUInt16Const(const)
+    override fun visitIlUInt32Const(const: IlUInt32Const): UExpr<out USort> = constResolver.visitIlUInt32Const(const)
+    override fun visitIlUInt64Const(const: IlUInt64Const): UExpr<out USort> = constResolver.visitIlUInt64Const(const)
+    override fun visitIlFloatConst(const: IlFloatConst): UExpr<out USort> = constResolver.visitIlFloatConst(const)
+    override fun visitIlDoubleConst(const: IlDoubleConst): UExpr<out USort> = constResolver.visitIlDoubleConst(const)
+    override fun visitIlEnumConst(const: IlEnumConst): UExpr<out USort> = constResolver.visitIlEnumConst(const)
+    override fun visitIlArrayConst(const: IlArrayConst): UExpr<out USort> = constResolver.visitIlArrayConst(const)
     override fun visitIlTypeRefConst(const: IlTypeRef): UExpr<out USort> = constResolver.visitIlTypeRefConst(const)
 
     override fun visitErrVar(expr: IlErrVar): UExpr<out USort>? {
@@ -98,10 +101,10 @@ class IlExprResolver(
     }
 
     private fun fieldAccessToLValue(expr: IlFieldAccess): UFieldLValue<*, *>? {
-        val fieldIsStatic = expr.instance == null
+        val fieldIsStatic = expr.receiver == null
         val field = expr.field
         if (!fieldIsStatic) {
-            val instance = expr.instance!!.accept(this)?.asExpr(ctx.addressSort) ?: return null
+            val instance = expr.receiver!!.accept(this)?.asExpr(ctx.addressSort) ?: return null
             checkNullPointer(instance)
             val flv = UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
             return flv
@@ -168,7 +171,7 @@ class IlExprResolver(
     override fun visitIlCall(expr: IlCall): UExpr<out USort>? {
         val args = expr.args
         val method = expr.method
-        val params = method.parameters
+        val params = method.parametes
         val (instance, funArgs) = if (true) {
             args[0] to args.subList(1, args.size)
         } else {
@@ -189,7 +192,7 @@ class IlExprResolver(
             checkNullPointer(resolvedInstance)
         }
 
-        val resolvedArgs = args.zip(parameters).map { (arg, param) -> resolve(arg, param.type) ?: return null }
+        val resolvedArgs = args.zip(parameters).map { (arg, param) -> resolve(arg, param.paramType) ?: return null }
 
         return resolveCall { onBeforeCall(resolvedArgs) }
     }
@@ -213,7 +216,7 @@ class IlExprResolver(
         }
     }
 
-    override fun visitIlConvExpr(expr: IlConvCastExpr): UExpr<out USort>? = scope.calcOnState {
+    override fun visitIlCastClassExpr(expr: IlCastClassExpr): UExpr<out USort>? = scope.calcOnState {
         val e = expr.operand.accept(this@IlExprResolver)?.asExpr(ctx.addressSort) ?: return@calcOnState null
         val currType = ctx.mockType
         val expectedType = expr.expectedType
@@ -238,9 +241,15 @@ class IlExprResolver(
         }
     }
 
+    override fun visitIlConvExpr(expr: IlConvExpr): UExpr<out USort>? {
+        TODO("Not yet implemented")
+    }
+
     override fun visitIlFieldRefConst(const: IlFieldRef): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
+
+    override fun visitIlInitExpr(expr: IlInitExpr): UExpr<out USort>? = TODO()
 
     override fun visitIlIsInstExpr(expr: IlIsInstExpr): UExpr<out USort>? = scope.calcOnState {
         val instance = expr.operand.accept(this@IlExprResolver)?.asExpr(ctx.addressSort) ?: return@calcOnState null

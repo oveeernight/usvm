@@ -1,8 +1,8 @@
 package org.usvm.machine.state
 
-import org.jacodb.api.net.ilinstances.IlMethod
+import org.example.ilinstances.IlMethod
+import org.example.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.IlStmt
-import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.PathNode
 import org.usvm.UCallStack
 import org.usvm.UState

@@ -1,15 +1,19 @@
 plugins {
-    id("usvm.kotlin-conventions")
+    kotlin("jvm")
+}
+
+group = "org.usvm"
+version = "unspecified"
+
+repositories {
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
     implementation(project(":usvm-core"))
-    implementation(Libs.rd_core)
-    implementation(Libs.rd_framework)
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.20")
-
     testImplementation(kotlin("test"))
-    implementation("com.github.petrukhinandrew:jacodb:866e56c0bc155adaaa18faae8a10c6ce92aef431")
+    implementation("com.github.oveeernight:jacodb:5ea471456fb01b2056871f3c80e0b8b74b0c965a")
 }
 
 
