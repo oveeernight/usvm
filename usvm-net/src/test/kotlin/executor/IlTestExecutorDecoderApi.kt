@@ -1,119 +1,79 @@
 package executor
 
-import com.google.protobuf.Message
-import testrunner.expressions.*
 import common.DecoderApi
 import org.jacodb.api.net.ilinstances.*
 import org.usvm.machine.IlContext
 
-class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
-    private val arrangeStmts = mutableListOf<Message>()
+class IlTestExecutorDecoderApi(val ctx: IlContext): DecoderApi<IlTestExpr> {
+    private val arrangeStmts = mutableListOf<IlTestStmt>()
 
-    fun arrangeStmts(): List<Message> = arrangeStmts
+    fun arrangeStmts(): List<IlTestStmt> = arrangeStmts
 
-    override fun createBoolConst(value: Boolean): Message =
-        boolConst { this.value = value; typeRepr = ctx.boolType.toTypeRepr() }
-    override fun createCharConst(value: Char): Message =
-        charConst { this.value = value.code; typeRepr = ctx.charType.toTypeRepr() }
-    override fun createInt8Const(value: Byte): Message =
-        int8Const { this.value = value.toInt(); typeRepr = ctx.charType.toTypeRepr() }
-    override fun createInt16Const(value: Short): Message =
-        int16Const { this.value = value.toInt(); typeRepr = ctx.charType.toTypeRepr() }
-    override fun createInt32Const(value: Int): Message =
-        int32Const { this.value = value; typeRepr = ctx.charType.toTypeRepr() }
-    override fun createInt64Const(value: Long): Message =
-        int64Const { this.value = value; typeRepr = ctx.charType.toTypeRepr() }
-    override fun createUInt8Const(value: UByte): Message =
-        uInt8Const { this.value = value.toInt(); typeRepr = ctx.uint8Type.toTypeRepr() }
-    override fun createUInt16Const(value: UShort): Message =
-        uInt16Const { this.value = value.toInt(); typeRepr = ctx.uint16Type.toTypeRepr() }
-    override fun createUInt32Const(value: UInt): Message =
-        uInt32Const { this.value = value.toInt(); ctx.uint32Type.toTypeRepr() }
-    override fun createUInt64Const(value: ULong): Message =
-        uInt64Const { this.value = value.toLong(); ctx.uint64Type.toTypeRepr() }
-    override fun createFloatConst(value: Float): Message =
-        floatConst { this.value = value; ctx.floatType.toTypeRepr() }
-    override fun createDoubleConst(value: Double): Message =
-        doubleConst { this.value = value; ctx.doubleType.toTypeRepr() }
-    override fun createStringConst(value: String): Message =
-       stringConst { this.value = value; ctx.stringType.toTypeRepr() }
-    override fun createNullConst(type: IlType): Message =
-        nullConst { typeRepr = type.toTypeRepr() }
-    override fun createArray(elementType: IlType, size: Int, address: Int): Message =
-        arrayInstance { elementTypeRepr = elementType.toTypeRepr(); this.size = size; this.address = address }
-    override fun createObject(type: IlType, address: Int): Message {
-        return objectInstance { typeRepr = type.toTypeRepr(); this.address = address }
-    }
-    override fun createCyclicReference(type: IlType, address: Int): Message =
-        cyclicReference { typeRepr = type.toTypeRepr(); this.address = address }
+    override fun createBoolConst(value: Boolean): IlTestExpr =
+        IlTestConst.BoolConst(StmtKind.BOOL, value, ctx.boolType.toTypeRepr())
+    override fun createCharConst(value: Char): IlTestExpr =
+        IlTestConst.CharConst(StmtKind.CHAR, value, ctx.charType.toTypeRepr())
+    override fun createInt8Const(value: Byte): IlTestExpr =
+        IlTestConst.Int8Const(StmtKind.INT8, value, ctx.int8Type.toTypeRepr())
+    override fun createInt16Const(value: Short): IlTestExpr =
+        IlTestConst.Int16Const(StmtKind.INT16, value, ctx.int16Type.toTypeRepr())
+    override fun createInt32Const(value: Int): IlTestExpr =
+        IlTestConst.Int32Const(StmtKind.INT32, value, ctx.int32Type.toTypeRepr())
+    override fun createInt64Const(value: Long): IlTestExpr =
+        IlTestConst.Int64Const(StmtKind.INT64, value, ctx.int64Type.toTypeRepr())
+    override fun createUInt8Const(value: UByte): IlTestExpr =
+        IlTestConst.UInt8Const(StmtKind.UINT8, value, ctx.uint8Type.toTypeRepr())
+    override fun createUInt16Const(value: UShort): IlTestExpr =
+        IlTestConst.UInt16Const(StmtKind.UINT16, value, ctx.uint16Type.toTypeRepr())
+    override fun createUInt32Const(value: UInt): IlTestExpr =
+        IlTestConst.UInt32Const(StmtKind.UINT32, value, ctx.uint32Type.toTypeRepr())
+    override fun createUInt64Const(value: ULong): IlTestExpr =
+        IlTestConst.UInt64Const(StmtKind.UINT64, value, ctx.uint64Type.toTypeRepr())
+    override fun createFloatConst(value: Float): IlTestExpr =
+        IlTestConst.FloatConst(StmtKind.FLOAT, value, ctx.floatType.toTypeRepr())
+    override fun createDoubleConst(value: Double): IlTestExpr =
+        IlTestConst.DoubleConst(StmtKind.DOUBLE, value, ctx.doubleType.toTypeRepr())
+    override fun createStringConst(value: String): IlTestExpr =
+        IlTestConst.StringConst(StmtKind.STRING, value, ctx.stringType.toTypeRepr())
+    override fun createNullConst(type: IlType): IlTestExpr =
+        NullConst(StmtKind.NULL, type.toTypeRepr())
+    override fun createArray(elementType: IlType, size: Int, address: Int): IlTestExpr =
+        ArrayInstance(StmtKind.NEW_ARRAY, elementType.toTypeRepr(), size, address)
+    override fun createObject(type: IlType, address: Int): IlTestExpr =
+        ObjectInstance(StmtKind.NEW_OBJ, type.toTypeRepr(), address)
+
+    override fun createCyclicReference(type: IlType, address: Int): IlTestExpr =
+        CyclicReference(StmtKind.CYCLIC_REFERENCE, type.toTypeRepr(), address)
+
     // TODO ctor call
-    override fun callMethod(method: IlMethod, args: List<Message>): Message {
-        @Suppress("UNCHECKED_CAST")
-        args as List<com.google.protobuf.Message>
-        val methodArgs = args.map { com.google.protobuf.Any.pack(it) }
+    override fun callMethod(method: IlMethod, args: List<IlTestExpr>): IlTestExpr {
         val returnType = method.returnType.toTypeRepr()
-        val methodRepr = method.toMethodRepr()
         return if (method.isStatic) {
-            val staticMethod = staticMethodCall { this.methodRepr = methodRepr; this.returnTypeRepr = returnType; }
-            staticMethod.argsList.addAll(methodArgs)
-            staticMethod
+            IlTestCall.StaticMethodCall(StmtKind.STATIC_CALL, method.toMethodRepr(), returnType, args)
         }
         else {
-            val instanceCall = instanceMethodCall {
-                this.methodRepr = methodRepr
-                this.returnTypeRepr = returnType
-                this.instance = com.google.protobuf.Any.pack(args.first())
-                this.args.addAll(methodArgs.drop(1))
-            }
-            instanceCall
-        }.also { arrangeStmts.add(it) }
+            IlTestCall.InstanceMethodCall(
+                StmtKind.INSTANCE_CALL,
+                method.toMethodRepr(),
+                returnType,
+                args[0],
+                args.drop(1)
+            ).also { arrangeStmts.add(it) }
+        }
     }
 
-    override fun setObjectField(obj: Message, field: IlField, value: Message) {
-        obj as TestExpressions.ObjectInstance
-        val valueAsAny = value as? com.google.protobuf.Any ?: com.google.protobuf.Any.pack(value)
-        val set = setObjectField {
-            this.instance = obj
-            this.fieldRepr = field.toFieldRepr()
-            this.value = valueAsAny
-        }
-        arrangeStmts += set
+    override fun setObjectField(obj: IlTestExpr, field: IlField, value: IlTestExpr) {
+        arrangeStmts += ArrangeStmt.SetObjectField(StmtKind.SET_OBJ_FIELD, obj, field.toFieldRepr(), value)
     }
 
-    override fun setArrayIndex(array: Message, index: Int, value: Message) {
-        array as TestExpressions.ArrayInstance
-        val valueAsAny = value as? com.google.protobuf.Any ?: com.google.protobuf.Any.pack(value)
-        val set = setArrayIndex {
-            this.instance = instance
-            this.index = index
-            this.value = valueAsAny
-        }
-        arrangeStmts += set
+    override fun setArrayIndex(array: IlTestExpr, index: Int, value: IlTestExpr) {
+        arrangeStmts += ArrangeStmt.SetArrayIndex(StmtKind.SET_ARRAY_INDEX, array, index, value)
     }
 }
 
-private fun IlType.toTypeRepr(): TestExpressions.TypeRepr {
-    val type = typeRepr {
-        asm = asmName
-        moduleToken = moduleToken
-        typeToken = typeToken
-    }
+private fun IlType.toTypeRepr(): TypeRepr =
+    TypeRepr(asmName, moduleToken, typeToken, genericArgs.map { it.toTypeRepr() })
 
-    type.genericArgsList.addAll(genericArgs.map { it.toTypeRepr() })
+private fun IlMethod.toMethodRepr(): MethodRepr = MethodRepr(declaringType.toTypeRepr(), signature, name)
 
-    return type
-}
-
-
-private fun IlMethod.toMethodRepr(): TestExpressions.MethodRepr =
-   methodRepr {
-       declType = declaringType.toTypeRepr()
-       signature = signature
-       name = name
-   }
-
-private fun IlField.toFieldRepr(): TestExpressions.FieldRepr =
-    fieldRepr {
-        typeRepr = fieldType.toTypeRepr()
-        name = name
-    }
+private fun IlField.toFieldRepr(): FieldRepr = FieldRepr(fieldType.toTypeRepr(), name)

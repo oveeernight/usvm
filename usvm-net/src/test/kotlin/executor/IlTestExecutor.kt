@@ -1,8 +1,10 @@
 package executor
 
-import com.google.protobuf.Message
 import common.IlTestStateResolver
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.machine.IlContext
@@ -20,7 +22,7 @@ class IlTestExecutor(val state: IlState, val method: IlMethod) {
         val scope = MemoryScope(state.ctx, method, model, memory)
         val test = scope.createTest()
 
-        logger.info  {"Test serialized: ${test}" }
+        logger.info  {"Test serialized: ${prettyJson.encodeToString(test)}" }
 //        concreteRunner.run(test)
     }
 
@@ -32,7 +34,7 @@ private class MemoryScope(
     method: IlMethod,
     model: UModelBase<IlType>,
     stateMemory: UReadOnlyMemory<IlType>
-) : IlTestStateResolver<Message>(ctx, method, model, stateMemory) {
+) : IlTestStateResolver<IlTestExpr>(ctx, method, model, stateMemory) {
     override val decoderApi: IlTestExecutorDecoderApi = IlTestExecutorDecoderApi(ctx)
 
     fun createTest(): IlTest {
@@ -40,16 +42,15 @@ private class MemoryScope(
         val args = resolveArgs()
         val arrange = decoderApi.arrangeStmts()
         val methodCall = decoderApi.callMethod(method, args)
-        println(arrange.toString())
-        println(methodCall.toString())
         return IlTest(arrange, methodCall)
     }
 }
 
-class IlTest(val arrange: List<Message>, val callMethod: Message)
+@Serializable
+class IlTest(val arrange: List<IlTestStmt>, val callMethod: IlTestExpr)
 
-//@ExperimentalSerializationApi
-//private val prettyJson = Json {
-//    prettyPrint = true
-//    prettyPrintIndent = " "
-//}
+@ExperimentalSerializationApi
+private val prettyJson = Json {
+    prettyPrint = true
+    prettyPrintIndent = " "
+}

@@ -33,13 +33,13 @@ tasks {
         options.encoding = "UTF-8"
         options.compilerArgs.add("-Xlint:all")
         options.compilerArgs.add("-Xlint:-options")
-//        options.compilerArgs.add("-Werror")
+        options.compilerArgs.add("-Werror")
     }
     withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = JavaVersion.VERSION_1_8.toString()
             freeCompilerArgs += "-Xsam-conversions=class"
-            allWarningsAsErrors = false
+            allWarningsAsErrors = true
         }
     }
 }
