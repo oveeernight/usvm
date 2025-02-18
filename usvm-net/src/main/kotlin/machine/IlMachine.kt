@@ -5,7 +5,6 @@ import org.jacodb.api.net.IlPublication
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.usvm.UMachine
 import org.usvm.UMachineOptions
-import org.usvm.forkblacklists.UForkBlackList
 import org.usvm.machine.interpreter.IlInterpreter
 import org.usvm.ps.createPathSelector
 import org.usvm.machine.state.IlState
@@ -19,7 +18,7 @@ class IlMachine(
     private val ilOptions: IlMachineOptions) : UMachine<IlState>() {
     private val components = IlComponents()
     private val ctx = IlContext(publication, components)
-    private val interpreter = IlInterpreter(ctx, ilOptions, UForkBlackList.createDefault())
+    private val interpreter = IlInterpreter(ctx)
     private val applicationGraph = IlApplicationGraph(publication)
 
     fun analyze(methods: List<IlMethod>): List<IlState> {

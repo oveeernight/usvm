@@ -9,7 +9,7 @@ import org.usvm.UState
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.constraints.UPathConstraints
 import org.usvm.machine.IlContext
-import org.usvm.machine.interpreter.IlMethodResult
+import org.usvm.machine.IlMethodResult
 import org.usvm.machine.IlTarget
 import org.usvm.memory.UMemory
 import org.usvm.model.UModelBase
@@ -25,7 +25,7 @@ class IlState(
     models: List<UModelBase<IlType>> = listOf(),
     pathNode: PathNode<IlStmt> = PathNode.root(),
     forkPoints: PathNode<PathNode<IlStmt>> = PathNode.root(),
-    var methodResult: IlMethodResult = IlMethodResult.BeforeCall,
+    var methodResult: IlMethodResult = IlMethodResult.NoCall,
     targets: UTargetsSet<IlTarget, IlStmt> = UTargetsSet.empty())
     : UState<IlType, IlMethod, IlStmt, IlContext, IlTarget, IlState>(
         ctx,

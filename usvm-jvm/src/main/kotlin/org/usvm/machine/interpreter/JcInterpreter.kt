@@ -153,7 +153,7 @@ class JcInterpreter(
     override fun step(state: JcState): StepResult<JcState> {
         val stmt = state.lastStmt
 
-        logger.error("Step: {}", stmt)
+        logger.debug("Step: {}", stmt)
 
         val scope = StepScope(state, forkBlackList)
 
@@ -236,7 +236,6 @@ class JcInterpreter(
     private fun visitMethodCall(scope: JcStepScope, stmt: JcMethodCallBaseInst) {
         val exprResolver = exprResolverWithScope(scope)
         val simpleValueResolver = exprResolver.simpleValueResolver
-//        logger.error { "oooooon method ${stmt.method.name}, state_id = ${scope.calcOnState { id }}" }
 
         val method = stmt.method
         when (stmt) {
