@@ -30,9 +30,10 @@ data class IlMethodEntryPointStmt(
     override val method: IlMethod,
     val refArgs: List<Pair<IlType, UHeapRef>>
 ) : TransparentMethodCallBaseStmt {
-    override val originalStmt get() = error("MethodEntryPoint: location should not be called")
+    override val originalStmt = TODO()
     override val location: IlStmtLocation
-        get() = error("MethodEntryPoint: location should not be called")
+        get() = TODO()
+//    method.rawInstList.first()
 
     override fun <T> accept(visitor: IlStmtVisitor<T>): T {
         error("IlMethodEntryPointStmt: visitor should not be called on transparent instructions")
@@ -45,7 +46,8 @@ data class IlConcreteCallStmt(
     override val returnSite: IlStmt,
 ) : MethodCall, TransparentMethodCallBaseStmt {
     override val originalStmt = returnSite
-    override val location: IlStmtLocation = returnSite.location
+    override val location: IlStmtLocation
+        get() = TODO("Not yet implemented")
 
     override fun <T> accept(visitor: IlStmtVisitor<T>): T {
         error("IlConcreteCall: visitor should not be called on transparent instructions")

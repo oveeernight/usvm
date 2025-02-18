@@ -63,7 +63,7 @@ class IlTestExecutorDecoderApi(val ctx: IlContext): DecoderApi<IlTestExpr> {
     }
 
     override fun setObjectField(obj: IlTestExpr, field: IlField, value: IlTestExpr) {
-        arrangeStmts += ArrangeStmt.SetObjectField(StmtKind.SET_OBJ_FIELD, obj, field.toFieldRepr(), value)
+        arrangeStmts += ArrangeStmt.SetObjectField(StmtKind.SET_OBJ_FIELD, obj, field, value)
     }
 
     override fun setArrayIndex(array: IlTestExpr, index: Int, value: IlTestExpr) {
@@ -75,5 +75,3 @@ private fun IlType.toTypeRepr(): TypeRepr =
     TypeRepr(asmName, moduleToken, typeToken, genericArgs.map { it.toTypeRepr() })
 
 private fun IlMethod.toMethodRepr(): MethodRepr = MethodRepr(declaringType.toTypeRepr(), signature, name)
-
-private fun IlField.toFieldRepr(): FieldRepr = FieldRepr(fieldType.toTypeRepr(), name)
