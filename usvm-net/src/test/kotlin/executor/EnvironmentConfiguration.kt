@@ -10,7 +10,6 @@ class ExecutorEnvironmentConfig(
     @EnvironmentVariable("CORECLR_PROFILER_PATH") val coreclrProfilerPath: String,
     @EnvironmentVariable("CORECLR_ENABLE_PROFILING") val coreclrEnableProfiling: String,
     @EnvironmentVariable("COVERAGE_TOOL_INSTRUMENT_MAIN_ONLY") val instrumentMainOnly: String,
-    @EnvironmentVariable("COVERAGE_TOOL_RESULT_NAME") val resultName: String,
 )
 
 @Suppress("UNCHECKED_CAST")

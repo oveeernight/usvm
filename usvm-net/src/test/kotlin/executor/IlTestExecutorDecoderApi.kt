@@ -79,7 +79,6 @@ class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> 
             this.index = index
             this.value = valueAsAny
         }
-        logger.error { "set: $set" }
         arrangeStmts += set
     }
 }

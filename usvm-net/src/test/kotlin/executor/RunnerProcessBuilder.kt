@@ -9,17 +9,16 @@ class RunnerProcessBuilder {
             val executorDir = File(IlMethodTestRunner.executorPath)
             val samplesAsm = IlMethodTestRunner.samplesAsmPath;
             val builder = ProcessBuilder()
-            val enabled = "0"
+            val enabled = "1"
             val instrumentMainOnlyConfig = ExecutorEnvironmentConfig(
                 coreclrProfiler = "{2800fea6-9667-4b42-a2b6-45dc98e77e9e}",
                 coreclrProfilerPath = IlMethodTestRunner.profilerPath,
                 coreclrEnableProfiling = enabled,
                 instrumentMainOnly = enabled,
-                resultName = "coverage.cov"
             )
             return builder.command("./TestExecutor.Application", "--asm", samplesAsm)
                 .directory(executorDir)
-//                .withEnvironmentConfig(instrumentMainOnlyConfig)
+                .withEnvironmentConfig(instrumentMainOnlyConfig)
         }
     }
 }
