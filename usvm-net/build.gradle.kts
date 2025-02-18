@@ -1,6 +1,5 @@
 plugins {
     id("usvm.kotlin-conventions")
-    kotlin("plugin.serialization") version "1.9.20"
 }
 
 dependencies {
@@ -11,9 +10,6 @@ dependencies {
     implementation(Libs.ksmt_yices)
     implementation(Libs.ksmt_cvc5)
     implementation(Libs.ksmt_symfpu)
-
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
-
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.20")
 
     testImplementation(kotlin("test"))

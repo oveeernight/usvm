@@ -169,10 +169,10 @@ class IlExprResolver(
     }
 
     override fun visitIlBinaryOp(expr: IlBinaryOp): UExpr<out USort>? {
-        val resolvedOp = IlBinaryOperation.resolve(expr)
+        val resolved = IlBinaryOperation.resolve(expr)
         val lhs = resolve(expr.lhs)
         val rhs = resolve(expr.rhs)
-        return resolvedOp(lhs.cast(), rhs.cast())
+        return resolved(lhs.cast(), rhs.cast())
     }
 
     override fun visitIlBoxExpr(expr: IlBoxExpr): UExpr<out USort>? {
