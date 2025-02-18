@@ -48,15 +48,25 @@ class IlTestExecutorDecoderApi(val  ctx: IlContext): DecoderApi<Message> {
         cyclicReference { typeRepr = type.toTypeRepr(); this.address = address }
     // TODO ctor call
     override fun callMethod(method: IlMethod, args: List<Message>): Message {
-        val argsPacked = args.map { com.google.protobuf.Any.pack(it) }
+        @Suppress("UNCHECKED_CAST")
+        args as List<com.google.protobuf.Message>
+        val methodArgs = args.map { com.google.protobuf.Any.pack(it) }
         val returnType = method.returnType.toTypeRepr()
         val methodRepr = method.toMethodRepr()
-        return methodCall {
-            returnTypeRepr = returnType
-            this.methodRepr = methodRepr
-            this.args.addAll(argsPacked)
+        return if (method.isStatic) {
+            val staticMethod = staticMethodCall { this.methodRepr = methodRepr; this.returnTypeRepr = returnType; }
+            staticMethod.argsList.addAll(methodArgs)
+            staticMethod
         }
-//            .also { arrangeStmts.add(it) }
+        else {
+            val instanceCall = instanceMethodCall {
+                this.methodRepr = methodRepr
+                this.returnTypeRepr = returnType
+                this.instance = com.google.protobuf.Any.pack(args.first())
+                this.args.addAll(methodArgs.drop(1))
+            }
+            instanceCall
+        }.also { arrangeStmts.add(it) }
     }
 
     override fun setObjectField(obj: Message, field: IlField, value: Message) {

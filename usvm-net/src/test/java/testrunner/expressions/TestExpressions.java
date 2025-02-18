@@ -13624,8 +13624,1381 @@ public final class TestExpressions {
 
   }
 
-  public interface MethodCallOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:MethodCall)
+  public interface InstanceMethodCallOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:InstanceMethodCall)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.MethodRepr methodRepr = 1;</code>
+     * @return Whether the methodRepr field is set.
+     */
+    boolean hasMethodRepr();
+    /**
+     * <code>.MethodRepr methodRepr = 1;</code>
+     * @return The methodRepr.
+     */
+    testrunner.expressions.TestExpressions.MethodRepr getMethodRepr();
+    /**
+     * <code>.MethodRepr methodRepr = 1;</code>
+     */
+    testrunner.expressions.TestExpressions.MethodReprOrBuilder getMethodReprOrBuilder();
+
+    /**
+     * <code>.TypeRepr returnTypeRepr = 2;</code>
+     * @return Whether the returnTypeRepr field is set.
+     */
+    boolean hasReturnTypeRepr();
+    /**
+     * <code>.TypeRepr returnTypeRepr = 2;</code>
+     * @return The returnTypeRepr.
+     */
+    testrunner.expressions.TestExpressions.TypeRepr getReturnTypeRepr();
+    /**
+     * <code>.TypeRepr returnTypeRepr = 2;</code>
+     */
+    testrunner.expressions.TestExpressions.TypeReprOrBuilder getReturnTypeReprOrBuilder();
+
+    /**
+     * <code>.google.protobuf.Any instance = 3;</code>
+     * @return Whether the instance field is set.
+     */
+    boolean hasInstance();
+    /**
+     * <code>.google.protobuf.Any instance = 3;</code>
+     * @return The instance.
+     */
+    com.google.protobuf.Any getInstance();
+    /**
+     * <code>.google.protobuf.Any instance = 3;</code>
+     */
+    com.google.protobuf.AnyOrBuilder getInstanceOrBuilder();
+
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    java.util.List<com.google.protobuf.Any> 
+        getArgsList();
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    com.google.protobuf.Any getArgs(int index);
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    int getArgsCount();
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    java.util.List<? extends com.google.protobuf.AnyOrBuilder> 
+        getArgsOrBuilderList();
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    com.google.protobuf.AnyOrBuilder getArgsOrBuilder(
+        int index);
+  }
+  /**
+   * Protobuf type {@code InstanceMethodCall}
+   */
+  public static final class InstanceMethodCall extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:InstanceMethodCall)
+      InstanceMethodCallOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use InstanceMethodCall.newBuilder() to construct.
+    private InstanceMethodCall(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private InstanceMethodCall() {
+      args_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new InstanceMethodCall();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return testrunner.expressions.TestExpressions.internal_static_InstanceMethodCall_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return testrunner.expressions.TestExpressions.internal_static_InstanceMethodCall_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              testrunner.expressions.TestExpressions.InstanceMethodCall.class, testrunner.expressions.TestExpressions.InstanceMethodCall.Builder.class);
+    }
+
+    public static final int METHODREPR_FIELD_NUMBER = 1;
+    private testrunner.expressions.TestExpressions.MethodRepr methodRepr_;
+    /**
+     * <code>.MethodRepr methodRepr = 1;</code>
+     * @return Whether the methodRepr field is set.
+     */
+    @java.lang.Override
+    public boolean hasMethodRepr() {
+      return methodRepr_ != null;
+    }
+    /**
+     * <code>.MethodRepr methodRepr = 1;</code>
+     * @return The methodRepr.
+     */
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.MethodRepr getMethodRepr() {
+      return methodRepr_ == null ? testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance() : methodRepr_;
+    }
+    /**
+     * <code>.MethodRepr methodRepr = 1;</code>
+     */
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.MethodReprOrBuilder getMethodReprOrBuilder() {
+      return methodRepr_ == null ? testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance() : methodRepr_;
+    }
+
+    public static final int RETURNTYPEREPR_FIELD_NUMBER = 2;
+    private testrunner.expressions.TestExpressions.TypeRepr returnTypeRepr_;
+    /**
+     * <code>.TypeRepr returnTypeRepr = 2;</code>
+     * @return Whether the returnTypeRepr field is set.
+     */
+    @java.lang.Override
+    public boolean hasReturnTypeRepr() {
+      return returnTypeRepr_ != null;
+    }
+    /**
+     * <code>.TypeRepr returnTypeRepr = 2;</code>
+     * @return The returnTypeRepr.
+     */
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.TypeRepr getReturnTypeRepr() {
+      return returnTypeRepr_ == null ? testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance() : returnTypeRepr_;
+    }
+    /**
+     * <code>.TypeRepr returnTypeRepr = 2;</code>
+     */
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.TypeReprOrBuilder getReturnTypeReprOrBuilder() {
+      return returnTypeRepr_ == null ? testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance() : returnTypeRepr_;
+    }
+
+    public static final int INSTANCE_FIELD_NUMBER = 3;
+    private com.google.protobuf.Any instance_;
+    /**
+     * <code>.google.protobuf.Any instance = 3;</code>
+     * @return Whether the instance field is set.
+     */
+    @java.lang.Override
+    public boolean hasInstance() {
+      return instance_ != null;
+    }
+    /**
+     * <code>.google.protobuf.Any instance = 3;</code>
+     * @return The instance.
+     */
+    @java.lang.Override
+    public com.google.protobuf.Any getInstance() {
+      return instance_ == null ? com.google.protobuf.Any.getDefaultInstance() : instance_;
+    }
+    /**
+     * <code>.google.protobuf.Any instance = 3;</code>
+     */
+    @java.lang.Override
+    public com.google.protobuf.AnyOrBuilder getInstanceOrBuilder() {
+      return instance_ == null ? com.google.protobuf.Any.getDefaultInstance() : instance_;
+    }
+
+    public static final int ARGS_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private java.util.List<com.google.protobuf.Any> args_;
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    @java.lang.Override
+    public java.util.List<com.google.protobuf.Any> getArgsList() {
+      return args_;
+    }
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends com.google.protobuf.AnyOrBuilder> 
+        getArgsOrBuilderList() {
+      return args_;
+    }
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    @java.lang.Override
+    public int getArgsCount() {
+      return args_.size();
+    }
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    @java.lang.Override
+    public com.google.protobuf.Any getArgs(int index) {
+      return args_.get(index);
+    }
+    /**
+     * <code>repeated .google.protobuf.Any args = 4;</code>
+     */
+    @java.lang.Override
+    public com.google.protobuf.AnyOrBuilder getArgsOrBuilder(
+        int index) {
+      return args_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (methodRepr_ != null) {
+        output.writeMessage(1, getMethodRepr());
+      }
+      if (returnTypeRepr_ != null) {
+        output.writeMessage(2, getReturnTypeRepr());
+      }
+      if (instance_ != null) {
+        output.writeMessage(3, getInstance());
+      }
+      for (int i = 0; i < args_.size(); i++) {
+        output.writeMessage(4, args_.get(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (methodRepr_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getMethodRepr());
+      }
+      if (returnTypeRepr_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getReturnTypeRepr());
+      }
+      if (instance_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getInstance());
+      }
+      for (int i = 0; i < args_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, args_.get(i));
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof testrunner.expressions.TestExpressions.InstanceMethodCall)) {
+        return super.equals(obj);
+      }
+      testrunner.expressions.TestExpressions.InstanceMethodCall other = (testrunner.expressions.TestExpressions.InstanceMethodCall) obj;
+
+      if (hasMethodRepr() != other.hasMethodRepr()) return false;
+      if (hasMethodRepr()) {
+        if (!getMethodRepr()
+            .equals(other.getMethodRepr())) return false;
+      }
+      if (hasReturnTypeRepr() != other.hasReturnTypeRepr()) return false;
+      if (hasReturnTypeRepr()) {
+        if (!getReturnTypeRepr()
+            .equals(other.getReturnTypeRepr())) return false;
+      }
+      if (hasInstance() != other.hasInstance()) return false;
+      if (hasInstance()) {
+        if (!getInstance()
+            .equals(other.getInstance())) return false;
+      }
+      if (!getArgsList()
+          .equals(other.getArgsList())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasMethodRepr()) {
+        hash = (37 * hash) + METHODREPR_FIELD_NUMBER;
+        hash = (53 * hash) + getMethodRepr().hashCode();
+      }
+      if (hasReturnTypeRepr()) {
+        hash = (37 * hash) + RETURNTYPEREPR_FIELD_NUMBER;
+        hash = (53 * hash) + getReturnTypeRepr().hashCode();
+      }
+      if (hasInstance()) {
+        hash = (37 * hash) + INSTANCE_FIELD_NUMBER;
+        hash = (53 * hash) + getInstance().hashCode();
+      }
+      if (getArgsCount() > 0) {
+        hash = (37 * hash) + ARGS_FIELD_NUMBER;
+        hash = (53 * hash) + getArgsList().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(testrunner.expressions.TestExpressions.InstanceMethodCall prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code InstanceMethodCall}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:InstanceMethodCall)
+        testrunner.expressions.TestExpressions.InstanceMethodCallOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return testrunner.expressions.TestExpressions.internal_static_InstanceMethodCall_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return testrunner.expressions.TestExpressions.internal_static_InstanceMethodCall_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                testrunner.expressions.TestExpressions.InstanceMethodCall.class, testrunner.expressions.TestExpressions.InstanceMethodCall.Builder.class);
+      }
+
+      // Construct using testrunner.expressions.TestExpressions.InstanceMethodCall.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        methodRepr_ = null;
+        if (methodReprBuilder_ != null) {
+          methodReprBuilder_.dispose();
+          methodReprBuilder_ = null;
+        }
+        returnTypeRepr_ = null;
+        if (returnTypeReprBuilder_ != null) {
+          returnTypeReprBuilder_.dispose();
+          returnTypeReprBuilder_ = null;
+        }
+        instance_ = null;
+        if (instanceBuilder_ != null) {
+          instanceBuilder_.dispose();
+          instanceBuilder_ = null;
+        }
+        if (argsBuilder_ == null) {
+          args_ = java.util.Collections.emptyList();
+        } else {
+          args_ = null;
+          argsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000008);
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return testrunner.expressions.TestExpressions.internal_static_InstanceMethodCall_descriptor;
+      }
+
+      @java.lang.Override
+      public testrunner.expressions.TestExpressions.InstanceMethodCall getDefaultInstanceForType() {
+        return testrunner.expressions.TestExpressions.InstanceMethodCall.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public testrunner.expressions.TestExpressions.InstanceMethodCall build() {
+        testrunner.expressions.TestExpressions.InstanceMethodCall result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public testrunner.expressions.TestExpressions.InstanceMethodCall buildPartial() {
+        testrunner.expressions.TestExpressions.InstanceMethodCall result = new testrunner.expressions.TestExpressions.InstanceMethodCall(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(testrunner.expressions.TestExpressions.InstanceMethodCall result) {
+        if (argsBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) != 0)) {
+            args_ = java.util.Collections.unmodifiableList(args_);
+            bitField0_ = (bitField0_ & ~0x00000008);
+          }
+          result.args_ = args_;
+        } else {
+          result.args_ = argsBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(testrunner.expressions.TestExpressions.InstanceMethodCall result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.methodRepr_ = methodReprBuilder_ == null
+              ? methodRepr_
+              : methodReprBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.returnTypeRepr_ = returnTypeReprBuilder_ == null
+              ? returnTypeRepr_
+              : returnTypeReprBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.instance_ = instanceBuilder_ == null
+              ? instance_
+              : instanceBuilder_.build();
+        }
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof testrunner.expressions.TestExpressions.InstanceMethodCall) {
+          return mergeFrom((testrunner.expressions.TestExpressions.InstanceMethodCall)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(testrunner.expressions.TestExpressions.InstanceMethodCall other) {
+        if (other == testrunner.expressions.TestExpressions.InstanceMethodCall.getDefaultInstance()) return this;
+        if (other.hasMethodRepr()) {
+          mergeMethodRepr(other.getMethodRepr());
+        }
+        if (other.hasReturnTypeRepr()) {
+          mergeReturnTypeRepr(other.getReturnTypeRepr());
+        }
+        if (other.hasInstance()) {
+          mergeInstance(other.getInstance());
+        }
+        if (argsBuilder_ == null) {
+          if (!other.args_.isEmpty()) {
+            if (args_.isEmpty()) {
+              args_ = other.args_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+            } else {
+              ensureArgsIsMutable();
+              args_.addAll(other.args_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.args_.isEmpty()) {
+            if (argsBuilder_.isEmpty()) {
+              argsBuilder_.dispose();
+              argsBuilder_ = null;
+              args_ = other.args_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+              argsBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getArgsFieldBuilder() : null;
+            } else {
+              argsBuilder_.addAllMessages(other.args_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    getMethodReprFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    getReturnTypeReprFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    getInstanceFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                com.google.protobuf.Any m =
+                    input.readMessage(
+                        com.google.protobuf.Any.parser(),
+                        extensionRegistry);
+                if (argsBuilder_ == null) {
+                  ensureArgsIsMutable();
+                  args_.add(m);
+                } else {
+                  argsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 34
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private testrunner.expressions.TestExpressions.MethodRepr methodRepr_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          testrunner.expressions.TestExpressions.MethodRepr, testrunner.expressions.TestExpressions.MethodRepr.Builder, testrunner.expressions.TestExpressions.MethodReprOrBuilder> methodReprBuilder_;
+      /**
+       * <code>.MethodRepr methodRepr = 1;</code>
+       * @return Whether the methodRepr field is set.
+       */
+      public boolean hasMethodRepr() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.MethodRepr methodRepr = 1;</code>
+       * @return The methodRepr.
+       */
+      public testrunner.expressions.TestExpressions.MethodRepr getMethodRepr() {
+        if (methodReprBuilder_ == null) {
+          return methodRepr_ == null ? testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance() : methodRepr_;
+        } else {
+          return methodReprBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.MethodRepr methodRepr = 1;</code>
+       */
+      public Builder setMethodRepr(testrunner.expressions.TestExpressions.MethodRepr value) {
+        if (methodReprBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          methodRepr_ = value;
+        } else {
+          methodReprBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.MethodRepr methodRepr = 1;</code>
+       */
+      public Builder setMethodRepr(
+          testrunner.expressions.TestExpressions.MethodRepr.Builder builderForValue) {
+        if (methodReprBuilder_ == null) {
+          methodRepr_ = builderForValue.build();
+        } else {
+          methodReprBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.MethodRepr methodRepr = 1;</code>
+       */
+      public Builder mergeMethodRepr(testrunner.expressions.TestExpressions.MethodRepr value) {
+        if (methodReprBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            methodRepr_ != null &&
+            methodRepr_ != testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance()) {
+            getMethodReprBuilder().mergeFrom(value);
+          } else {
+            methodRepr_ = value;
+          }
+        } else {
+          methodReprBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.MethodRepr methodRepr = 1;</code>
+       */
+      public Builder clearMethodRepr() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        methodRepr_ = null;
+        if (methodReprBuilder_ != null) {
+          methodReprBuilder_.dispose();
+          methodReprBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.MethodRepr methodRepr = 1;</code>
+       */
+      public testrunner.expressions.TestExpressions.MethodRepr.Builder getMethodReprBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return getMethodReprFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.MethodRepr methodRepr = 1;</code>
+       */
+      public testrunner.expressions.TestExpressions.MethodReprOrBuilder getMethodReprOrBuilder() {
+        if (methodReprBuilder_ != null) {
+          return methodReprBuilder_.getMessageOrBuilder();
+        } else {
+          return methodRepr_ == null ?
+              testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance() : methodRepr_;
+        }
+      }
+      /**
+       * <code>.MethodRepr methodRepr = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          testrunner.expressions.TestExpressions.MethodRepr, testrunner.expressions.TestExpressions.MethodRepr.Builder, testrunner.expressions.TestExpressions.MethodReprOrBuilder> 
+          getMethodReprFieldBuilder() {
+        if (methodReprBuilder_ == null) {
+          methodReprBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              testrunner.expressions.TestExpressions.MethodRepr, testrunner.expressions.TestExpressions.MethodRepr.Builder, testrunner.expressions.TestExpressions.MethodReprOrBuilder>(
+                  getMethodRepr(),
+                  getParentForChildren(),
+                  isClean());
+          methodRepr_ = null;
+        }
+        return methodReprBuilder_;
+      }
+
+      private testrunner.expressions.TestExpressions.TypeRepr returnTypeRepr_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          testrunner.expressions.TestExpressions.TypeRepr, testrunner.expressions.TestExpressions.TypeRepr.Builder, testrunner.expressions.TestExpressions.TypeReprOrBuilder> returnTypeReprBuilder_;
+      /**
+       * <code>.TypeRepr returnTypeRepr = 2;</code>
+       * @return Whether the returnTypeRepr field is set.
+       */
+      public boolean hasReturnTypeRepr() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.TypeRepr returnTypeRepr = 2;</code>
+       * @return The returnTypeRepr.
+       */
+      public testrunner.expressions.TestExpressions.TypeRepr getReturnTypeRepr() {
+        if (returnTypeReprBuilder_ == null) {
+          return returnTypeRepr_ == null ? testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance() : returnTypeRepr_;
+        } else {
+          return returnTypeReprBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.TypeRepr returnTypeRepr = 2;</code>
+       */
+      public Builder setReturnTypeRepr(testrunner.expressions.TestExpressions.TypeRepr value) {
+        if (returnTypeReprBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          returnTypeRepr_ = value;
+        } else {
+          returnTypeReprBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.TypeRepr returnTypeRepr = 2;</code>
+       */
+      public Builder setReturnTypeRepr(
+          testrunner.expressions.TestExpressions.TypeRepr.Builder builderForValue) {
+        if (returnTypeReprBuilder_ == null) {
+          returnTypeRepr_ = builderForValue.build();
+        } else {
+          returnTypeReprBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.TypeRepr returnTypeRepr = 2;</code>
+       */
+      public Builder mergeReturnTypeRepr(testrunner.expressions.TestExpressions.TypeRepr value) {
+        if (returnTypeReprBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            returnTypeRepr_ != null &&
+            returnTypeRepr_ != testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance()) {
+            getReturnTypeReprBuilder().mergeFrom(value);
+          } else {
+            returnTypeRepr_ = value;
+          }
+        } else {
+          returnTypeReprBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.TypeRepr returnTypeRepr = 2;</code>
+       */
+      public Builder clearReturnTypeRepr() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        returnTypeRepr_ = null;
+        if (returnTypeReprBuilder_ != null) {
+          returnTypeReprBuilder_.dispose();
+          returnTypeReprBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.TypeRepr returnTypeRepr = 2;</code>
+       */
+      public testrunner.expressions.TestExpressions.TypeRepr.Builder getReturnTypeReprBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return getReturnTypeReprFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TypeRepr returnTypeRepr = 2;</code>
+       */
+      public testrunner.expressions.TestExpressions.TypeReprOrBuilder getReturnTypeReprOrBuilder() {
+        if (returnTypeReprBuilder_ != null) {
+          return returnTypeReprBuilder_.getMessageOrBuilder();
+        } else {
+          return returnTypeRepr_ == null ?
+              testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance() : returnTypeRepr_;
+        }
+      }
+      /**
+       * <code>.TypeRepr returnTypeRepr = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          testrunner.expressions.TestExpressions.TypeRepr, testrunner.expressions.TestExpressions.TypeRepr.Builder, testrunner.expressions.TestExpressions.TypeReprOrBuilder> 
+          getReturnTypeReprFieldBuilder() {
+        if (returnTypeReprBuilder_ == null) {
+          returnTypeReprBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              testrunner.expressions.TestExpressions.TypeRepr, testrunner.expressions.TestExpressions.TypeRepr.Builder, testrunner.expressions.TestExpressions.TypeReprOrBuilder>(
+                  getReturnTypeRepr(),
+                  getParentForChildren(),
+                  isClean());
+          returnTypeRepr_ = null;
+        }
+        return returnTypeReprBuilder_;
+      }
+
+      private com.google.protobuf.Any instance_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> instanceBuilder_;
+      /**
+       * <code>.google.protobuf.Any instance = 3;</code>
+       * @return Whether the instance field is set.
+       */
+      public boolean hasInstance() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.google.protobuf.Any instance = 3;</code>
+       * @return The instance.
+       */
+      public com.google.protobuf.Any getInstance() {
+        if (instanceBuilder_ == null) {
+          return instance_ == null ? com.google.protobuf.Any.getDefaultInstance() : instance_;
+        } else {
+          return instanceBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.google.protobuf.Any instance = 3;</code>
+       */
+      public Builder setInstance(com.google.protobuf.Any value) {
+        if (instanceBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          instance_ = value;
+        } else {
+          instanceBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.google.protobuf.Any instance = 3;</code>
+       */
+      public Builder setInstance(
+          com.google.protobuf.Any.Builder builderForValue) {
+        if (instanceBuilder_ == null) {
+          instance_ = builderForValue.build();
+        } else {
+          instanceBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.google.protobuf.Any instance = 3;</code>
+       */
+      public Builder mergeInstance(com.google.protobuf.Any value) {
+        if (instanceBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            instance_ != null &&
+            instance_ != com.google.protobuf.Any.getDefaultInstance()) {
+            getInstanceBuilder().mergeFrom(value);
+          } else {
+            instance_ = value;
+          }
+        } else {
+          instanceBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.google.protobuf.Any instance = 3;</code>
+       */
+      public Builder clearInstance() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        instance_ = null;
+        if (instanceBuilder_ != null) {
+          instanceBuilder_.dispose();
+          instanceBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.google.protobuf.Any instance = 3;</code>
+       */
+      public com.google.protobuf.Any.Builder getInstanceBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return getInstanceFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.google.protobuf.Any instance = 3;</code>
+       */
+      public com.google.protobuf.AnyOrBuilder getInstanceOrBuilder() {
+        if (instanceBuilder_ != null) {
+          return instanceBuilder_.getMessageOrBuilder();
+        } else {
+          return instance_ == null ?
+              com.google.protobuf.Any.getDefaultInstance() : instance_;
+        }
+      }
+      /**
+       * <code>.google.protobuf.Any instance = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+          getInstanceFieldBuilder() {
+        if (instanceBuilder_ == null) {
+          instanceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                  getInstance(),
+                  getParentForChildren(),
+                  isClean());
+          instance_ = null;
+        }
+        return instanceBuilder_;
+      }
+
+      private java.util.List<com.google.protobuf.Any> args_ =
+        java.util.Collections.emptyList();
+      private void ensureArgsIsMutable() {
+        if (!((bitField0_ & 0x00000008) != 0)) {
+          args_ = new java.util.ArrayList<com.google.protobuf.Any>(args_);
+          bitField0_ |= 0x00000008;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> argsBuilder_;
+
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public java.util.List<com.google.protobuf.Any> getArgsList() {
+        if (argsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(args_);
+        } else {
+          return argsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public int getArgsCount() {
+        if (argsBuilder_ == null) {
+          return args_.size();
+        } else {
+          return argsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public com.google.protobuf.Any getArgs(int index) {
+        if (argsBuilder_ == null) {
+          return args_.get(index);
+        } else {
+          return argsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public Builder setArgs(
+          int index, com.google.protobuf.Any value) {
+        if (argsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureArgsIsMutable();
+          args_.set(index, value);
+          onChanged();
+        } else {
+          argsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public Builder setArgs(
+          int index, com.google.protobuf.Any.Builder builderForValue) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          args_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          argsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public Builder addArgs(com.google.protobuf.Any value) {
+        if (argsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureArgsIsMutable();
+          args_.add(value);
+          onChanged();
+        } else {
+          argsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public Builder addArgs(
+          int index, com.google.protobuf.Any value) {
+        if (argsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureArgsIsMutable();
+          args_.add(index, value);
+          onChanged();
+        } else {
+          argsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public Builder addArgs(
+          com.google.protobuf.Any.Builder builderForValue) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          args_.add(builderForValue.build());
+          onChanged();
+        } else {
+          argsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public Builder addArgs(
+          int index, com.google.protobuf.Any.Builder builderForValue) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          args_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          argsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public Builder addAllArgs(
+          java.lang.Iterable<? extends com.google.protobuf.Any> values) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, args_);
+          onChanged();
+        } else {
+          argsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public Builder clearArgs() {
+        if (argsBuilder_ == null) {
+          args_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000008);
+          onChanged();
+        } else {
+          argsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public Builder removeArgs(int index) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          args_.remove(index);
+          onChanged();
+        } else {
+          argsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public com.google.protobuf.Any.Builder getArgsBuilder(
+          int index) {
+        return getArgsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public com.google.protobuf.AnyOrBuilder getArgsOrBuilder(
+          int index) {
+        if (argsBuilder_ == null) {
+          return args_.get(index);  } else {
+          return argsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public java.util.List<? extends com.google.protobuf.AnyOrBuilder> 
+           getArgsOrBuilderList() {
+        if (argsBuilder_ != null) {
+          return argsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(args_);
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public com.google.protobuf.Any.Builder addArgsBuilder() {
+        return getArgsFieldBuilder().addBuilder(
+            com.google.protobuf.Any.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public com.google.protobuf.Any.Builder addArgsBuilder(
+          int index) {
+        return getArgsFieldBuilder().addBuilder(
+            index, com.google.protobuf.Any.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 4;</code>
+       */
+      public java.util.List<com.google.protobuf.Any.Builder> 
+           getArgsBuilderList() {
+        return getArgsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+          getArgsFieldBuilder() {
+        if (argsBuilder_ == null) {
+          argsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                  args_,
+                  ((bitField0_ & 0x00000008) != 0),
+                  getParentForChildren(),
+                  isClean());
+          args_ = null;
+        }
+        return argsBuilder_;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:InstanceMethodCall)
+    }
+
+    // @@protoc_insertion_point(class_scope:InstanceMethodCall)
+    private static final testrunner.expressions.TestExpressions.InstanceMethodCall DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new testrunner.expressions.TestExpressions.InstanceMethodCall();
+    }
+
+    public static testrunner.expressions.TestExpressions.InstanceMethodCall getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<InstanceMethodCall>
+        PARSER = new com.google.protobuf.AbstractParser<InstanceMethodCall>() {
+      @java.lang.Override
+      public InstanceMethodCall parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<InstanceMethodCall> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InstanceMethodCall> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.InstanceMethodCall getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface StaticMethodCallOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:StaticMethodCall)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -13683,18 +15056,18 @@ public final class TestExpressions {
         int index);
   }
   /**
-   * Protobuf type {@code MethodCall}
+   * Protobuf type {@code StaticMethodCall}
    */
-  public static final class MethodCall extends
+  public static final class StaticMethodCall extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:MethodCall)
-      MethodCallOrBuilder {
+      // @@protoc_insertion_point(message_implements:StaticMethodCall)
+      StaticMethodCallOrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use MethodCall.newBuilder() to construct.
-    private MethodCall(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use StaticMethodCall.newBuilder() to construct.
+    private StaticMethodCall(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private MethodCall() {
+    private StaticMethodCall() {
       args_ = java.util.Collections.emptyList();
     }
 
@@ -13702,7 +15075,7 @@ public final class TestExpressions {
     @SuppressWarnings({"unused"})
     protected java.lang.Object newInstance(
         UnusedPrivateParameter unused) {
-      return new MethodCall();
+      return new StaticMethodCall();
     }
 
     @java.lang.Override
@@ -13712,15 +15085,15 @@ public final class TestExpressions {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return testrunner.expressions.TestExpressions.internal_static_MethodCall_descriptor;
+      return testrunner.expressions.TestExpressions.internal_static_StaticMethodCall_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return testrunner.expressions.TestExpressions.internal_static_MethodCall_fieldAccessorTable
+      return testrunner.expressions.TestExpressions.internal_static_StaticMethodCall_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              testrunner.expressions.TestExpressions.MethodCall.class, testrunner.expressions.TestExpressions.MethodCall.Builder.class);
+              testrunner.expressions.TestExpressions.StaticMethodCall.class, testrunner.expressions.TestExpressions.StaticMethodCall.Builder.class);
     }
 
     public static final int METHODREPR_FIELD_NUMBER = 1;
@@ -13870,10 +15243,10 @@ public final class TestExpressions {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof testrunner.expressions.TestExpressions.MethodCall)) {
+      if (!(obj instanceof testrunner.expressions.TestExpressions.StaticMethodCall)) {
         return super.equals(obj);
       }
-      testrunner.expressions.TestExpressions.MethodCall other = (testrunner.expressions.TestExpressions.MethodCall) obj;
+      testrunner.expressions.TestExpressions.StaticMethodCall other = (testrunner.expressions.TestExpressions.StaticMethodCall) obj;
 
       if (hasMethodRepr() != other.hasMethodRepr()) return false;
       if (hasMethodRepr()) {
@@ -13915,69 +15288,69 @@ public final class TestExpressions {
       return hash;
     }
 
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(byte[] data)
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(java.io.InputStream input)
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseDelimitedFrom(java.io.InputStream input)
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseDelimitedFrom(
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static testrunner.expressions.TestExpressions.MethodCall parseFrom(
+    public static testrunner.expressions.TestExpressions.StaticMethodCall parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -13990,7 +15363,7 @@ public final class TestExpressions {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(testrunner.expressions.TestExpressions.MethodCall prototype) {
+    public static Builder newBuilder(testrunner.expressions.TestExpressions.StaticMethodCall prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -14006,26 +15379,26 @@ public final class TestExpressions {
       return builder;
     }
     /**
-     * Protobuf type {@code MethodCall}
+     * Protobuf type {@code StaticMethodCall}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:MethodCall)
-        testrunner.expressions.TestExpressions.MethodCallOrBuilder {
+        // @@protoc_insertion_point(builder_implements:StaticMethodCall)
+        testrunner.expressions.TestExpressions.StaticMethodCallOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return testrunner.expressions.TestExpressions.internal_static_MethodCall_descriptor;
+        return testrunner.expressions.TestExpressions.internal_static_StaticMethodCall_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return testrunner.expressions.TestExpressions.internal_static_MethodCall_fieldAccessorTable
+        return testrunner.expressions.TestExpressions.internal_static_StaticMethodCall_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                testrunner.expressions.TestExpressions.MethodCall.class, testrunner.expressions.TestExpressions.MethodCall.Builder.class);
+                testrunner.expressions.TestExpressions.StaticMethodCall.class, testrunner.expressions.TestExpressions.StaticMethodCall.Builder.class);
       }
 
-      // Construct using testrunner.expressions.TestExpressions.MethodCall.newBuilder()
+      // Construct using testrunner.expressions.TestExpressions.StaticMethodCall.newBuilder()
       private Builder() {
 
       }
@@ -14062,17 +15435,17 @@ public final class TestExpressions {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return testrunner.expressions.TestExpressions.internal_static_MethodCall_descriptor;
+        return testrunner.expressions.TestExpressions.internal_static_StaticMethodCall_descriptor;
       }
 
       @java.lang.Override
-      public testrunner.expressions.TestExpressions.MethodCall getDefaultInstanceForType() {
-        return testrunner.expressions.TestExpressions.MethodCall.getDefaultInstance();
+      public testrunner.expressions.TestExpressions.StaticMethodCall getDefaultInstanceForType() {
+        return testrunner.expressions.TestExpressions.StaticMethodCall.getDefaultInstance();
       }
 
       @java.lang.Override
-      public testrunner.expressions.TestExpressions.MethodCall build() {
-        testrunner.expressions.TestExpressions.MethodCall result = buildPartial();
+      public testrunner.expressions.TestExpressions.StaticMethodCall build() {
+        testrunner.expressions.TestExpressions.StaticMethodCall result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -14080,15 +15453,15 @@ public final class TestExpressions {
       }
 
       @java.lang.Override
-      public testrunner.expressions.TestExpressions.MethodCall buildPartial() {
-        testrunner.expressions.TestExpressions.MethodCall result = new testrunner.expressions.TestExpressions.MethodCall(this);
+      public testrunner.expressions.TestExpressions.StaticMethodCall buildPartial() {
+        testrunner.expressions.TestExpressions.StaticMethodCall result = new testrunner.expressions.TestExpressions.StaticMethodCall(this);
         buildPartialRepeatedFields(result);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartialRepeatedFields(testrunner.expressions.TestExpressions.MethodCall result) {
+      private void buildPartialRepeatedFields(testrunner.expressions.TestExpressions.StaticMethodCall result) {
         if (argsBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0)) {
             args_ = java.util.Collections.unmodifiableList(args_);
@@ -14100,7 +15473,7 @@ public final class TestExpressions {
         }
       }
 
-      private void buildPartial0(testrunner.expressions.TestExpressions.MethodCall result) {
+      private void buildPartial0(testrunner.expressions.TestExpressions.StaticMethodCall result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.methodRepr_ = methodReprBuilder_ == null
@@ -14148,16 +15521,16 @@ public final class TestExpressions {
       }
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof testrunner.expressions.TestExpressions.MethodCall) {
-          return mergeFrom((testrunner.expressions.TestExpressions.MethodCall)other);
+        if (other instanceof testrunner.expressions.TestExpressions.StaticMethodCall) {
+          return mergeFrom((testrunner.expressions.TestExpressions.StaticMethodCall)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(testrunner.expressions.TestExpressions.MethodCall other) {
-        if (other == testrunner.expressions.TestExpressions.MethodCall.getDefaultInstance()) return this;
+      public Builder mergeFrom(testrunner.expressions.TestExpressions.StaticMethodCall other) {
+        if (other == testrunner.expressions.TestExpressions.StaticMethodCall.getDefaultInstance()) return this;
         if (other.hasMethodRepr()) {
           mergeMethodRepr(other.getMethodRepr());
         }
@@ -14750,23 +16123,23 @@ public final class TestExpressions {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:MethodCall)
+      // @@protoc_insertion_point(builder_scope:StaticMethodCall)
     }
 
-    // @@protoc_insertion_point(class_scope:MethodCall)
-    private static final testrunner.expressions.TestExpressions.MethodCall DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:StaticMethodCall)
+    private static final testrunner.expressions.TestExpressions.StaticMethodCall DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new testrunner.expressions.TestExpressions.MethodCall();
+      DEFAULT_INSTANCE = new testrunner.expressions.TestExpressions.StaticMethodCall();
     }
 
-    public static testrunner.expressions.TestExpressions.MethodCall getDefaultInstance() {
+    public static testrunner.expressions.TestExpressions.StaticMethodCall getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<MethodCall>
-        PARSER = new com.google.protobuf.AbstractParser<MethodCall>() {
+    private static final com.google.protobuf.Parser<StaticMethodCall>
+        PARSER = new com.google.protobuf.AbstractParser<StaticMethodCall>() {
       @java.lang.Override
-      public MethodCall parsePartialFrom(
+      public StaticMethodCall parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -14785,17 +16158,1194 @@ public final class TestExpressions {
       }
     };
 
-    public static com.google.protobuf.Parser<MethodCall> parser() {
+    public static com.google.protobuf.Parser<StaticMethodCall> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<MethodCall> getParserForType() {
+    public com.google.protobuf.Parser<StaticMethodCall> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public testrunner.expressions.TestExpressions.MethodCall getDefaultInstanceForType() {
+    public testrunner.expressions.TestExpressions.StaticMethodCall getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ConstructorCallOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:ConstructorCall)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.MethodRepr method = 1;</code>
+     * @return Whether the method field is set.
+     */
+    boolean hasMethod();
+    /**
+     * <code>.MethodRepr method = 1;</code>
+     * @return The method.
+     */
+    testrunner.expressions.TestExpressions.MethodRepr getMethod();
+    /**
+     * <code>.MethodRepr method = 1;</code>
+     */
+    testrunner.expressions.TestExpressions.MethodReprOrBuilder getMethodOrBuilder();
+
+    /**
+     * <code>.TypeRepr returnType = 2;</code>
+     * @return Whether the returnType field is set.
+     */
+    boolean hasReturnType();
+    /**
+     * <code>.TypeRepr returnType = 2;</code>
+     * @return The returnType.
+     */
+    testrunner.expressions.TestExpressions.TypeRepr getReturnType();
+    /**
+     * <code>.TypeRepr returnType = 2;</code>
+     */
+    testrunner.expressions.TestExpressions.TypeReprOrBuilder getReturnTypeOrBuilder();
+
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    java.util.List<com.google.protobuf.Any> 
+        getArgsList();
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    com.google.protobuf.Any getArgs(int index);
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    int getArgsCount();
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    java.util.List<? extends com.google.protobuf.AnyOrBuilder> 
+        getArgsOrBuilderList();
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    com.google.protobuf.AnyOrBuilder getArgsOrBuilder(
+        int index);
+  }
+  /**
+   * Protobuf type {@code ConstructorCall}
+   */
+  public static final class ConstructorCall extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:ConstructorCall)
+      ConstructorCallOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use ConstructorCall.newBuilder() to construct.
+    private ConstructorCall(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private ConstructorCall() {
+      args_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ConstructorCall();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return testrunner.expressions.TestExpressions.internal_static_ConstructorCall_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return testrunner.expressions.TestExpressions.internal_static_ConstructorCall_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              testrunner.expressions.TestExpressions.ConstructorCall.class, testrunner.expressions.TestExpressions.ConstructorCall.Builder.class);
+    }
+
+    public static final int METHOD_FIELD_NUMBER = 1;
+    private testrunner.expressions.TestExpressions.MethodRepr method_;
+    /**
+     * <code>.MethodRepr method = 1;</code>
+     * @return Whether the method field is set.
+     */
+    @java.lang.Override
+    public boolean hasMethod() {
+      return method_ != null;
+    }
+    /**
+     * <code>.MethodRepr method = 1;</code>
+     * @return The method.
+     */
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.MethodRepr getMethod() {
+      return method_ == null ? testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance() : method_;
+    }
+    /**
+     * <code>.MethodRepr method = 1;</code>
+     */
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.MethodReprOrBuilder getMethodOrBuilder() {
+      return method_ == null ? testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance() : method_;
+    }
+
+    public static final int RETURNTYPE_FIELD_NUMBER = 2;
+    private testrunner.expressions.TestExpressions.TypeRepr returnType_;
+    /**
+     * <code>.TypeRepr returnType = 2;</code>
+     * @return Whether the returnType field is set.
+     */
+    @java.lang.Override
+    public boolean hasReturnType() {
+      return returnType_ != null;
+    }
+    /**
+     * <code>.TypeRepr returnType = 2;</code>
+     * @return The returnType.
+     */
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.TypeRepr getReturnType() {
+      return returnType_ == null ? testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance() : returnType_;
+    }
+    /**
+     * <code>.TypeRepr returnType = 2;</code>
+     */
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.TypeReprOrBuilder getReturnTypeOrBuilder() {
+      return returnType_ == null ? testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance() : returnType_;
+    }
+
+    public static final int ARGS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private java.util.List<com.google.protobuf.Any> args_;
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    @java.lang.Override
+    public java.util.List<com.google.protobuf.Any> getArgsList() {
+      return args_;
+    }
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends com.google.protobuf.AnyOrBuilder> 
+        getArgsOrBuilderList() {
+      return args_;
+    }
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    @java.lang.Override
+    public int getArgsCount() {
+      return args_.size();
+    }
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    @java.lang.Override
+    public com.google.protobuf.Any getArgs(int index) {
+      return args_.get(index);
+    }
+    /**
+     * <code>repeated .google.protobuf.Any args = 3;</code>
+     */
+    @java.lang.Override
+    public com.google.protobuf.AnyOrBuilder getArgsOrBuilder(
+        int index) {
+      return args_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (method_ != null) {
+        output.writeMessage(1, getMethod());
+      }
+      if (returnType_ != null) {
+        output.writeMessage(2, getReturnType());
+      }
+      for (int i = 0; i < args_.size(); i++) {
+        output.writeMessage(3, args_.get(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (method_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getMethod());
+      }
+      if (returnType_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getReturnType());
+      }
+      for (int i = 0; i < args_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, args_.get(i));
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof testrunner.expressions.TestExpressions.ConstructorCall)) {
+        return super.equals(obj);
+      }
+      testrunner.expressions.TestExpressions.ConstructorCall other = (testrunner.expressions.TestExpressions.ConstructorCall) obj;
+
+      if (hasMethod() != other.hasMethod()) return false;
+      if (hasMethod()) {
+        if (!getMethod()
+            .equals(other.getMethod())) return false;
+      }
+      if (hasReturnType() != other.hasReturnType()) return false;
+      if (hasReturnType()) {
+        if (!getReturnType()
+            .equals(other.getReturnType())) return false;
+      }
+      if (!getArgsList()
+          .equals(other.getArgsList())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasMethod()) {
+        hash = (37 * hash) + METHOD_FIELD_NUMBER;
+        hash = (53 * hash) + getMethod().hashCode();
+      }
+      if (hasReturnType()) {
+        hash = (37 * hash) + RETURNTYPE_FIELD_NUMBER;
+        hash = (53 * hash) + getReturnType().hashCode();
+      }
+      if (getArgsCount() > 0) {
+        hash = (37 * hash) + ARGS_FIELD_NUMBER;
+        hash = (53 * hash) + getArgsList().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static testrunner.expressions.TestExpressions.ConstructorCall parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(testrunner.expressions.TestExpressions.ConstructorCall prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code ConstructorCall}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:ConstructorCall)
+        testrunner.expressions.TestExpressions.ConstructorCallOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return testrunner.expressions.TestExpressions.internal_static_ConstructorCall_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return testrunner.expressions.TestExpressions.internal_static_ConstructorCall_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                testrunner.expressions.TestExpressions.ConstructorCall.class, testrunner.expressions.TestExpressions.ConstructorCall.Builder.class);
+      }
+
+      // Construct using testrunner.expressions.TestExpressions.ConstructorCall.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        method_ = null;
+        if (methodBuilder_ != null) {
+          methodBuilder_.dispose();
+          methodBuilder_ = null;
+        }
+        returnType_ = null;
+        if (returnTypeBuilder_ != null) {
+          returnTypeBuilder_.dispose();
+          returnTypeBuilder_ = null;
+        }
+        if (argsBuilder_ == null) {
+          args_ = java.util.Collections.emptyList();
+        } else {
+          args_ = null;
+          argsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return testrunner.expressions.TestExpressions.internal_static_ConstructorCall_descriptor;
+      }
+
+      @java.lang.Override
+      public testrunner.expressions.TestExpressions.ConstructorCall getDefaultInstanceForType() {
+        return testrunner.expressions.TestExpressions.ConstructorCall.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public testrunner.expressions.TestExpressions.ConstructorCall build() {
+        testrunner.expressions.TestExpressions.ConstructorCall result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public testrunner.expressions.TestExpressions.ConstructorCall buildPartial() {
+        testrunner.expressions.TestExpressions.ConstructorCall result = new testrunner.expressions.TestExpressions.ConstructorCall(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(testrunner.expressions.TestExpressions.ConstructorCall result) {
+        if (argsBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0)) {
+            args_ = java.util.Collections.unmodifiableList(args_);
+            bitField0_ = (bitField0_ & ~0x00000004);
+          }
+          result.args_ = args_;
+        } else {
+          result.args_ = argsBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(testrunner.expressions.TestExpressions.ConstructorCall result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.method_ = methodBuilder_ == null
+              ? method_
+              : methodBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.returnType_ = returnTypeBuilder_ == null
+              ? returnType_
+              : returnTypeBuilder_.build();
+        }
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof testrunner.expressions.TestExpressions.ConstructorCall) {
+          return mergeFrom((testrunner.expressions.TestExpressions.ConstructorCall)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(testrunner.expressions.TestExpressions.ConstructorCall other) {
+        if (other == testrunner.expressions.TestExpressions.ConstructorCall.getDefaultInstance()) return this;
+        if (other.hasMethod()) {
+          mergeMethod(other.getMethod());
+        }
+        if (other.hasReturnType()) {
+          mergeReturnType(other.getReturnType());
+        }
+        if (argsBuilder_ == null) {
+          if (!other.args_.isEmpty()) {
+            if (args_.isEmpty()) {
+              args_ = other.args_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+            } else {
+              ensureArgsIsMutable();
+              args_.addAll(other.args_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.args_.isEmpty()) {
+            if (argsBuilder_.isEmpty()) {
+              argsBuilder_.dispose();
+              argsBuilder_ = null;
+              args_ = other.args_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+              argsBuilder_ = 
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                   getArgsFieldBuilder() : null;
+            } else {
+              argsBuilder_.addAllMessages(other.args_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    getMethodFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    getReturnTypeFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                com.google.protobuf.Any m =
+                    input.readMessage(
+                        com.google.protobuf.Any.parser(),
+                        extensionRegistry);
+                if (argsBuilder_ == null) {
+                  ensureArgsIsMutable();
+                  args_.add(m);
+                } else {
+                  argsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private testrunner.expressions.TestExpressions.MethodRepr method_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          testrunner.expressions.TestExpressions.MethodRepr, testrunner.expressions.TestExpressions.MethodRepr.Builder, testrunner.expressions.TestExpressions.MethodReprOrBuilder> methodBuilder_;
+      /**
+       * <code>.MethodRepr method = 1;</code>
+       * @return Whether the method field is set.
+       */
+      public boolean hasMethod() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.MethodRepr method = 1;</code>
+       * @return The method.
+       */
+      public testrunner.expressions.TestExpressions.MethodRepr getMethod() {
+        if (methodBuilder_ == null) {
+          return method_ == null ? testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance() : method_;
+        } else {
+          return methodBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.MethodRepr method = 1;</code>
+       */
+      public Builder setMethod(testrunner.expressions.TestExpressions.MethodRepr value) {
+        if (methodBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          method_ = value;
+        } else {
+          methodBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.MethodRepr method = 1;</code>
+       */
+      public Builder setMethod(
+          testrunner.expressions.TestExpressions.MethodRepr.Builder builderForValue) {
+        if (methodBuilder_ == null) {
+          method_ = builderForValue.build();
+        } else {
+          methodBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.MethodRepr method = 1;</code>
+       */
+      public Builder mergeMethod(testrunner.expressions.TestExpressions.MethodRepr value) {
+        if (methodBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            method_ != null &&
+            method_ != testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance()) {
+            getMethodBuilder().mergeFrom(value);
+          } else {
+            method_ = value;
+          }
+        } else {
+          methodBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.MethodRepr method = 1;</code>
+       */
+      public Builder clearMethod() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        method_ = null;
+        if (methodBuilder_ != null) {
+          methodBuilder_.dispose();
+          methodBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.MethodRepr method = 1;</code>
+       */
+      public testrunner.expressions.TestExpressions.MethodRepr.Builder getMethodBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return getMethodFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.MethodRepr method = 1;</code>
+       */
+      public testrunner.expressions.TestExpressions.MethodReprOrBuilder getMethodOrBuilder() {
+        if (methodBuilder_ != null) {
+          return methodBuilder_.getMessageOrBuilder();
+        } else {
+          return method_ == null ?
+              testrunner.expressions.TestExpressions.MethodRepr.getDefaultInstance() : method_;
+        }
+      }
+      /**
+       * <code>.MethodRepr method = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          testrunner.expressions.TestExpressions.MethodRepr, testrunner.expressions.TestExpressions.MethodRepr.Builder, testrunner.expressions.TestExpressions.MethodReprOrBuilder> 
+          getMethodFieldBuilder() {
+        if (methodBuilder_ == null) {
+          methodBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              testrunner.expressions.TestExpressions.MethodRepr, testrunner.expressions.TestExpressions.MethodRepr.Builder, testrunner.expressions.TestExpressions.MethodReprOrBuilder>(
+                  getMethod(),
+                  getParentForChildren(),
+                  isClean());
+          method_ = null;
+        }
+        return methodBuilder_;
+      }
+
+      private testrunner.expressions.TestExpressions.TypeRepr returnType_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          testrunner.expressions.TestExpressions.TypeRepr, testrunner.expressions.TestExpressions.TypeRepr.Builder, testrunner.expressions.TestExpressions.TypeReprOrBuilder> returnTypeBuilder_;
+      /**
+       * <code>.TypeRepr returnType = 2;</code>
+       * @return Whether the returnType field is set.
+       */
+      public boolean hasReturnType() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.TypeRepr returnType = 2;</code>
+       * @return The returnType.
+       */
+      public testrunner.expressions.TestExpressions.TypeRepr getReturnType() {
+        if (returnTypeBuilder_ == null) {
+          return returnType_ == null ? testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance() : returnType_;
+        } else {
+          return returnTypeBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.TypeRepr returnType = 2;</code>
+       */
+      public Builder setReturnType(testrunner.expressions.TestExpressions.TypeRepr value) {
+        if (returnTypeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          returnType_ = value;
+        } else {
+          returnTypeBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.TypeRepr returnType = 2;</code>
+       */
+      public Builder setReturnType(
+          testrunner.expressions.TestExpressions.TypeRepr.Builder builderForValue) {
+        if (returnTypeBuilder_ == null) {
+          returnType_ = builderForValue.build();
+        } else {
+          returnTypeBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.TypeRepr returnType = 2;</code>
+       */
+      public Builder mergeReturnType(testrunner.expressions.TestExpressions.TypeRepr value) {
+        if (returnTypeBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            returnType_ != null &&
+            returnType_ != testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance()) {
+            getReturnTypeBuilder().mergeFrom(value);
+          } else {
+            returnType_ = value;
+          }
+        } else {
+          returnTypeBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.TypeRepr returnType = 2;</code>
+       */
+      public Builder clearReturnType() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        returnType_ = null;
+        if (returnTypeBuilder_ != null) {
+          returnTypeBuilder_.dispose();
+          returnTypeBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.TypeRepr returnType = 2;</code>
+       */
+      public testrunner.expressions.TestExpressions.TypeRepr.Builder getReturnTypeBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return getReturnTypeFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.TypeRepr returnType = 2;</code>
+       */
+      public testrunner.expressions.TestExpressions.TypeReprOrBuilder getReturnTypeOrBuilder() {
+        if (returnTypeBuilder_ != null) {
+          return returnTypeBuilder_.getMessageOrBuilder();
+        } else {
+          return returnType_ == null ?
+              testrunner.expressions.TestExpressions.TypeRepr.getDefaultInstance() : returnType_;
+        }
+      }
+      /**
+       * <code>.TypeRepr returnType = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          testrunner.expressions.TestExpressions.TypeRepr, testrunner.expressions.TestExpressions.TypeRepr.Builder, testrunner.expressions.TestExpressions.TypeReprOrBuilder> 
+          getReturnTypeFieldBuilder() {
+        if (returnTypeBuilder_ == null) {
+          returnTypeBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              testrunner.expressions.TestExpressions.TypeRepr, testrunner.expressions.TestExpressions.TypeRepr.Builder, testrunner.expressions.TestExpressions.TypeReprOrBuilder>(
+                  getReturnType(),
+                  getParentForChildren(),
+                  isClean());
+          returnType_ = null;
+        }
+        return returnTypeBuilder_;
+      }
+
+      private java.util.List<com.google.protobuf.Any> args_ =
+        java.util.Collections.emptyList();
+      private void ensureArgsIsMutable() {
+        if (!((bitField0_ & 0x00000004) != 0)) {
+          args_ = new java.util.ArrayList<com.google.protobuf.Any>(args_);
+          bitField0_ |= 0x00000004;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> argsBuilder_;
+
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public java.util.List<com.google.protobuf.Any> getArgsList() {
+        if (argsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(args_);
+        } else {
+          return argsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public int getArgsCount() {
+        if (argsBuilder_ == null) {
+          return args_.size();
+        } else {
+          return argsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public com.google.protobuf.Any getArgs(int index) {
+        if (argsBuilder_ == null) {
+          return args_.get(index);
+        } else {
+          return argsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public Builder setArgs(
+          int index, com.google.protobuf.Any value) {
+        if (argsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureArgsIsMutable();
+          args_.set(index, value);
+          onChanged();
+        } else {
+          argsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public Builder setArgs(
+          int index, com.google.protobuf.Any.Builder builderForValue) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          args_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          argsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public Builder addArgs(com.google.protobuf.Any value) {
+        if (argsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureArgsIsMutable();
+          args_.add(value);
+          onChanged();
+        } else {
+          argsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public Builder addArgs(
+          int index, com.google.protobuf.Any value) {
+        if (argsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureArgsIsMutable();
+          args_.add(index, value);
+          onChanged();
+        } else {
+          argsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public Builder addArgs(
+          com.google.protobuf.Any.Builder builderForValue) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          args_.add(builderForValue.build());
+          onChanged();
+        } else {
+          argsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public Builder addArgs(
+          int index, com.google.protobuf.Any.Builder builderForValue) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          args_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          argsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public Builder addAllArgs(
+          java.lang.Iterable<? extends com.google.protobuf.Any> values) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, args_);
+          onChanged();
+        } else {
+          argsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public Builder clearArgs() {
+        if (argsBuilder_ == null) {
+          args_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000004);
+          onChanged();
+        } else {
+          argsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public Builder removeArgs(int index) {
+        if (argsBuilder_ == null) {
+          ensureArgsIsMutable();
+          args_.remove(index);
+          onChanged();
+        } else {
+          argsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public com.google.protobuf.Any.Builder getArgsBuilder(
+          int index) {
+        return getArgsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public com.google.protobuf.AnyOrBuilder getArgsOrBuilder(
+          int index) {
+        if (argsBuilder_ == null) {
+          return args_.get(index);  } else {
+          return argsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public java.util.List<? extends com.google.protobuf.AnyOrBuilder> 
+           getArgsOrBuilderList() {
+        if (argsBuilder_ != null) {
+          return argsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(args_);
+        }
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public com.google.protobuf.Any.Builder addArgsBuilder() {
+        return getArgsFieldBuilder().addBuilder(
+            com.google.protobuf.Any.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public com.google.protobuf.Any.Builder addArgsBuilder(
+          int index) {
+        return getArgsFieldBuilder().addBuilder(
+            index, com.google.protobuf.Any.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .google.protobuf.Any args = 3;</code>
+       */
+      public java.util.List<com.google.protobuf.Any.Builder> 
+           getArgsBuilderList() {
+        return getArgsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilderV3<
+          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+          getArgsFieldBuilder() {
+        if (argsBuilder_ == null) {
+          argsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+              com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                  args_,
+                  ((bitField0_ & 0x00000004) != 0),
+                  getParentForChildren(),
+                  isClean());
+          args_ = null;
+        }
+        return argsBuilder_;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:ConstructorCall)
+    }
+
+    // @@protoc_insertion_point(class_scope:ConstructorCall)
+    private static final testrunner.expressions.TestExpressions.ConstructorCall DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new testrunner.expressions.TestExpressions.ConstructorCall();
+    }
+
+    public static testrunner.expressions.TestExpressions.ConstructorCall getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ConstructorCall>
+        PARSER = new com.google.protobuf.AbstractParser<ConstructorCall>() {
+      @java.lang.Override
+      public ConstructorCall parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ConstructorCall> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ConstructorCall> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public testrunner.expressions.TestExpressions.ConstructorCall getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -17945,1195 +20495,6 @@ public final class TestExpressions {
 
   }
 
-  public interface IlTestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:IlTest)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    java.util.List<com.google.protobuf.Any> 
-        getArrangeStmtsList();
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    com.google.protobuf.Any getArrangeStmts(int index);
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    int getArrangeStmtsCount();
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    java.util.List<? extends com.google.protobuf.AnyOrBuilder> 
-        getArrangeStmtsOrBuilderList();
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    com.google.protobuf.AnyOrBuilder getArrangeStmtsOrBuilder(
-        int index);
-
-    /**
-     * <code>.google.protobuf.Any call = 2;</code>
-     * @return Whether the call field is set.
-     */
-    boolean hasCall();
-    /**
-     * <code>.google.protobuf.Any call = 2;</code>
-     * @return The call.
-     */
-    com.google.protobuf.Any getCall();
-    /**
-     * <code>.google.protobuf.Any call = 2;</code>
-     */
-    com.google.protobuf.AnyOrBuilder getCallOrBuilder();
-
-    /**
-     * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-     * @return Whether the expectedResult field is set.
-     */
-    boolean hasExpectedResult();
-    /**
-     * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-     * @return The expectedResult.
-     */
-    com.google.protobuf.Any getExpectedResult();
-    /**
-     * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-     */
-    com.google.protobuf.AnyOrBuilder getExpectedResultOrBuilder();
-  }
-  /**
-   * Protobuf type {@code IlTest}
-   */
-  public static final class IlTest extends
-      com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:IlTest)
-      IlTestOrBuilder {
-  private static final long serialVersionUID = 0L;
-    // Use IlTest.newBuilder() to construct.
-    private IlTest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-      super(builder);
-    }
-    private IlTest() {
-      arrangeStmts_ = java.util.Collections.emptyList();
-    }
-
-    @java.lang.Override
-    @SuppressWarnings({"unused"})
-    protected java.lang.Object newInstance(
-        UnusedPrivateParameter unused) {
-      return new IlTest();
-    }
-
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
-      return this.unknownFields;
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return testrunner.expressions.TestExpressions.internal_static_IlTest_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return testrunner.expressions.TestExpressions.internal_static_IlTest_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              testrunner.expressions.TestExpressions.IlTest.class, testrunner.expressions.TestExpressions.IlTest.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int ARRANGESTMTS_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private java.util.List<com.google.protobuf.Any> arrangeStmts_;
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    @java.lang.Override
-    public java.util.List<com.google.protobuf.Any> getArrangeStmtsList() {
-      return arrangeStmts_;
-    }
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    @java.lang.Override
-    public java.util.List<? extends com.google.protobuf.AnyOrBuilder> 
-        getArrangeStmtsOrBuilderList() {
-      return arrangeStmts_;
-    }
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    @java.lang.Override
-    public int getArrangeStmtsCount() {
-      return arrangeStmts_.size();
-    }
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    @java.lang.Override
-    public com.google.protobuf.Any getArrangeStmts(int index) {
-      return arrangeStmts_.get(index);
-    }
-    /**
-     * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-     */
-    @java.lang.Override
-    public com.google.protobuf.AnyOrBuilder getArrangeStmtsOrBuilder(
-        int index) {
-      return arrangeStmts_.get(index);
-    }
-
-    public static final int CALL_FIELD_NUMBER = 2;
-    private com.google.protobuf.Any call_;
-    /**
-     * <code>.google.protobuf.Any call = 2;</code>
-     * @return Whether the call field is set.
-     */
-    @java.lang.Override
-    public boolean hasCall() {
-      return call_ != null;
-    }
-    /**
-     * <code>.google.protobuf.Any call = 2;</code>
-     * @return The call.
-     */
-    @java.lang.Override
-    public com.google.protobuf.Any getCall() {
-      return call_ == null ? com.google.protobuf.Any.getDefaultInstance() : call_;
-    }
-    /**
-     * <code>.google.protobuf.Any call = 2;</code>
-     */
-    @java.lang.Override
-    public com.google.protobuf.AnyOrBuilder getCallOrBuilder() {
-      return call_ == null ? com.google.protobuf.Any.getDefaultInstance() : call_;
-    }
-
-    public static final int EXPECTEDRESULT_FIELD_NUMBER = 3;
-    private com.google.protobuf.Any expectedResult_;
-    /**
-     * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-     * @return Whether the expectedResult field is set.
-     */
-    @java.lang.Override
-    public boolean hasExpectedResult() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-     * @return The expectedResult.
-     */
-    @java.lang.Override
-    public com.google.protobuf.Any getExpectedResult() {
-      return expectedResult_ == null ? com.google.protobuf.Any.getDefaultInstance() : expectedResult_;
-    }
-    /**
-     * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-     */
-    @java.lang.Override
-    public com.google.protobuf.AnyOrBuilder getExpectedResultOrBuilder() {
-      return expectedResult_ == null ? com.google.protobuf.Any.getDefaultInstance() : expectedResult_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      for (int i = 0; i < arrangeStmts_.size(); i++) {
-        output.writeMessage(1, arrangeStmts_.get(i));
-      }
-      if (call_ != null) {
-        output.writeMessage(2, getCall());
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(3, getExpectedResult());
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      for (int i = 0; i < arrangeStmts_.size(); i++) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, arrangeStmts_.get(i));
-      }
-      if (call_ != null) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, getCall());
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, getExpectedResult());
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof testrunner.expressions.TestExpressions.IlTest)) {
-        return super.equals(obj);
-      }
-      testrunner.expressions.TestExpressions.IlTest other = (testrunner.expressions.TestExpressions.IlTest) obj;
-
-      if (!getArrangeStmtsList()
-          .equals(other.getArrangeStmtsList())) return false;
-      if (hasCall() != other.hasCall()) return false;
-      if (hasCall()) {
-        if (!getCall()
-            .equals(other.getCall())) return false;
-      }
-      if (hasExpectedResult() != other.hasExpectedResult()) return false;
-      if (hasExpectedResult()) {
-        if (!getExpectedResult()
-            .equals(other.getExpectedResult())) return false;
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (getArrangeStmtsCount() > 0) {
-        hash = (37 * hash) + ARRANGESTMTS_FIELD_NUMBER;
-        hash = (53 * hash) + getArrangeStmtsList().hashCode();
-      }
-      if (hasCall()) {
-        hash = (37 * hash) + CALL_FIELD_NUMBER;
-        hash = (53 * hash) + getCall().hashCode();
-      }
-      if (hasExpectedResult()) {
-        hash = (37 * hash) + EXPECTEDRESULT_FIELD_NUMBER;
-        hash = (53 * hash) + getExpectedResult().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static testrunner.expressions.TestExpressions.IlTest parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(testrunner.expressions.TestExpressions.IlTest prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code IlTest}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:IlTest)
-        testrunner.expressions.TestExpressions.IlTestOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return testrunner.expressions.TestExpressions.internal_static_IlTest_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return testrunner.expressions.TestExpressions.internal_static_IlTest_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                testrunner.expressions.TestExpressions.IlTest.class, testrunner.expressions.TestExpressions.IlTest.Builder.class);
-      }
-
-      // Construct using testrunner.expressions.TestExpressions.IlTest.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessageV3
-                .alwaysUseFieldBuilders) {
-          getArrangeStmtsFieldBuilder();
-          getCallFieldBuilder();
-          getExpectedResultFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        if (arrangeStmtsBuilder_ == null) {
-          arrangeStmts_ = java.util.Collections.emptyList();
-        } else {
-          arrangeStmts_ = null;
-          arrangeStmtsBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000001);
-        call_ = null;
-        if (callBuilder_ != null) {
-          callBuilder_.dispose();
-          callBuilder_ = null;
-        }
-        expectedResult_ = null;
-        if (expectedResultBuilder_ != null) {
-          expectedResultBuilder_.dispose();
-          expectedResultBuilder_ = null;
-        }
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return testrunner.expressions.TestExpressions.internal_static_IlTest_descriptor;
-      }
-
-      @java.lang.Override
-      public testrunner.expressions.TestExpressions.IlTest getDefaultInstanceForType() {
-        return testrunner.expressions.TestExpressions.IlTest.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public testrunner.expressions.TestExpressions.IlTest build() {
-        testrunner.expressions.TestExpressions.IlTest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public testrunner.expressions.TestExpressions.IlTest buildPartial() {
-        testrunner.expressions.TestExpressions.IlTest result = new testrunner.expressions.TestExpressions.IlTest(this);
-        buildPartialRepeatedFields(result);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartialRepeatedFields(testrunner.expressions.TestExpressions.IlTest result) {
-        if (arrangeStmtsBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0)) {
-            arrangeStmts_ = java.util.Collections.unmodifiableList(arrangeStmts_);
-            bitField0_ = (bitField0_ & ~0x00000001);
-          }
-          result.arrangeStmts_ = arrangeStmts_;
-        } else {
-          result.arrangeStmts_ = arrangeStmtsBuilder_.build();
-        }
-      }
-
-      private void buildPartial0(testrunner.expressions.TestExpressions.IlTest result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.call_ = callBuilder_ == null
-              ? call_
-              : callBuilder_.build();
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.expectedResult_ = expectedResultBuilder_ == null
-              ? expectedResult_
-              : expectedResultBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder clone() {
-        return super.clone();
-      }
-      @java.lang.Override
-      public Builder setField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.setField(field, value);
-      }
-      @java.lang.Override
-      public Builder clearField(
-          com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return super.clearField(field);
-      }
-      @java.lang.Override
-      public Builder clearOneof(
-          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return super.clearOneof(oneof);
-      }
-      @java.lang.Override
-      public Builder setRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, java.lang.Object value) {
-        return super.setRepeatedField(field, index, value);
-      }
-      @java.lang.Override
-      public Builder addRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return super.addRepeatedField(field, value);
-      }
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof testrunner.expressions.TestExpressions.IlTest) {
-          return mergeFrom((testrunner.expressions.TestExpressions.IlTest)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(testrunner.expressions.TestExpressions.IlTest other) {
-        if (other == testrunner.expressions.TestExpressions.IlTest.getDefaultInstance()) return this;
-        if (arrangeStmtsBuilder_ == null) {
-          if (!other.arrangeStmts_.isEmpty()) {
-            if (arrangeStmts_.isEmpty()) {
-              arrangeStmts_ = other.arrangeStmts_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-            } else {
-              ensureArrangeStmtsIsMutable();
-              arrangeStmts_.addAll(other.arrangeStmts_);
-            }
-            onChanged();
-          }
-        } else {
-          if (!other.arrangeStmts_.isEmpty()) {
-            if (arrangeStmtsBuilder_.isEmpty()) {
-              arrangeStmtsBuilder_.dispose();
-              arrangeStmtsBuilder_ = null;
-              arrangeStmts_ = other.arrangeStmts_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-              arrangeStmtsBuilder_ = 
-                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                   getArrangeStmtsFieldBuilder() : null;
-            } else {
-              arrangeStmtsBuilder_.addAllMessages(other.arrangeStmts_);
-            }
-          }
-        }
-        if (other.hasCall()) {
-          mergeCall(other.getCall());
-        }
-        if (other.hasExpectedResult()) {
-          mergeExpectedResult(other.getExpectedResult());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                com.google.protobuf.Any m =
-                    input.readMessage(
-                        com.google.protobuf.Any.parser(),
-                        extensionRegistry);
-                if (arrangeStmtsBuilder_ == null) {
-                  ensureArrangeStmtsIsMutable();
-                  arrangeStmts_.add(m);
-                } else {
-                  arrangeStmtsBuilder_.addMessage(m);
-                }
-                break;
-              } // case 10
-              case 18: {
-                input.readMessage(
-                    getCallFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                input.readMessage(
-                    getExpectedResultFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.util.List<com.google.protobuf.Any> arrangeStmts_ =
-        java.util.Collections.emptyList();
-      private void ensureArrangeStmtsIsMutable() {
-        if (!((bitField0_ & 0x00000001) != 0)) {
-          arrangeStmts_ = new java.util.ArrayList<com.google.protobuf.Any>(arrangeStmts_);
-          bitField0_ |= 0x00000001;
-         }
-      }
-
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> arrangeStmtsBuilder_;
-
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public java.util.List<com.google.protobuf.Any> getArrangeStmtsList() {
-        if (arrangeStmtsBuilder_ == null) {
-          return java.util.Collections.unmodifiableList(arrangeStmts_);
-        } else {
-          return arrangeStmtsBuilder_.getMessageList();
-        }
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public int getArrangeStmtsCount() {
-        if (arrangeStmtsBuilder_ == null) {
-          return arrangeStmts_.size();
-        } else {
-          return arrangeStmtsBuilder_.getCount();
-        }
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public com.google.protobuf.Any getArrangeStmts(int index) {
-        if (arrangeStmtsBuilder_ == null) {
-          return arrangeStmts_.get(index);
-        } else {
-          return arrangeStmtsBuilder_.getMessage(index);
-        }
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public Builder setArrangeStmts(
-          int index, com.google.protobuf.Any value) {
-        if (arrangeStmtsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureArrangeStmtsIsMutable();
-          arrangeStmts_.set(index, value);
-          onChanged();
-        } else {
-          arrangeStmtsBuilder_.setMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public Builder setArrangeStmts(
-          int index, com.google.protobuf.Any.Builder builderForValue) {
-        if (arrangeStmtsBuilder_ == null) {
-          ensureArrangeStmtsIsMutable();
-          arrangeStmts_.set(index, builderForValue.build());
-          onChanged();
-        } else {
-          arrangeStmtsBuilder_.setMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public Builder addArrangeStmts(com.google.protobuf.Any value) {
-        if (arrangeStmtsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureArrangeStmtsIsMutable();
-          arrangeStmts_.add(value);
-          onChanged();
-        } else {
-          arrangeStmtsBuilder_.addMessage(value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public Builder addArrangeStmts(
-          int index, com.google.protobuf.Any value) {
-        if (arrangeStmtsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureArrangeStmtsIsMutable();
-          arrangeStmts_.add(index, value);
-          onChanged();
-        } else {
-          arrangeStmtsBuilder_.addMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public Builder addArrangeStmts(
-          com.google.protobuf.Any.Builder builderForValue) {
-        if (arrangeStmtsBuilder_ == null) {
-          ensureArrangeStmtsIsMutable();
-          arrangeStmts_.add(builderForValue.build());
-          onChanged();
-        } else {
-          arrangeStmtsBuilder_.addMessage(builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public Builder addArrangeStmts(
-          int index, com.google.protobuf.Any.Builder builderForValue) {
-        if (arrangeStmtsBuilder_ == null) {
-          ensureArrangeStmtsIsMutable();
-          arrangeStmts_.add(index, builderForValue.build());
-          onChanged();
-        } else {
-          arrangeStmtsBuilder_.addMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public Builder addAllArrangeStmts(
-          java.lang.Iterable<? extends com.google.protobuf.Any> values) {
-        if (arrangeStmtsBuilder_ == null) {
-          ensureArrangeStmtsIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, arrangeStmts_);
-          onChanged();
-        } else {
-          arrangeStmtsBuilder_.addAllMessages(values);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public Builder clearArrangeStmts() {
-        if (arrangeStmtsBuilder_ == null) {
-          arrangeStmts_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000001);
-          onChanged();
-        } else {
-          arrangeStmtsBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public Builder removeArrangeStmts(int index) {
-        if (arrangeStmtsBuilder_ == null) {
-          ensureArrangeStmtsIsMutable();
-          arrangeStmts_.remove(index);
-          onChanged();
-        } else {
-          arrangeStmtsBuilder_.remove(index);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public com.google.protobuf.Any.Builder getArrangeStmtsBuilder(
-          int index) {
-        return getArrangeStmtsFieldBuilder().getBuilder(index);
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public com.google.protobuf.AnyOrBuilder getArrangeStmtsOrBuilder(
-          int index) {
-        if (arrangeStmtsBuilder_ == null) {
-          return arrangeStmts_.get(index);  } else {
-          return arrangeStmtsBuilder_.getMessageOrBuilder(index);
-        }
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public java.util.List<? extends com.google.protobuf.AnyOrBuilder> 
-           getArrangeStmtsOrBuilderList() {
-        if (arrangeStmtsBuilder_ != null) {
-          return arrangeStmtsBuilder_.getMessageOrBuilderList();
-        } else {
-          return java.util.Collections.unmodifiableList(arrangeStmts_);
-        }
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public com.google.protobuf.Any.Builder addArrangeStmtsBuilder() {
-        return getArrangeStmtsFieldBuilder().addBuilder(
-            com.google.protobuf.Any.getDefaultInstance());
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public com.google.protobuf.Any.Builder addArrangeStmtsBuilder(
-          int index) {
-        return getArrangeStmtsFieldBuilder().addBuilder(
-            index, com.google.protobuf.Any.getDefaultInstance());
-      }
-      /**
-       * <code>repeated .google.protobuf.Any arrangeStmts = 1;</code>
-       */
-      public java.util.List<com.google.protobuf.Any.Builder> 
-           getArrangeStmtsBuilderList() {
-        return getArrangeStmtsFieldBuilder().getBuilderList();
-      }
-      private com.google.protobuf.RepeatedFieldBuilderV3<
-          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
-          getArrangeStmtsFieldBuilder() {
-        if (arrangeStmtsBuilder_ == null) {
-          arrangeStmtsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-              com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
-                  arrangeStmts_,
-                  ((bitField0_ & 0x00000001) != 0),
-                  getParentForChildren(),
-                  isClean());
-          arrangeStmts_ = null;
-        }
-        return arrangeStmtsBuilder_;
-      }
-
-      private com.google.protobuf.Any call_;
-      private com.google.protobuf.SingleFieldBuilderV3<
-          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> callBuilder_;
-      /**
-       * <code>.google.protobuf.Any call = 2;</code>
-       * @return Whether the call field is set.
-       */
-      public boolean hasCall() {
-        return ((bitField0_ & 0x00000002) != 0);
-      }
-      /**
-       * <code>.google.protobuf.Any call = 2;</code>
-       * @return The call.
-       */
-      public com.google.protobuf.Any getCall() {
-        if (callBuilder_ == null) {
-          return call_ == null ? com.google.protobuf.Any.getDefaultInstance() : call_;
-        } else {
-          return callBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.google.protobuf.Any call = 2;</code>
-       */
-      public Builder setCall(com.google.protobuf.Any value) {
-        if (callBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          call_ = value;
-        } else {
-          callBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.google.protobuf.Any call = 2;</code>
-       */
-      public Builder setCall(
-          com.google.protobuf.Any.Builder builderForValue) {
-        if (callBuilder_ == null) {
-          call_ = builderForValue.build();
-        } else {
-          callBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.google.protobuf.Any call = 2;</code>
-       */
-      public Builder mergeCall(com.google.protobuf.Any value) {
-        if (callBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) != 0) &&
-            call_ != null &&
-            call_ != com.google.protobuf.Any.getDefaultInstance()) {
-            getCallBuilder().mergeFrom(value);
-          } else {
-            call_ = value;
-          }
-        } else {
-          callBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.google.protobuf.Any call = 2;</code>
-       */
-      public Builder clearCall() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        call_ = null;
-        if (callBuilder_ != null) {
-          callBuilder_.dispose();
-          callBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.google.protobuf.Any call = 2;</code>
-       */
-      public com.google.protobuf.Any.Builder getCallBuilder() {
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return getCallFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.google.protobuf.Any call = 2;</code>
-       */
-      public com.google.protobuf.AnyOrBuilder getCallOrBuilder() {
-        if (callBuilder_ != null) {
-          return callBuilder_.getMessageOrBuilder();
-        } else {
-          return call_ == null ?
-              com.google.protobuf.Any.getDefaultInstance() : call_;
-        }
-      }
-      /**
-       * <code>.google.protobuf.Any call = 2;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilderV3<
-          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
-          getCallFieldBuilder() {
-        if (callBuilder_ == null) {
-          callBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
-                  getCall(),
-                  getParentForChildren(),
-                  isClean());
-          call_ = null;
-        }
-        return callBuilder_;
-      }
-
-      private com.google.protobuf.Any expectedResult_;
-      private com.google.protobuf.SingleFieldBuilderV3<
-          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> expectedResultBuilder_;
-      /**
-       * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-       * @return Whether the expectedResult field is set.
-       */
-      public boolean hasExpectedResult() {
-        return ((bitField0_ & 0x00000004) != 0);
-      }
-      /**
-       * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-       * @return The expectedResult.
-       */
-      public com.google.protobuf.Any getExpectedResult() {
-        if (expectedResultBuilder_ == null) {
-          return expectedResult_ == null ? com.google.protobuf.Any.getDefaultInstance() : expectedResult_;
-        } else {
-          return expectedResultBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-       */
-      public Builder setExpectedResult(com.google.protobuf.Any value) {
-        if (expectedResultBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          expectedResult_ = value;
-        } else {
-          expectedResultBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-       */
-      public Builder setExpectedResult(
-          com.google.protobuf.Any.Builder builderForValue) {
-        if (expectedResultBuilder_ == null) {
-          expectedResult_ = builderForValue.build();
-        } else {
-          expectedResultBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-       */
-      public Builder mergeExpectedResult(com.google.protobuf.Any value) {
-        if (expectedResultBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) != 0) &&
-            expectedResult_ != null &&
-            expectedResult_ != com.google.protobuf.Any.getDefaultInstance()) {
-            getExpectedResultBuilder().mergeFrom(value);
-          } else {
-            expectedResult_ = value;
-          }
-        } else {
-          expectedResultBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-       */
-      public Builder clearExpectedResult() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        expectedResult_ = null;
-        if (expectedResultBuilder_ != null) {
-          expectedResultBuilder_.dispose();
-          expectedResultBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-       */
-      public com.google.protobuf.Any.Builder getExpectedResultBuilder() {
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return getExpectedResultFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-       */
-      public com.google.protobuf.AnyOrBuilder getExpectedResultOrBuilder() {
-        if (expectedResultBuilder_ != null) {
-          return expectedResultBuilder_.getMessageOrBuilder();
-        } else {
-          return expectedResult_ == null ?
-              com.google.protobuf.Any.getDefaultInstance() : expectedResult_;
-        }
-      }
-      /**
-       * <code>optional .google.protobuf.Any expectedResult = 3;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilderV3<
-          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
-          getExpectedResultFieldBuilder() {
-        if (expectedResultBuilder_ == null) {
-          expectedResultBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
-                  getExpectedResult(),
-                  getParentForChildren(),
-                  isClean());
-          expectedResult_ = null;
-        }
-        return expectedResultBuilder_;
-      }
-      @java.lang.Override
-      public final Builder setUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
-      }
-
-      @java.lang.Override
-      public final Builder mergeUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.mergeUnknownFields(unknownFields);
-      }
-
-
-      // @@protoc_insertion_point(builder_scope:IlTest)
-    }
-
-    // @@protoc_insertion_point(class_scope:IlTest)
-    private static final testrunner.expressions.TestExpressions.IlTest DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new testrunner.expressions.TestExpressions.IlTest();
-    }
-
-    public static testrunner.expressions.TestExpressions.IlTest getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<IlTest>
-        PARSER = new com.google.protobuf.AbstractParser<IlTest>() {
-      @java.lang.Override
-      public IlTest parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<IlTest> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<IlTest> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public testrunner.expressions.TestExpressions.IlTest getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_TypeRepr_descriptor;
   private static final 
@@ -19230,10 +20591,20 @@ public final class TestExpressions {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_ObjectInstance_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_MethodCall_descriptor;
+    internal_static_InstanceMethodCall_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_MethodCall_fieldAccessorTable;
+      internal_static_InstanceMethodCall_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_StaticMethodCall_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_StaticMethodCall_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_ConstructorCall_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_ConstructorCall_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_SetArrayIndex_descriptor;
   private static final 
@@ -19254,11 +20625,6 @@ public final class TestExpressions {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_CyclicReference_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_IlTest_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_IlTest_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -19298,23 +20664,26 @@ public final class TestExpressions {
       "\n\rArrayInstance\022\"\n\017elementTypeRepr\030\001 \001(\013" +
       "2\t.TypeRepr\022\014\n\004size\030\002 \001(\005\022\017\n\007address\030\003 \001" +
       "(\005\">\n\016ObjectInstance\022\033\n\010typeRepr\030\001 \001(\0132\t" +
-      ".TypeRepr\022\017\n\007address\030\002 \001(\005\"t\n\nMethodCall" +
-      "\022\037\n\nmethodRepr\030\001 \001(\0132\013.MethodRepr\022!\n\016ret" +
-      "urnTypeRepr\030\002 \001(\0132\t.TypeRepr\022\"\n\004args\030\003 \003" +
-      "(\0132\024.google.protobuf.Any\"e\n\rSetArrayInde" +
-      "x\022 \n\010instance\030\001 \001(\0132\016.ArrayInstance\022\r\n\005i" +
-      "ndex\030\002 \001(\005\022#\n\005value\030\003 \001(\0132\024.google.proto" +
-      "buf.Any\"w\n\016SetObjectField\022!\n\010instance\030\001 " +
-      "\001(\0132\017.ObjectInstance\022\035\n\tfieldRepr\030\002 \001(\0132" +
-      "\n.FieldRepr\022#\n\005value\030\003 \001(\0132\024.google.prot" +
-      "obuf.Any\")\n\016IlTypeInstance\022\027\n\004type\030\001 \001(\013" +
-      "2\t.TypeRepr\"?\n\017CyclicReference\022\033\n\010typeRe" +
-      "pr\030\001 \001(\0132\t.TypeRepr\022\017\n\007address\030\002 \001(\005\"\236\001\n" +
-      "\006IlTest\022*\n\014arrangeStmts\030\001 \003(\0132\024.google.p" +
-      "rotobuf.Any\022\"\n\004call\030\002 \001(\0132\024.google.proto" +
-      "buf.Any\0221\n\016expectedResult\030\003 \001(\0132\024.google" +
-      ".protobuf.AnyH\000\210\001\001B\021\n\017_expectedResultB\030\n" +
-      "\026testrunner.expressionsb\006proto3"
+      ".TypeRepr\022\017\n\007address\030\002 \001(\005\"\244\001\n\022InstanceM" +
+      "ethodCall\022\037\n\nmethodRepr\030\001 \001(\0132\013.MethodRe" +
+      "pr\022!\n\016returnTypeRepr\030\002 \001(\0132\t.TypeRepr\022&\n" +
+      "\010instance\030\003 \001(\0132\024.google.protobuf.Any\022\"\n" +
+      "\004args\030\004 \003(\0132\024.google.protobuf.Any\"z\n\020Sta" +
+      "ticMethodCall\022\037\n\nmethodRepr\030\001 \001(\0132\013.Meth" +
+      "odRepr\022!\n\016returnTypeRepr\030\002 \001(\0132\t.TypeRep" +
+      "r\022\"\n\004args\030\003 \003(\0132\024.google.protobuf.Any\"q\n" +
+      "\017ConstructorCall\022\033\n\006method\030\001 \001(\0132\013.Metho" +
+      "dRepr\022\035\n\nreturnType\030\002 \001(\0132\t.TypeRepr\022\"\n\004" +
+      "args\030\003 \003(\0132\024.google.protobuf.Any\"e\n\rSetA" +
+      "rrayIndex\022 \n\010instance\030\001 \001(\0132\016.ArrayInsta" +
+      "nce\022\r\n\005index\030\002 \001(\005\022#\n\005value\030\003 \001(\0132\024.goog" +
+      "le.protobuf.Any\"w\n\016SetObjectField\022!\n\010ins" +
+      "tance\030\001 \001(\0132\017.ObjectInstance\022\035\n\tfieldRep" +
+      "r\030\002 \001(\0132\n.FieldRepr\022#\n\005value\030\003 \001(\0132\024.goo" +
+      "gle.protobuf.Any\")\n\016IlTypeInstance\022\027\n\004ty" +
+      "pe\030\001 \001(\0132\t.TypeRepr\"?\n\017CyclicReference\022\033" +
+      "\n\010typeRepr\030\001 \001(\0132\t.TypeRepr\022\017\n\007address\030\002" +
+      " \001(\005B\030\n\026testrunner.expressionsb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -19435,42 +20804,48 @@ public final class TestExpressions {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ObjectInstance_descriptor,
         new java.lang.String[] { "TypeRepr", "Address", });
-    internal_static_MethodCall_descriptor =
+    internal_static_InstanceMethodCall_descriptor =
       getDescriptor().getMessageTypes().get(19);
-    internal_static_MethodCall_fieldAccessorTable = new
+    internal_static_InstanceMethodCall_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_MethodCall_descriptor,
-        new java.lang.String[] { "MethodRepr", "ReturnTypeRepr", "Args", });
-    internal_static_SetArrayIndex_descriptor =
+        internal_static_InstanceMethodCall_descriptor,
+        new java.lang.String[] { "MethodRepr", "ReturnTypeRepr", "Instance", "Args", });
+    internal_static_StaticMethodCall_descriptor =
       getDescriptor().getMessageTypes().get(20);
+    internal_static_StaticMethodCall_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_StaticMethodCall_descriptor,
+        new java.lang.String[] { "MethodRepr", "ReturnTypeRepr", "Args", });
+    internal_static_ConstructorCall_descriptor =
+      getDescriptor().getMessageTypes().get(21);
+    internal_static_ConstructorCall_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_ConstructorCall_descriptor,
+        new java.lang.String[] { "Method", "ReturnType", "Args", });
+    internal_static_SetArrayIndex_descriptor =
+      getDescriptor().getMessageTypes().get(22);
     internal_static_SetArrayIndex_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_SetArrayIndex_descriptor,
         new java.lang.String[] { "Instance", "Index", "Value", });
     internal_static_SetObjectField_descriptor =
-      getDescriptor().getMessageTypes().get(21);
+      getDescriptor().getMessageTypes().get(23);
     internal_static_SetObjectField_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_SetObjectField_descriptor,
         new java.lang.String[] { "Instance", "FieldRepr", "Value", });
     internal_static_IlTypeInstance_descriptor =
-      getDescriptor().getMessageTypes().get(22);
+      getDescriptor().getMessageTypes().get(24);
     internal_static_IlTypeInstance_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_IlTypeInstance_descriptor,
         new java.lang.String[] { "Type", });
     internal_static_CyclicReference_descriptor =
-      getDescriptor().getMessageTypes().get(23);
+      getDescriptor().getMessageTypes().get(25);
     internal_static_CyclicReference_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_CyclicReference_descriptor,
         new java.lang.String[] { "TypeRepr", "Address", });
-    internal_static_IlTest_descriptor =
-      getDescriptor().getMessageTypes().get(24);
-    internal_static_IlTest_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_IlTest_descriptor,
-        new java.lang.String[] { "ArrangeStmts", "Call", "ExpectedResult", "ExpectedResult", });
     com.google.protobuf.AnyProto.getDescriptor();
   }
 
