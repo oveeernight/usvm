@@ -5,7 +5,6 @@ import testrunner.expressions.*
 import common.DecoderApi
 import org.jacodb.api.net.ilinstances.*
 import org.usvm.machine.IlContext
-import org.usvm.machine.logger
 
 class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> {
     private val arrangeStmts = mutableListOf<Message>()
@@ -79,7 +78,7 @@ class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> 
             this.index = index
             this.value = valueAsAny
         }
-        logger.error { "set: $set" }
+
         arrangeStmts += set
     }
 }
@@ -119,4 +118,4 @@ private fun IlField.toFieldRepr(): TestExpressions.FieldRepr {
 }
 
 
-fun Message.pack() = com.google.protobuf.Any.pack(this)
+private fun Message.pack() = com.google.protobuf.Any.pack(this)
