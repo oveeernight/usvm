@@ -236,7 +236,6 @@ class IlExprResolver(
     }
 
     override fun visitIlConvExpr(expr: IlConvCastExpr): UExpr<out USort>? = scope.calcOnState {
-        if (expr.type == expr.expectedType) return@calcOnState resolve(expr.operand)
         val e = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@calcOnState null
         val currType = expr.type
         val expectedType = expr.expectedType

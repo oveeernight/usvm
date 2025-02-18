@@ -41,11 +41,9 @@ class IlInterpreter(
 
             is IlLocalVar -> (method.paramsWithThisCount() + local.index) to local.type
 
-            is IlTempVar -> (method.paramsWithThisCount() + (method as IlMethodImpl).locals.size + local.index) to local.type
-
 //            is IlErrVar -> (method.paramsWithThisCount() + method .size + local.index) to local.type
 
-            else -> error("mapMethodLocals: unexpected local ${local.type}")
+            else -> error("mapMethodLocals: unexpected local $local")
         }
 
 
