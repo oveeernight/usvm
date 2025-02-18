@@ -111,20 +111,11 @@ abstract class IlTestStateResolver<T>(
             model.types.getTypeStream(evaledRef)
         }.filterBySupertype(type)
 
-        val runtimeType = types.single()
-
-        return resolveCyclic(evaledRef, runtimeType) {
-            when (runtimeType) {
-                is IlArrayType -> resolveArray(heapRef, evaledRef, runtimeType)
-                ctx.stringType -> resolveString(heapRef, evaledRef)
-                else -> resolveObject(heapRef, evaledRef, runtimeType)
-            }
+        return when (val runtimeType = types.single()) {
+            is IlArrayType -> resolveArray(heapRef, evaledRef, runtimeType)
+            ctx.stringType -> resolveString(heapRef, evaledRef)
+            else ->  resolveObject(heapRef, evaledRef, runtimeType)
         }
-    }
-
-    private fun resolveCyclic(ref: UConcreteHeapRef, type: IlType, resolve: () -> T): T {
-        if (cache.containsKey(ref.address)) return decoderApi.createCyclicReference(type, ref.address)
-        return resolve()
     }
 
     private fun resolveArray(heapRef: UHeapRef, evaledRef: UConcreteHeapRef, type: IlArrayType): T {
@@ -133,7 +124,7 @@ abstract class IlTestStateResolver<T>(
         val sort = ctx.typeToSort(elemType)
         val lengthKey = UArrayLengthLValue(heapRef, descriptor, sort)
         val length = memory.read(lengthKey).tryInt32() ?: error("array $evaledRef length is not integer")
-        val array = decoderApi.createArray(elemType, length, evaledRef.address)
+        val array = decoderApi.createArray(elemType, length)
 
         for (index in 0 until length) {
             val indexKey = UArrayIndexLValue(sort, heapRef, ctx.mkBv(index), descriptor)
@@ -165,7 +156,7 @@ abstract class IlTestStateResolver<T>(
     }
 
     private fun resolveObject(heapRef: UHeapRef, evaledRef: UConcreteHeapRef, type: IlType): T {
-        val obj = decoderApi.createObject(type, evaledRef.address)
+        val obj = decoderApi.createObject(type)
         for (field in type.fields) {
             val fieldSort = ctx.typeToSort(field.fieldType)
             val fieldKey = UFieldLValue(fieldSort, heapRef, field)
