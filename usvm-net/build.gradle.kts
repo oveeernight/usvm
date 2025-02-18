@@ -25,45 +25,34 @@ dependencies {
     implementation(Libs.ksmt_yices)
     implementation(Libs.ksmt_cvc5)
     implementation(Libs.ksmt_symfpu)
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
+
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.1.0")
+
+//    implementation("com.google.protobuf:protobuf-java:4.28.2")
+//    implementation("com.google.protobuf:protobuf-kotlin:4.28.2")
 
 
     testImplementation(kotlin("test"))
-    testImplementation("io.grpc:grpc-kotlin-stub:1.4.0")
-    testImplementation("io.grpc:grpc-protobuf:1.70.0")
     testImplementation("com.google.protobuf:protobuf-java:4.29.0")
     testImplementation("com.google.protobuf:protobuf-kotlin:4.29.0")
-    testImplementation(Libs.logback)
-
     implementation("com.github.petrukhinandrew:jacodb:75dec37e320da87c31a17ed013bd350d57b9b615")
 }
 
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:4.29.0"
-    }
-
-    plugins {
-        create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.70"
-        }
-        create("grpckt") {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.4.0@jdk8@jar"
-        }
-    }
-
-    generateProtoTasks {
-        all().forEach {
-            it.plugins {
-                create("grpc")
-                create("grpckt")
-            }
-            it.builtins {
-                id("kotlin")
-            }
-        }
-    }
-}
+//protobuf {
+//    protoc {
+//        artifact = "com.google.protobuf:protoc:4.28.2"
+//    }
+//
+//    generateProtoTasks {
+//        all().forEach { task ->
+//            task.builtins {
+//                id("kotlin")
+//            }
+//        }
+//    }
+//}
 
 task<Exec>("dotnet-samples") {
     workingDir(rootProject.rootDir)

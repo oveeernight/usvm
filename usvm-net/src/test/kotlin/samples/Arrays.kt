@@ -8,17 +8,17 @@ class Arrays : IlMethodTestRunner() {
 
     @Test
     fun arrayStore() {
-        runner(::arrayStore, options)
+        runMethod(method = ::arrayStore)
     }
 
     @Test
     fun arraySimpleBranch() {
-        runner(::arraySimpleBranch, options)
+        runMethod(method = ::arraySimpleBranch)
     }
 
     @Ignore("unsafe")
     @Test
     fun stringIndex() {
-        runner(::stringIndex, options)
+        runMethod(method = ::stringIndex)
     }
 }

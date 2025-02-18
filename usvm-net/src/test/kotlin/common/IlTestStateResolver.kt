@@ -138,14 +138,13 @@ abstract class IlTestStateResolver<T>(
         val length = memory.read(lengthKey).tryInt32() ?: error("array $evaledRef length is not integer")
         val array = decoderApi.createArray(elemType, length, evaledRef.address)
 
-        cache[evaledRef.address] = array
-
         for (index in 0 until length) {
             val indexKey = UArrayIndexLValue(sort, heapRef, ctx.mkBv(index), descriptor)
             val resolved = resolve(memory.read(indexKey), elemType)
             decoderApi.setArrayIndex(array, index, resolved)
         }
 
+        cache[evaledRef.address] = array
         return array
     }
 
