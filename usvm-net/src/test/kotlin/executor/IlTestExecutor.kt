@@ -32,7 +32,7 @@ class IlTestExecutor : Closeable {
 
 //        logger.error  {"Test serialized: $test" }
         val res = concreteRunner.run(batch)
-//        logger.error { dotnetProc.inputStream.bufferedReader().readText() }
+        logger.error { dotnetProc.inputStream.bufferedReader().readText() }
         return res
     }
 

@@ -86,7 +86,7 @@ sourceSets {
 
 task<Exec>("dotnet-samples") {
     workingDir(rootProject.rootDir)
-    commandLine("dotnet", "publish", "-c", "Release", "usvm-net/src/test/dotnet/samples")
+    commandLine("dotnet", "publish", "usvm-net/src/test/dotnet/samples")
 }
 
 tasks.test {

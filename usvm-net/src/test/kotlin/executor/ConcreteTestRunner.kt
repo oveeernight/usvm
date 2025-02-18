@@ -17,17 +17,17 @@ class ConcreteTestRunner(val proc: Process) {
 
     fun run(testBatch: TestExpressions.IlTestBatch) : TestExpressions.ExecutionResult {
         val port = 8980
-        val channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().enableRetry().build()
+        val channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build()
         val stub = ConcreteExecutorGrpcKt.ConcreteExecutorCoroutineStub(channel)
 
         val result = runBlocking {
-            delay(500)
+            delay(1000)
             stub.execute(testBatch)
         }
 
         val isSuccess = result.resultCase == TestExpressions.ExecutionResult.ResultCase.SUCCESS
+        logger.error { proc.errorStream.bufferedReader().readText() }
         require(isSuccess) {
-            proc.destroy()
             val failReason = result.fail.reason
             "Some executions failed:\n$failReason"
         }
