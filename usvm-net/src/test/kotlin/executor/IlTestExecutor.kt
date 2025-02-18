@@ -12,7 +12,7 @@ import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.UModelBase
 import testrunner.expressions.*
 
-class IlTestConcreteExecutor(private val state: IlState, private val method: IlMethod) {
+class IlTestExecutor(val state: IlState, val method: IlMethod) {
     private val concreteRunner = ConcreteTestRunner(timeoutSec = 5)
     fun execute() {
         val model = state.models.first()
@@ -37,6 +37,7 @@ private class MemoryScope(
     override val decoderApi: IlTestExecutorDecoderApi = IlTestExecutorDecoderApi(ctx)
 
     fun createTest(): TestExpressions.IlTest {
+//        val instance = resolveThis()
         val args = resolveArgs()
         logger.info { "resolvedArgs: $args" }
         val arrange = decoderApi.arrangeStmts().map { com.google.protobuf.Any.pack(it) }
@@ -46,6 +47,8 @@ private class MemoryScope(
             is IlMethodResult.Exception -> result.exception
             else -> TODO()
         }.let { resolve(it, method.returnType) }
+//        println(arrange.toString())
+//        println(methodCall.toString())
         val test = ilTest {
             arrangeStmts.addAll(arrange)
             call = com.google.protobuf.Any.pack(methodCall)

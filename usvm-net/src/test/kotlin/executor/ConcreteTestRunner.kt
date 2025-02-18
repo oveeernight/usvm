@@ -5,6 +5,7 @@ import org.usvm.machine.logger
 import testrunner.expressions.TestExpressions
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.math.log
 
 class ConcreteTestRunner(val timeoutSec: Int) {
     fun run(test: TestExpressions.IlTest) {
