@@ -169,10 +169,10 @@ class IlExprResolver(
     }
 
     override fun visitIlBinaryOp(expr: IlBinaryOp): UExpr<out USort>? {
-        val resolvedOp = IlBinaryOperation.resolve(expr)
-        val lhs = resolve(expr.lhs)
-        val rhs = resolve(expr.rhs)
-        return resolvedOp(lhs.cast(), rhs.cast())
+        val operator = IlBinaryOperator.resolve(expr)
+        return resolveAfterResolved(expr.lhs, expr.rhs) { lhs, rhs ->
+            operator(lhs, rhs)
+        }
     }
 
     override fun visitIlBoxExpr(expr: IlBoxExpr): UExpr<out USort>? {
@@ -301,7 +301,11 @@ class IlExprResolver(
     }
 
     override fun visitIlUnaryOp(expr: IlUnaryOp): UExpr<out USort>? {
-        TODO("Not yet implemented")
+        val operator = IlUnaryOperator.resolve(expr)
+        return resolveAfterResolved(expr.operand) { operand ->
+            operator(operand)
+
+        }
     }
 
     override fun visitIlUnboxExpr(expr: IlUnboxExpr): UExpr<out USort>? {
@@ -314,5 +318,21 @@ class IlExprResolver(
 
     override fun visitIlUnmanagedRefExpr(expr: IlUnmanagedRefExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
+    }
+
+    private inline fun <T> resolveAfterResolved(expr: IlExpr, block: (UExpr<out USort>) -> T): T? {
+        val resolved = resolve(expr) ?: return null
+        return block(resolved)
+    }
+
+    private inline fun <T> resolveAfterResolved(
+        expr1: IlExpr,
+        expr2: IlExpr,
+        block: (UExpr<out USort>, UExpr<out USort>) -> T
+    ): T? {
+        val resolved1 = resolve(expr1) ?: return null
+        val resolved2 = resolve(expr2) ?: return null
+
+        return block(resolved1, resolved2)
     }
 }
