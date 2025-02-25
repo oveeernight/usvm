@@ -23,8 +23,8 @@ fun IlState.returnValue(value: UExpr<out USort>) {
     returnSite?.let { memory.stack.pop(); newStmt(it) }
 }
 
-fun IlMethod.toLocalIdx(idx: Int): Int = if (this.isStatic) idx else idx + 1
-fun IlMethod.paramsWithThisCount() : Int = toLocalIdx(parameters.size)
+//fun IlMethod.toLocalIdx(idx: Int): Int = if (this.isStatic) idx else idx + 1
+//fun IlMethod.paramsWithThisCount() : Int = toLocalIdx(parameters.size)
 fun IlMethod.localsCount() : Int {
     this as IlMethodImpl
     return locals.size + temps.size + errs.size

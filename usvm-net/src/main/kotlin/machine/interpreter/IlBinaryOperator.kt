@@ -2,12 +2,12 @@ package org.usvm.machine.interpreter
 
 import io.ksmt.sort.KFpSort
 import io.ksmt.utils.asExpr
-import org.jacodb.api.net.ilinstances.IlBinaryOp
-import org.jacodb.api.net.ilinstances.IlCeqOp
+import org.jacodb.api.net.ilinstances.*
 import org.usvm.*
 import org.usvm.machine.IlContext
 import org.usvm.machine.USizeSort
 import org.usvm.machine.ilctx
+import org.usvm.machine.interpreter.IlBinaryOperator.Xor.toBvIte
 
 
 @Suppress("UNUSED_PARAMETER")
@@ -57,19 +57,19 @@ sealed class IlBinaryOperator(
     )
 
     object CEq : IlBinaryOperator(
-        onBv = UContext<USizeSort>::mkEq,
-        onFp = UContext<USizeSort>::mkFpEqualExpr,
-        onBool = UContext<USizeSort>::mkEq
+        onBv = { a, b -> mkEq(a, b).toBvIte() },
+        onFp =  {a, b -> mkFpEqualExpr(a, b).toBvIte() },
+        onBool = { a, b -> mkEq(a, b).toBvIte() }
     )
 
     object CNe : IlBinaryOperator(
-        onBv = { a, b -> a.neq(b)},
-        onFp = { a, b -> mkFpEqualExpr(a, b).not()},
-        onBool = { a, b -> a.neq(b)}
+        onBv = { a, b -> a.neq(b).toBvIte() },
+        onFp = { a, b -> mkFpEqualExpr(a, b).not().toBvIte() },
+        onBool = { a, b -> a.neq(b).toBvIte() }
     )
 
     object CGe : IlBinaryOperator(
-        onBv = UContext<USizeSort>::mkBvSignedGreaterOrEqualExpr,
+        onBv = { a, b -> mkBvSignedGreaterOrEqualExpr(a, b).toBvIte() },
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
@@ -84,7 +84,7 @@ sealed class IlBinaryOperator(
     )
 
     object CGt : IlBinaryOperator(
-        onBv = UContext<USizeSort>::mkBvSignedGreaterOrEqualExpr,
+        onBv = { a, b -> mkBvSignedGreaterExpr(a, b).toBvIte() },
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
@@ -99,7 +99,7 @@ sealed class IlBinaryOperator(
     )
 
     object CLe : IlBinaryOperator(
-        onBv = UContext<USizeSort>::mkBvSignedLessOrEqualExpr,
+        onBv = { a, b -> mkBvSignedLessOrEqualExpr(a, b).toBvIte() } ,
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
@@ -113,7 +113,7 @@ sealed class IlBinaryOperator(
         }
     )
     object CLt : IlBinaryOperator(
-        onBv = UContext<USizeSort>::mkBvSignedLessExpr,
+        onBv = { a, b -> mkBvSignedLessExpr(a, b).toBvIte() },
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
@@ -157,10 +157,31 @@ sealed class IlBinaryOperator(
         }
     }
 
+    protected fun UExpr<UBoolSort>.toBvIte() : UExpr<UBvSort> =
+        ctx.mkIte(this,
+            ctx.mkBv(1, ctx.bv32Sort),
+            ctx.mkBv(0, ctx.bv32Sort)
+        )
+
     companion object {
         fun resolve(op: IlBinaryOp): IlBinaryOperator {
             return when (op) {
+                is IlAddOp -> Add
+                is IlSubOp -> Sub
+                is IlMulOp -> Mul
+                is IlDivOp -> Div
+                is IlRemOp -> Rem
                 is IlCeqOp -> CEq
+                is IlCneOp -> CNe
+                is IlCgeOp -> CGe
+                is IlCgtOp -> CGt
+                is IlCleOp -> CLe
+                is IlCltOp -> CLt
+                is IlAndOp -> And
+                is IlOrOp -> Or
+                is IlXorOp -> Xor
+                is IlShlOp -> Shl
+                is IlShrOp -> Shr
                 else -> TODO()
             }
         }

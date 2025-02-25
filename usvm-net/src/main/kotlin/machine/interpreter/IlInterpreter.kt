@@ -39,9 +39,9 @@ class IlInterpreter(
                 mutableMapOf()
             }.getOrPut(local.name) { local.index } to local.type
 
-            is IlLocalVar -> (method.paramsWithThisCount() + local.index) to local.type
+            is IlLocalVar -> (method.parameters.size + local.index) to local.type
 
-            is IlTempVar -> (method.paramsWithThisCount() + (method as IlMethodImpl).locals.size + local.index) to local.type
+            is IlTempVar -> (method.parameters.size + (method as IlMethodImpl).locals.size + local.index) to local.type
 
 //            is IlErrVar -> (method.paramsWithThisCount() + method .size + local.index) to local.type
 
@@ -66,7 +66,7 @@ class IlInterpreter(
             method.parameters.forEachIndexed { idx, param ->
                 val type = param.type
                 if (!isPrimitiveType(type)) {
-                    val paramLValue = URegisterStackLValue(typeToSort(type), method.toLocalIdx(idx))
+                    val paramLValue = URegisterStackLValue(typeToSort(type), idx)
                     val paramRValue = state.memory.read(paramLValue).asExpr(addressSort)
 //                    val constr = ctx.mkIsSubtypeExpr(paramRValue, param.type)
 //                    state.pathConstraints += constr
@@ -160,7 +160,11 @@ class IlInterpreter(
     }
 
     private fun visitCallStmt(scope: IlStepScope, stmt: IlCallStmt) {
-        TODO()
+        val resolver = mkExprResolver(scope)
+        resolver.resolve(stmt.call) ?: return
+        scope.doWithState {
+            newStmt(stmt.next())
+        }
     }
 
     private fun visitCalliStmt(scope: IlStepScope, stmt: IlCalliStmt) {

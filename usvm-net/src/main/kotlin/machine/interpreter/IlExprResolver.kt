@@ -5,6 +5,8 @@ import io.ksmt.utils.cast
 import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
+import org.jacodb.api.net.ilinstances.impl.IlPrimitiveType
+import org.jacodb.api.net.ilinstances.impl.IlReferenceType
 import org.usvm.*
 import org.usvm.api.allocateArray
 import org.usvm.collection.array.UArrayIndexLValue
@@ -236,15 +238,38 @@ class IlExprResolver(
     }
 
     override fun visitIlConvExpr(expr: IlConvCastExpr): UExpr<out USort>? = scope.calcOnState {
-        if (expr.type == expr.expectedType) return@calcOnState resolve(expr.operand)
-        val e = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@calcOnState null
-        val currType = expr.type
-        val expectedType = expr.expectedType
-        if (!ctx.typeSystem<IlType>().isSupertype(supertype = expectedType, type = currType)){
-            checkClassCast(e, expectedType)
+        if (expr.operand.type == expr.expectedType) return@calcOnState resolve(expr.operand)
+        when (expr.type) {
+            is IlPrimitiveType -> resolveAfterResolved(expr.operand) { resolved ->
+                resolvePrimitiveCast(resolved, expr.type, expr.expectedType)
+            }
+            else -> {
+                val e = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@calcOnState null
+                val currType = expr.operand.type
+                val expectedType = expr.expectedType
+                if (!ctx.typeSystem<IlType>().isSupertype(supertype = expectedType, type = currType)) {
+                    checkClassCast(e, expectedType)
+                }
+                e
+            }
         }
+    }
 
-        e
+    private fun resolvePrimitiveCast(expr: UExpr<out USort>, currType: IlType, expectedType: IlType): UExpr<out USort>? = with(ctx) {
+        when (expectedType) {
+            boolType -> IlUnaryOperator.CastToBool(expr)
+            int8Type -> IlUnaryOperator.CastToInt8(expr)
+            uint8Type -> IlUnaryOperator.CastToUInt8(expr)
+            int16Type -> IlUnaryOperator.CastToInt16(expr)
+            uint16Type -> IlUnaryOperator.CastToUInt16(expr)
+            int32Type -> IlUnaryOperator.CastToInt32(expr)
+            uint32Type -> IlUnaryOperator.CastToUInt32(expr)
+            int64Type -> IlUnaryOperator.CastToInt64(expr)
+            uint64Type -> IlUnaryOperator.CastToUInt64(expr)
+            floatType -> IlUnaryOperator.CastToFloat(expr)
+            doubleType -> IlUnaryOperator.CastToDouble(expr)
+            else -> error("resolvePrimitiveCast: unexpected type $expectedType")
+        }
     }
 
     fun checkClassCast(ref: UHeapRef, type: IlType) = scope.calcOnState {
