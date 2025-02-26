@@ -49,6 +49,7 @@ class IlTestExecutor : Closeable {
             val args = resolveArgs()
             val arrange = decoderApi.arrangeStmts().map { com.google.protobuf.Any.pack(it) }
             val methodCall = decoderApi.callMethod(method, args)
+            var x = 5 shl args.size;
             val resultAsMessage = when (result) {
                 is IlMethodResult.Success -> resolve(result.result, method.returnType)
                 is IlMethodResult.Exception -> resolve(result.exception, result.type)

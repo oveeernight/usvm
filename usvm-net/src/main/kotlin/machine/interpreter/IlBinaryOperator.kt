@@ -7,7 +7,6 @@ import org.usvm.*
 import org.usvm.machine.IlContext
 import org.usvm.machine.USizeSort
 import org.usvm.machine.ilctx
-import org.usvm.machine.interpreter.IlBinaryOperator.Xor.toBvIte
 
 
 @Suppress("UNUSED_PARAMETER")
@@ -57,19 +56,19 @@ sealed class IlBinaryOperator(
     )
 
     object CEq : IlBinaryOperator(
-        onBv = { a, b -> mkEq(a, b).toBvIte() },
-        onFp =  {a, b -> mkFpEqualExpr(a, b).toBvIte() },
-        onBool = { a, b -> mkEq(a, b).toBvIte() }
+        onBv = UContext<USizeSort>::mkEq,
+        onFp = UContext<USizeSort>::mkFpEqualExpr,
+        onBool = UContext<USizeSort>::mkEq
     )
 
     object CNe : IlBinaryOperator(
-        onBv = { a, b -> a.neq(b).toBvIte() },
-        onFp = { a, b -> mkFpEqualExpr(a, b).not().toBvIte() },
-        onBool = { a, b -> a.neq(b).toBvIte() }
+        onBv = { a, b -> a.neq(b)},
+        onFp = { a, b -> mkFpEqualExpr(a, b).not()},
+        onBool = { a, b -> a.neq(b)}
     )
 
     object CGe : IlBinaryOperator(
-        onBv = { a, b -> mkBvSignedGreaterOrEqualExpr(a, b).toBvIte() },
+        onBv = UContext<USizeSort>::mkBvSignedGreaterOrEqualExpr,
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
@@ -84,7 +83,13 @@ sealed class IlBinaryOperator(
     )
 
     object CGt : IlBinaryOperator(
-        onBv = { a, b -> mkBvSignedGreaterExpr(a, b).toBvIte() },
+        onBv = { a, b ->
+            mkIte(
+                mkBvSignedGreaterExpr(a, b),
+                mkBv(1, bv32Sort),
+                mkBv(0, bv32Sort)
+            )
+        },
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
@@ -99,7 +104,7 @@ sealed class IlBinaryOperator(
     )
 
     object CLe : IlBinaryOperator(
-        onBv = { a, b -> mkBvSignedLessOrEqualExpr(a, b).toBvIte() } ,
+        onBv = UContext<USizeSort>::mkBvSignedLessOrEqualExpr,
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
@@ -113,7 +118,7 @@ sealed class IlBinaryOperator(
         }
     )
     object CLt : IlBinaryOperator(
-        onBv = { a, b -> mkBvSignedLessExpr(a, b).toBvIte() },
+        onBv = UContext<USizeSort>::mkBvSignedLessOrEqualExpr,
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
@@ -128,31 +133,46 @@ sealed class IlBinaryOperator(
     )
 
     object Shl : IlBinaryOperator(
-        onBv = { arg, shift -> mkBvShiftLeftExpr(arg, normalizeBvShift(shift))}
+        onBv = { arg, shift -> mkBvShiftLeftExpr(arg, shift)}
     )
 
     object Shr : IlBinaryOperator(
-        onBv = { arg, shift -> mkBvArithShiftRightExpr(arg, normalizeBvShift(shift))}
+        onBv = { arg, shift -> mkBvArithShiftRightExpr(arg, shift)}
     )
 
     object UShr : IlBinaryOperator(
-        onBv = { arg, shift -> mkBvLogicalShiftRightExpr(arg, normalizeBvShift(shift))}
+        onBv = { arg, shift -> mkBvLogicalShiftRightExpr(arg, shift)}
     )
 
     internal operator fun invoke(lhs: UExpr<out USort>, rhs: UExpr<out USort>): UExpr<out USort> {
-        assert(lhs.sort == rhs.sort)
+        var unifiedLhs = lhs
+        var unifiedRhs = rhs
+        if (lhs.sort != rhs.sort) {
+            if (lhs.sort is UBoolSort && rhs.sort is UBvSort) {
+                unifiedLhs = lhs.asExpr(lhs.ctx.boolSort).toBvIte()
+                unifiedRhs = rhs
+            } else if (lhs.sort is UBvSort && rhs.sort is UBoolSort) {
+                unifiedLhs = lhs
+                unifiedRhs = rhs.asExpr(rhs.ctx.boolSort).toBvIte()
+            } else {
+                error("Sorts mismatch ${lhs.sort}, ${rhs.sort}")
+            }
+        }
+        assert(unifiedLhs.sort == unifiedLhs.sort)
         val ctx = lhs.ilctx
-        return when (val sort = lhs.sort) {
+        return when (val sort = unifiedLhs.sort) {
             is UBvSort -> {
-                ctx.onBv(lhs.asExpr(sort), rhs.asExpr(sort))
+                ctx.onBv(unifiedLhs.asExpr(sort), unifiedRhs.asExpr(sort))
             }
 
             is UFpSort -> {
-                ctx.onFp(lhs.asExpr(sort), rhs.asExpr(sort))
+                ctx.onFp(unifiedLhs.asExpr(sort), unifiedRhs.asExpr(sort))
             }
 
             is UBoolSort -> {
-                ctx.onBool(lhs.asExpr(sort), rhs.asExpr(sort)) }
+                ctx.onBool(unifiedLhs.asExpr(sort), unifiedRhs.asExpr(sort))
+            }
+
             else -> error("IlBinaryOperator: unexpected sorts: $sort")
         }
     }

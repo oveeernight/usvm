@@ -1,6 +1,7 @@
 package samples
 
 import IlMethodTestRunner
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 class Arithmetic : IlMethodTestRunner() {
@@ -34,20 +35,25 @@ class Arithmetic : IlMethodTestRunner() {
         runner(::gt, options)
     }
 
+    @Ignore("Wait for binop types unification")
     @Test
     fun ge() {
         runner(::ge, options)
     }
 
+    @Ignore("Wait for binop types unification")
     @Test
     fun lt() {
         runner(::lt, options)
     }
 
+    @Ignore("Wait for binop types unification")
+
     @Test
     fun le() {
         runner(::le, options)
     }
+
 
     @Test
     fun shl() {

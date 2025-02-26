@@ -48,8 +48,9 @@ public class Arithmetic
     }
 
     [SvmTest(100)]
-    public bool Ge(int a, int b)
+    public bool Ge(int a, int b, bool flag)
     {
+        if (flag) return false;
         return a >= b;
     }
 
@@ -68,7 +69,8 @@ public class Arithmetic
     [SvmTest(100)]
     public int Shl(int a, int b)
     {
-        if (a != 0 && b > 0)
+        // b >= 0 <=> !(b < 0))
+        if (a != 0 || b >= 0)
         {
             return a << b;
         }

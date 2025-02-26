@@ -8,7 +8,7 @@ public class Calls
     public int Div(int x, int y) => x / y;
 
     [SvmTest(100)]
-    public int Test1(bool flag, int x, int y)
+    public int MulOrAdd(bool flag, int x, int y)
     {
         var add = 10l + x;
         if (flag)
