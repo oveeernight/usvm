@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation(project(":usvm-core"))
+    implementation(project(":usvm-unsafe"))
     implementation(Libs.rd_core)
     implementation(Libs.rd_framework)
     implementation(Libs.ksmt_runner)

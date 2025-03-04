@@ -12,6 +12,7 @@ import org.usvm.machine.IlContext
 import org.usvm.machine.interpreter.IlMethodResult
 import org.usvm.machine.IlTarget
 import org.usvm.memory.UMemory
+import org.usvm.memory.UnsafeMemory
 import org.usvm.model.UModelBase
 import org.usvm.targets.UTargetsSet
 
@@ -21,7 +22,7 @@ class IlState(
     override val entrypoint: IlMethod,
     callStack: UCallStack<IlMethod, IlStmt> = UCallStack(),
     pathConstraints: UPathConstraints<IlType> = UPathConstraints(ctx, ownership),
-    memory: UMemory<IlType, IlMethod> = UMemory(ctx, ownership, pathConstraints.typeConstraints),
+    override val memory: UnsafeMemory<IlType, IlMethod> = IlMemory(ctx, ownership, pathConstraints.typeConstraints),
     models: List<UModelBase<IlType>> = listOf(),
     pathNode: PathNode<IlStmt> = PathNode.root(),
     forkPoints: PathNode<PathNode<IlStmt>> = PathNode.root(),

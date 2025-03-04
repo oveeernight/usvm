@@ -6,9 +6,12 @@ import io.ksmt.expr.KExpr
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
 import org.jacodb.api.common.CommonType
-import org.usvm.*
+import org.usvm.UBvSort
+import org.usvm.UContext
+import org.usvm.UExpr
+import org.usvm.USort
 import org.usvm.org.usvm.expressions.UnsafeTransformer
-import java.util.*
+import java.util.LinkedList
 
 class Cut(
     val start: UExpr<UBvSort>,
@@ -59,5 +62,4 @@ class Combine<Sort: USort>(
     override fun print(printer: ExpressionPrinter) {
         TODO("Not yet implemented")
     }
-
 }
