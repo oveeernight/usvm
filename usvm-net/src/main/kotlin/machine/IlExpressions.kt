@@ -30,7 +30,7 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     override fun internHashCode(): Int = hash()
 
     override fun print(printer: ExpressionPrinter) {
-        printer.append("void")
+        printer.append("vnoid")
     }
 }
 

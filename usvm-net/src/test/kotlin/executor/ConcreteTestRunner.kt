@@ -7,11 +7,6 @@ import kotlinx.coroutines.runBlocking
 import org.usvm.machine.logger
 import testrunner.expressions.ConcreteExecutorGrpcKt
 import testrunner.expressions.TestExpressions
-import java.io.Closeable
-import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.concurrent.TimeUnit
 
 class ConcreteTestRunner(val proc: Process) {
 

@@ -25,15 +25,11 @@ class IlTestExecutor : Closeable {
             val scope = MemoryScope(state.ctx, method, state.methodResult, model, memory)
             scope.createTest()
         }
-
         val batch = ilTestBatch {
             this.tests.addAll(tests)
         }
 
-//        logger.error  {"Test serialized: $test" }
-        val res = concreteRunner.run(batch)
-//        logger.error { dotnetProc.inputStream.bufferedReader().readText() }
-        return res
+        return concreteRunner.run(batch)
     }
 
     private class MemoryScope(

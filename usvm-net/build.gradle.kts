@@ -26,7 +26,7 @@ dependencies {
     testImplementation("io.grpc:grpc-okhttp:1.70.0")
     testImplementation(Libs.logback)
 
-    implementation("com.github.petrukhinandrew:jacodb:75dec37e320da87c31a17ed013bd350d57b9b615")
+    implementation("com.github.petrukhinandrew:jacodb:d96473ca622e7cfc3b49ca925024ff2c74d2b1a7")
 }
 
 protobuf {
@@ -46,11 +46,6 @@ protobuf {
     generateProtoTasks {
         ofSourceSet("test").forEach {
             it.builtins {
-                java {}
-//                create("java")
-//                create("java") {
-//                    outputSubDir = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/java"
-//                }
                 create("kotlin") {
                     outputSubDir = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/kotlin"
                 }

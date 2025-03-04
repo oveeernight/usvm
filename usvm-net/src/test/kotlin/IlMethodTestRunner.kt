@@ -11,7 +11,7 @@ import kotlin.reflect.KFunction
 open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass<*>, IlTypeCoverage>() {
 
     private val container by lazy { JacoDBContainer.getInstanceOrCreate(listOf(samplesAsmPath), tacBuilderPath) }
-    private val executor by lazy { IlTestExecutor() }
+    protected val executor by lazy { IlTestExecutor() }
 
     override val typeTransformer: (Any?) -> KClass<*>
         get() = TODO("Not yet implemented")
@@ -26,7 +26,6 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
             val res = machine.analyze(listOf(ilMethod)).let {
                 executor.execute(it, ilMethod)
             }
-            executor.close()
             listOf(res)
         }
     override val coverageRunner: (List<ExecutionResult>) -> IlTypeCoverage

@@ -11,7 +11,7 @@ import kotlin.time.Duration
 
 
 // TODO fix when class hierarchy will be ready
-class IlTypeSystem(publication: IlPublication): UTypeSystem<IlType> {
+class IlTypeSystem(private val publication: IlPublication): UTypeSystem<IlType> {
     override val typeOperationsTimeout: Duration
         get() = TODO("Not yet implemented")
 
