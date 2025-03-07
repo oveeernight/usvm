@@ -29,7 +29,7 @@ class Slice<Sort : USort>(
         get() = TODO("Not yet implemented")
 
     override fun accept(transformer: KTransformerBase): KExpr<Sort> {
-        require(transformer is UnsafeTransformer<*, *>) { "Expected a UTransformer, but got: $transformer" }
+        require(transformer is UnsafeTransformer<*, *>) { "Expected an UTransformer, but got: $transformer" }
         return transformer.transform(this)
     }
 
@@ -51,7 +51,7 @@ class Combine<Sort: USort>(
         get() = TODO("Not yet implemented")
 
     override fun accept(transformer: KTransformerBase): KExpr<Sort> {
-        require(transformer is UnsafeTransformer<*, *>) { "Expected a UTransformer, but got: $transformer" }
+        require(transformer is UnsafeTransformer<*, *>) { "Expected an UTransformer, but got: $transformer" }
         return transformer.transform(this)
     }
 

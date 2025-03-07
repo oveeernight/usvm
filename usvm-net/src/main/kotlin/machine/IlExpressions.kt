@@ -32,7 +32,7 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     override fun internHashCode(): Int = hash()
 
     override fun print(printer: ExpressionPrinter) {
-        printer.append("vnoid")
+        printer.append("void")
     }
 }
 
@@ -40,7 +40,8 @@ class ManagedRef<Key, Sort : USort>(ctx: IlContext, memoryKey: ULValue<Key, Sort
     ULValue<Key, Sort> by memoryKey {
 
     override fun accept(transformer: KTransformerBase): KExpr<Sort> {
-        TODO("Not yet implemented")
+        require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
+        return transformer.transform(this)
     }
 
     override fun internEquals(other: Any): Boolean {

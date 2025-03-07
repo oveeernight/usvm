@@ -2,12 +2,13 @@ package executor
 
 import IlMethodTestRunner
 import java.io.File
+import kotlin.io.path.name
 
 class RunnerProcessBuilder {
     companion object {
         fun build(): ProcessBuilder {
             val executorDir = File(IlMethodTestRunner.executorPath)
-            val samplesAsm = IlMethodTestRunner.samplesAsmPath;
+            val samplesAsm = IlMethodTestRunner.samplesAsmPath
             val builder = ProcessBuilder()
             val enabled = "1"
             val instrumentMainOnlyConfig = ExecutorEnvironmentConfig(

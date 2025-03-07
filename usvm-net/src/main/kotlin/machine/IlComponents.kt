@@ -1,13 +1,11 @@
 package org.usvm.machine
 
-import io.ksmt.solver.runner.KSolverRunnerManager
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.ULazyModelDecoder
 import org.usvm.solver.UExprTranslator
-import org.usvm.solver.USolver
 import org.usvm.solver.USolverBase
 import org.usvm.solver.UTypeSolver
 import org.usvm.types.UTypeSystem

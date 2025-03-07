@@ -5,6 +5,9 @@ import org.usvm.machine.IlMachineOptions
 import org.usvm.test.util.TestRunner
 import testrunner.expressions.TestExpressions
 import testrunner.expressions.TestExpressions.ExecutionResult
+import java.nio.file.Paths
+import kotlin.io.path.name
+import kotlin.io.path.pathString
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -33,10 +36,11 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
     override var options: UMachineOptions = UMachineOptions()
 
     companion object {
-        val samplesAsmPath = "/home/rnpozharskiy/work/usvm/usvm-net/src/test/dotnet/samples/bin/Release/net7.0/publish/samples.dll"
+        private val dir = System.getProperty("user.dir")
+        val samplesAsmPath = Paths.get(dir, "src/test/dotnet/samples/bin/Release/net7.0/publish/samples.dll").pathString
         val samplesAsmName = "samples, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-        val tacBuilderPath: String = "/home/rnpozharskiy/work/dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/publish"
-        val executorPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.Application/bin/Debug/net8.0"
+        val tacBuilderPath: String = "../../dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/publish"
+        val executorPath: String = "../../test-executor/TestExecutor.Application/bin/Debug/net8.0"
         val profilerPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/bin/Debug/net8.0/libvsharpCoverage.so"
 //        private val assemblies: List<File> by lazy {
 //            getPublicationAssembly(samplesAsm)

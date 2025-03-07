@@ -1,5 +1,6 @@
 import com.jetbrains.rd.framework.impl.RpcTimeouts
 import com.jetbrains.rd.framework.util.NetUtils
+import com.jetbrains.rd.util.Logger
 import org.jacodb.api.net.IlPublication
 import org.jacodb.api.net.IlSettings
 import org.jacodb.api.net.database.IlDatabaseImpl
@@ -52,6 +53,7 @@ class JacoDBContainer(
             tacBuilderPath: String,
             builder: IlSettings.() -> Unit = { }
         ): JacoDBContainer {
+            org.usvm.machine.logger.error { sourceAsmPath[0] }
             return if (::instance.isInitialized) {
                 instance
             } else {
