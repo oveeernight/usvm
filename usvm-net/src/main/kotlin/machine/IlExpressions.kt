@@ -10,6 +10,7 @@ import org.usvm.UBoolExpr
 import org.usvm.UExpr
 import org.usvm.USort
 import org.usvm.isTrue
+import org.usvm.memory.ULValue
 
 class VoidSort(ctx: IlContext) : USort(ctx) {
     override fun <T> accept(visitor: KSortVisitor<T>): T {
@@ -33,6 +34,31 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
         printer.append("vnoid")
     }
 }
+
+class ManagedRef<Key, Sort: USort>(ctx: IlContext, memoryKey: ULValue<Key, Sort>) : UExpr<Sort>(ctx) {
+    override val sort: Sort
+        get() = TODO("Not yet implemented")
+
+    override fun accept(transformer: KTransformerBase): KExpr<Sort> {
+        TODO("Not yet implemented")
+    }
+
+    override fun internEquals(other: Any): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun internHashCode(): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun print(printer: ExpressionPrinter) {
+        TODO("Not yet implemented")
+    }
+}
+
+sealed interface IlPtrBase {}
+
+class IlPtr<Sort: USort>
 
 val UExpr<out USort>.ilctx get() = ctx as IlContext
 

@@ -1,12 +1,16 @@
 package org.usvm.org.usvm.expressions
 
-import org.usvm.*
+import org.usvm.UBvSort
+import org.usvm.UComposer
+import org.usvm.UContext
+import org.usvm.USort
+import org.usvm.UExpr
+import org.usvm.isTrue
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.expressions.Combine
 import org.usvm.expressions.Cut
 import org.usvm.expressions.Slice
 import org.usvm.memory.UReadOnlyMemory
-import java.util.LinkedList
 
 open class UnsafeComposer<Type, USizeSort : USort>(
     override val ctx: UContext<USizeSort>,
@@ -22,10 +26,7 @@ open class UnsafeComposer<Type, USizeSort : USort>(
             if (cutIsValid(s, e, p)) {
                 Cut(s, e, p, cut.posIsStable)
             } else null
-        }.fold(LinkedList<Cut>()) { list, e ->
-            list.addFirst(e)
-            list
-        }
+        }.mapToLinkedList { it }
 
         return Slice(ctx, expr, cuts)
     }

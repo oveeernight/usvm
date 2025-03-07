@@ -37,3 +37,9 @@ class IlMemory(
             it.ownership = thisOwnership
         }
 }
+
+//private class UnsafeLValueConverter<Key, Sort: USort>() {
+//    fun convert(lValue: UnsafeLValue<Sort>) : List<ULValue<Key, Sort>> {
+//        lValue.
+//    }
+//}
