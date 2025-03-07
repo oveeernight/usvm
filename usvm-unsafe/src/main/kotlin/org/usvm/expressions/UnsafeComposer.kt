@@ -1,5 +1,6 @@
 package org.usvm.org.usvm.expressions
 
+import io.ksmt.expr.transformer.KNonRecursiveTransformer
 import org.usvm.UBvSort
 import org.usvm.UComposer
 import org.usvm.UContext

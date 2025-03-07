@@ -1,6 +1,5 @@
 package org.usvm.org.usvm.expressions
 
-import org.usvm.UBvSort
 import org.usvm.UExpr
 import org.usvm.USort
 import org.usvm.UTransformer

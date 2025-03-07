@@ -86,8 +86,8 @@ open class UnsafeTranslator<Type, USizeSort : USort>(override val ctx: UContext<
     override fun <Sort : USort> transform(combine: Combine<Sort>): KExpr<Sort> = with(combine.ctx) {
         val sightTypeSize = combine.sightType.size
         val zero : UExpr<UBvSort> = mkBv(0, sightTypeSize.toUInt())
+        val resSizeBits = zero.sort.sizeBits
         val result = combine.slices.fold(zero) { acc, slice ->
-            val exprSizeBits = acc.sort.sizeBits
             val translatedSlice = this@UnsafeTranslator.transform(slice)
             translatedSlice as Slice<UBvSort>
             val (s, e, p) = computeSliceBounds(translatedSlice)
@@ -95,7 +95,8 @@ open class UnsafeTranslator<Type, USizeSort : USort>(override val ctx: UContext<
             val sBit = mkBvMulExpr(s, bitsMulti)
             val eBit = mkBvMulExpr(e, bitsMulti)
             val pBit = mkBvMulExpr(p, bitsMulti)
-            val exprSize = mkBv(0, translatedSlice.expr.sort.sizeBits)
+            val exprSizeBits = translatedSlice.expr.sort.sizeBits
+            val exprSize = mkBv(exprSizeBits.toInt(), exprSizeBits)
             val cutRight = mkBvSubExpr(exprSize, eBit)
             var res = mkBvShiftLeftExpr(acc, cutRight)
             val cutLeft = mkBvSubExpr(exprSize, sBit)

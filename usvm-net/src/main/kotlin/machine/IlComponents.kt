@@ -3,6 +3,8 @@ package org.usvm.machine
 import io.ksmt.solver.runner.KSolverRunnerManager
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
+import org.usvm.collections.immutable.internal.MutabilityOwnership
+import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.ULazyModelDecoder
 import org.usvm.solver.UExprTranslator
 import org.usvm.solver.USolver
@@ -22,6 +24,15 @@ class IlComponents(private val typeSystem: IlTypeSystem, private val options: UM
 
     override fun mkTypeSystem(ctx: UContext<UBv32Sort>): UTypeSystem<IlType> {
         return typeSystem
+    }
+
+    override fun <Context : UContext<UBv32Sort>> mkComposer(ctx: Context): (UReadOnlyMemory<IlType>, MutabilityOwnership) -> UComposer<IlType, UBv32Sort> =
+        { memory, ownership -> IlComposer(ctx, memory, ownership) }
+
+    override fun <Context : UContext<UBv32Sort>> buildTranslatorAndLazyDecoder(ctx: Context): Pair<UExprTranslator<IlType, UBv32Sort>, ULazyModelDecoder<IlType>> {
+        val translator = IlTranslator(ctx)
+        val decoder : ULazyModelDecoder<IlType> = ULazyModelDecoder(translator)
+        return translator to decoder
     }
 
     override fun <Context : UContext<UBv32Sort>> mkSolver(ctx: Context): USolverBase<IlType> {

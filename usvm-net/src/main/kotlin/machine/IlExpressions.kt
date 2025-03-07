@@ -11,6 +11,7 @@ import org.usvm.UExpr
 import org.usvm.USort
 import org.usvm.isTrue
 import org.usvm.memory.ULValue
+import org.usvm.memory.UMemoryRegionId
 
 class VoidSort(ctx: IlContext) : USort(ctx) {
     override fun <T> accept(visitor: KSortVisitor<T>): T {
@@ -35,9 +36,8 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     }
 }
 
-class ManagedRef<Key, Sort: USort>(ctx: IlContext, memoryKey: ULValue<Key, Sort>) : UExpr<Sort>(ctx) {
-    override val sort: Sort
-        get() = TODO("Not yet implemented")
+class ManagedRef<Key, Sort : USort>(ctx: IlContext, memoryKey: ULValue<Key, Sort>) : UExpr<Sort>(ctx),
+    ULValue<Key, Sort> by memoryKey {
 
     override fun accept(transformer: KTransformerBase): KExpr<Sort> {
         TODO("Not yet implemented")
