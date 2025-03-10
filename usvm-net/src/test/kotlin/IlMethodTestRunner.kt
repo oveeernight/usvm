@@ -37,13 +37,10 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
 
     companion object {
         private val dir = System.getProperty("user.dir")
-        val samplesAsmPath = Paths.get(dir, "src/test/dotnet/samples/bin/Release/net7.0/publish/samples.dll").pathString
+        val samplesAsmPath = Paths.get(dir, "src/test/dotnet/samples/bin/Release/net7.0/samples.dll").pathString
         val samplesAsmName = "samples, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
         val tacBuilderPath: String = "../../dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/publish"
-        val executorPath: String = "../../test-executor/TestExecutor.Application/bin/Debug/net8.0"
-        val profilerPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/bin/Debug/net8.0/libvsharpCoverage.so"
-//        private val assemblies: List<File> by lazy {
-//            getPublicationAssembly(samplesAsm)
-//        }
+        val executorPath: String = "../../test-executor/TestExecutor.Application/bin/Release/net8.0"
+        val profilerPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.Application/bin/Release/net8.0/libvsharpCoverage.so"
     }
 }

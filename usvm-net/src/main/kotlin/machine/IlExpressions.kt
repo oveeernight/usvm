@@ -36,9 +36,8 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     }
 }
 
-class ManagedRef<Key, Sort : USort>(ctx: IlContext, memoryKey: ULValue<Key, Sort>) : UExpr<Sort>(ctx),
-    ULValue<Key, Sort> by memoryKey {
-
+class ManagedRef<Key, Sort : USort>(ctx: IlContext, val memoryKey: ULValue<Key, Sort>) : UExpr<Sort>(ctx) {
+    override val sort: Sort get() = memoryKey.sort
     override fun accept(transformer: KTransformerBase): KExpr<Sort> {
         require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
         return transformer.transform(this)
