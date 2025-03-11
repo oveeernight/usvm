@@ -63,3 +63,5 @@ class Combine<Sort: USort>(
         TODO("Not yet implemented")
     }
 }
+
+val CommonType.size: Int get() = TODO()

@@ -6,12 +6,9 @@ import io.ksmt.expr.*
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
 import io.ksmt.sort.KSortVisitor
-import org.usvm.UBoolExpr
-import org.usvm.UExpr
-import org.usvm.USort
-import org.usvm.isTrue
+import org.jacodb.api.net.ilinstances.IlType
+import org.usvm.*
 import org.usvm.memory.ULValue
-import org.usvm.memory.UMemoryRegionId
 
 class VoidSort(ctx: IlContext) : USort(ctx) {
     override fun <T> accept(visitor: KSortVisitor<T>): T {
@@ -36,9 +33,9 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     }
 }
 
-class ManagedRef<Key, Sort : USort>(ctx: IlContext, val memoryKey: ULValue<Key, Sort>) : UExpr<Sort>(ctx) {
-    override val sort: Sort get() = memoryKey.sort
-    override fun accept(transformer: KTransformerBase): KExpr<Sort> {
+class IlManagedRef<Key, Sort : USort>(ctx: IlContext, val memoryKey: ULValue<Key, Sort>) : UExpr<UAddressSort>(ctx) {
+    override val sort: UAddressSort get() = uctx.addressSort
+    override fun accept(transformer: KTransformerBase): KExpr<UAddressSort> {
         require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
         return transformer.transform(this)
     }
@@ -56,9 +53,33 @@ class ManagedRef<Key, Sort : USort>(ctx: IlContext, val memoryKey: ULValue<Key, 
     }
 }
 
-sealed interface IlPtrBase {}
 
-class IlPtr<Sort: USort>
+class IlPtr<Key, Sort : USort>(
+    ctx: UContext<*>,
+    val base: ULValue<Key, Sort>,
+    val offset: UExpr<UBvSort>,
+    val sightType: IlType
+): UExpr<UAddressSort>(ctx) {
+    override fun internEquals(other: Any): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override val sort: UAddressSort
+        get() = uctx.addressSort
+
+    override fun accept(transformer: KTransformerBase): KExpr<UAddressSort> {
+        require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
+        return transformer.transform(this)
+    }
+
+    override fun internHashCode(): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun print(printer: ExpressionPrinter) {
+        printer.append("(${sightType.name}*)")
+    }
+}
 
 val UExpr<out USort>.ilctx get() = ctx as IlContext
 

@@ -9,6 +9,7 @@ import org.usvm.USort
 import org.usvm.expressions.Combine
 import org.usvm.expressions.Cut
 import org.usvm.expressions.Slice
+import org.usvm.expressions.size
 import org.usvm.solver.UExprTranslator
 
 open class UnsafeTranslator<Type, USizeSort : USort>(override val ctx: UContext<USizeSort>) :
@@ -45,8 +46,6 @@ open class UnsafeTranslator<Type, USizeSort : USort>(override val ctx: UContext<
             )
         }
     }
-
-    private val CommonType.size: Int get() = TODO()
 
     // TODO pass size of combine
     private fun <Sort: UBvSort> computeSliceBounds(slice: Slice<Sort>): Triple<UExpr<UBvSort>, UExpr<UBvSort>, UExpr<UBvSort>> {
