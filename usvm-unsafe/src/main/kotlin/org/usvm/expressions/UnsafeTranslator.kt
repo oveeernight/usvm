@@ -1,15 +1,11 @@
 package org.usvm.org.usvm.expressions
 
 import io.ksmt.expr.KExpr
-import org.jacodb.api.common.CommonType
 import org.usvm.UBvSort
 import org.usvm.UContext
 import org.usvm.UExpr
 import org.usvm.USort
-import org.usvm.expressions.Combine
-import org.usvm.expressions.Cut
-import org.usvm.expressions.Slice
-import org.usvm.expressions.size
+import org.usvm.expressions.*
 import org.usvm.solver.UExprTranslator
 
 open class UnsafeTranslator<Type, USizeSort : USort>(override val ctx: UContext<USizeSort>) :
@@ -26,7 +22,7 @@ open class UnsafeTranslator<Type, USizeSort : USort>(override val ctx: UContext<
                 it.posIsStable
             )
         }
-        return ctx.mkSlice(expr, cuts)
+        return ctx.mkSlice(expr, slice.exprType, cuts)
     }
 
     private fun <Sort: UBvSort> bvMax(lhs: UExpr<Sort>, rhs: UExpr<Sort>): KExpr<Sort> {
@@ -85,7 +81,6 @@ open class UnsafeTranslator<Type, USizeSort : USort>(override val ctx: UContext<
     override fun <Sort : USort> transform(combine: Combine<Sort>): KExpr<Sort> = with(combine.ctx) {
         val sightTypeSize = combine.sightType.size
         val zero : UExpr<UBvSort> = mkBv(0, sightTypeSize.toUInt())
-        val resSizeBits = zero.sort.sizeBits
         val result = combine.slices.fold(zero) { acc, slice ->
             val translatedSlice = this@UnsafeTranslator.transform(slice)
             translatedSlice as Slice<UBvSort>

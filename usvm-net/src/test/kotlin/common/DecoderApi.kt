@@ -20,6 +20,9 @@ interface DecoderApi<T> {
     fun createStringConst(value: String): T
     fun createNullConst(type: IlType): T
 
+    fun createSlice(expr: T, start: Int, end: Int, pos: Int): T
+    fun createCombine(slices: List<T>, sightType: IlType): T
+
     fun createArray(elementType: IlType, size: Int, address: Int): T
     fun createObject(type: IlType, address: Int): T
 

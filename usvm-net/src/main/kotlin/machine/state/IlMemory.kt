@@ -14,9 +14,9 @@ import org.usvm.expressions.Slice
 import org.usvm.expressions.size
 import org.usvm.machine.USizeSort
 import org.usvm.memory.*
-import org.usvm.org.usvm.expressions.addCut
-import org.usvm.org.usvm.expressions.mkCombine
-import org.usvm.org.usvm.expressions.mkSlice
+import org.usvm.expressions.addCut
+import org.usvm.expressions.mkCombine
+import org.usvm.expressions.mkSlice
 import java.util.*
 
 class IlMemory(
@@ -36,18 +36,22 @@ class IlMemory(
     }
 
     private inner class UnsafeKeysResolver<Key, Sort : USort> {
-
         private fun readArrayUnsafe(base: UArrayIndexLValue<IlType, Sort, USizeSort>, offset: UExpr<UBvSort>, sightType: IlType): UExpr<Sort> {
             val affectedIndices = getAffectedIndices(base, offset, sightType)
             val slices = affectedIndices.flatMap { i ->
                 val pos = ctx.mkBvNegationExpr(i.start)
-                readExprUnsafe(i.elem, i.start, i.end, pos, posIsStable = false) }
+                readExprUnsafe(i.elem, base.arrayType, i.start, i.end, pos, posIsStable = false) }
             val filtered = slices.filterIsInstance<Slice<Sort>>()
             require(slices.size == filtered.size)
             return ctx.mkCombine(filtered, sightType)
         }
 
-        private fun readExprUnsafe(expr: UExpr<Sort>, start: UExpr<UBvSort>, end: UExpr<UBvSort>, pos: UExpr<UBvSort>, posIsStable: Boolean): List<UExpr<Sort>> {
+        // TODO optimizations based on type and size
+        private fun writeExprUnsafe(expr: UExpr<Sort>, value: UExpr<Sort>, start: UExpr<Sort>, end: UExpr<Sort>, position: UExpr<USizeSort>) {
+
+        }
+
+        private fun readExprUnsafe(expr: UExpr<Sort>, exprType: IlType, start: UExpr<UBvSort>, end: UExpr<UBvSort>, pos: UExpr<UBvSort>, posIsStable: Boolean): List<UExpr<Sort>> {
             return when (expr) {
                 is Slice<Sort> -> {
                     val cut = Cut(start, end, pos, posIsStable)
@@ -56,13 +60,13 @@ class IlMemory(
                 }
                 is Combine<Sort> -> {
                     val slices = expr.slices
-                    val read = slices.flatMap { readExprUnsafe(it.expr, start, end, pos, posIsStable) }
+                    val read = slices.flatMap { readExprUnsafe(it.expr, exprType,  start, end, pos, posIsStable) }
                     read
                 }
                 else -> {
                     val cut = Cut(start, end, pos, posIsStable)
                     val cuts = LinkedList<Cut>().also { it.add(cut) }
-                    val slice = ctx.mkSlice(expr, cuts)
+                    val slice = ctx.mkSlice(expr, exprType, cuts)
                     listOf(slice)
                 }
             }
@@ -93,7 +97,7 @@ class IlMemory(
                 val elemSizeBv : UExpr<UBvSort> = mkBv(elementSize, bv32Sort)
                 val fstAffectedIdx = mkBvSignedDivExpr(offset, mkBv(elementSize, offset.sort))
                 var currentOffset = mkBvMulExpr(elemSizeBv, fstAffectedIdx)
-                (0..countToRead).map {
+                (0..<countToRead).map {
                     val idx = mkBvAddExpr(fstAffectedIdx, mkBv(it, fstAffectedIdx.sort))
                     val key = UArrayIndexLValue(base.sort, base.ref, idx, base.arrayType)
                     val elem = read(key)

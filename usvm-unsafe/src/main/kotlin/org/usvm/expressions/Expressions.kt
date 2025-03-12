@@ -13,7 +13,7 @@ import org.usvm.USort
 import org.usvm.org.usvm.expressions.UnsafeTransformer
 import java.util.LinkedList
 
-class Cut(
+data class Cut(
     val start: UExpr<UBvSort>,
     val end: UExpr<UBvSort>,
     val pos: UExpr<UBvSort>,
@@ -23,6 +23,7 @@ class Cut(
 class Slice<Sort : USort>(
     ctx: UContext<*>,
     val expr: UExpr<Sort>,
+    val exprType: CommonType,
     val cuts: LinkedList<Cut>,
 ) : UExpr<Sort>(ctx) {
     override val sort: Sort

@@ -1,23 +1,77 @@
-package org.usvm.org.usvm.expressions
+package org.usvm.expressions
 
+import io.ksmt.expr.KBitVec32Value
 import org.jacodb.api.common.CommonType
 import org.usvm.*
-import org.usvm.expressions.Combine
-import org.usvm.expressions.Cut
-import org.usvm.expressions.Slice
 import java.util.LinkedList
+import kotlin.math.max
+import kotlin.math.min
 
+// TODO write custom linked list to avoid deep copy in addCut function
 fun <T, R> Collection<T>.mapToLinkedList(transform: (T) -> R): LinkedList<R> {
     val list = LinkedList<R>()
     forEach { list.add(transform(it)) }
     return list
 }
 
-fun <Sort: USort> UContext<*>.mkSlice(expr: UExpr<Sort>, cuts: LinkedList<Cut>) = Slice(this, expr, cuts)
+fun <Sort: USort> UContext<*>.mkSlice(expr: UExpr<Sort>, exprType: CommonType, cuts: LinkedList<Cut>) = Slice(this, expr, exprType, cuts)
 fun <Sort: USort> UContext<*>.addCut(slice: Slice<Sort>, cut: Cut) : Slice<Sort> {
     val list = slice.cuts.mapToLinkedList { it }
     list.add(cut)
-    return Slice(this, slice.expr, list)
+    return Slice(this, slice.expr, slice.exprType, list).simplify()
 }
 fun <Sort : USort> UContext<*>.mkCombine(slices: List<Slice<Sort>>, sightType: CommonType) =
     Combine(this, slices, sightType)
+
+
+private fun <Sort: USort> Slice<Sort>.simplify() : Slice<Sort> {
+    var sliceIsValid = true
+    val exprSize = exprType.size
+    var start = 0
+    var end = exprSize
+    var pos = 0
+    var posIsStable = false
+    val symbolicCuts = LinkedList<Cut>()
+    val ordered = cuts.reversed()
+    for (cut in ordered) {
+        val concreteS = cut.start as? KBitVec32Value
+        val concreteE = cut.end as? KBitVec32Value
+        val concreteP = cut.pos as? KBitVec32Value
+        if (!sliceIsValid || concreteS == null || concreteE == null || concreteP == null) {
+            symbolicCuts.add(cut)
+            continue
+        }
+        val cutLeft = max(concreteS.intValue - pos, 0)
+        val cutRight = min(concreteP.intValue - pos, exprSize)
+        val cutSize = cutRight - cutLeft
+        start += cutLeft
+        end = min(start + cutSize, end)
+        pos = if (cut.posIsStable) {
+            max(pos, concreteP.intValue)
+        } else {
+            max(0, pos + concreteP.intValue)
+        }
+        posIsStable = cut.posIsStable
+
+        if (end > start) {
+            assert(start in 0..<exprSize)
+            assert(end in 1..exprSize)
+            assert(pos >= 0)
+        } else {
+            sliceIsValid = false
+        }
+    }
+
+        return if (sliceIsValid) {
+            val simplificationCut = with(ctx) {
+                val s: UExpr<UBvSort> = mkBv(start, bv32Sort)
+                val e: UExpr<UBvSort> = mkBv(end, bv32Sort)
+                val p : UExpr<UBvSort> = mkBv(pos, bv32Sort)
+                Cut(s, e, p, posIsStable)
+            }
+            symbolicCuts.addLast(simplificationCut)
+            Slice(ctx as UContext<*>, expr, exprType, symbolicCuts)
+        } else {
+            Slice(ctx as UContext<*>, expr, exprType, cuts = LinkedList())
+        }
+}

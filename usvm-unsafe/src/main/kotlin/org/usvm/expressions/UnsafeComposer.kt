@@ -1,6 +1,5 @@
 package org.usvm.org.usvm.expressions
 
-import io.ksmt.expr.transformer.KNonRecursiveTransformer
 import org.usvm.UBvSort
 import org.usvm.UComposer
 import org.usvm.UContext
@@ -11,6 +10,7 @@ import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.expressions.Combine
 import org.usvm.expressions.Cut
 import org.usvm.expressions.Slice
+import org.usvm.expressions.mapToLinkedList
 import org.usvm.memory.UReadOnlyMemory
 
 open class UnsafeComposer<Type, USizeSort : USort>(
@@ -24,12 +24,12 @@ open class UnsafeComposer<Type, USizeSort : USort>(
             val s = cut.start.accept(this)
             val e = cut.end.accept(this)
             val p = cut.pos.accept(this)
-            if (cutIsValid(s, e, p)) {
+            if (cutIsValid(s, e)) {
                 Cut(s, e, p, cut.posIsStable)
             } else null
         }.mapToLinkedList { it }
 
-        return Slice(ctx, expr, cuts)
+        return Slice(ctx, expr, slice.exprType, cuts)
     }
 
     override fun <Sort : USort> transform(combine: Combine<Sort>): UExpr<Sort> {
@@ -37,7 +37,7 @@ open class UnsafeComposer<Type, USizeSort : USort>(
         return Combine(ctx, cuts, combine.sightType)
     }
 
-    private fun cutIsValid(s: UExpr<UBvSort>, e: UExpr<UBvSort>, p: UExpr<UBvSort>) = with(s.ctx) {
+    private fun cutIsValid(s: UExpr<UBvSort>, e: UExpr<UBvSort>) = with(s.ctx) {
         val lengthIsZero = mkBvUnsignedGreaterOrEqualExpr(s, e).isTrue
         val endIsNegative = mkBvUnsignedLessOrEqualExpr(s, mkBv(0, s.sort)).isTrue
         !lengthIsZero && !endIsNegative

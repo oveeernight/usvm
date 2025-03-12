@@ -6,6 +6,7 @@ import common.DecoderApi
 import org.jacodb.api.net.ilinstances.*
 import org.usvm.machine.IlContext
 import org.usvm.machine.logger
+import testrunner.expressions.TestExpressions.Slice
 
 class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> {
     private val arrangeStmts = mutableListOf<Message>()
@@ -40,6 +41,25 @@ class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> 
        stringConst { this.value = value; typeRepr = ctx.stringType.toTypeRepr() }
     override fun createNullConst(type: IlType): Message =
         nullConst { typeRepr = type.toTypeRepr() }
+
+    override fun createCombine(slices: List<Message>, sightType: IlType): Message {
+        val filteredSlices = slices.filterIsInstance<Slice>()
+        assert(filteredSlices.size == slices.size)
+        return combine {
+            this.sightType = sightType.toTypeRepr()
+            this.slices.addAll(filteredSlices)
+        }
+    }
+
+    override fun createSlice(expr: Message, start: Int, end: Int, pos: Int): Message {
+        return slice {
+            this.start = start
+            this.end = end
+            this.pos = pos
+            this.expr = expr.pack()
+        }
+    }
+
     override fun createArray(elementType: IlType, size: Int, address: Int): Message =
         arrayInstance { elementTypeRepr = elementType.toTypeRepr(); this.size = size; this.address = address }
     override fun createObject(type: IlType, address: Int): Message {
