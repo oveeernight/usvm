@@ -1,7 +1,14 @@
 package org.usvm.machine.state
 
+import org.jacodb.api.net.IlPublication
+import org.jacodb.api.net.generated.models.IlFieldDto
+import org.jacodb.api.net.generated.models.IlTypeDto
+import org.jacodb.api.net.generated.models.TypeId
+import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
+import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
+import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
@@ -46,12 +53,58 @@ class IlMemory(
             return ctx.mkCombine(filtered, sightType)
         }
 
-        // TODO optimizations based on type and size
-        private fun writeExprUnsafe(expr: UExpr<Sort>, value: UExpr<Sort>, start: UExpr<Sort>, end: UExpr<Sort>, position: UExpr<USizeSort>) {
-
+        private fun writeArrayUnsafe(
+            base: UArrayIndexLValue<IlType, Sort, USizeSort>,
+            offset: UExpr<UBvSort>,
+            value: UExpr<Sort>,
+            valueType: IlType
+        ) {
+            val affectedIndices = getAffectedIndices(base, offset, valueType)
+            affectedIndices.forEach { i ->
+                val key = UArrayIndexLValue(base.sort, base.ref, i.idx, base.arrayType)
+                val newValue = writeExprUnsafe(i.elem, base.arrayType, value, valueType, i.start)
+                this@IlMemory.write(key, newValue, guard = ctx.trueExpr)
+            }
         }
 
-        private fun readExprUnsafe(expr: UExpr<Sort>, exprType: IlType, start: UExpr<UBvSort>, end: UExpr<UBvSort>, pos: UExpr<UBvSort>, posIsStable: Boolean): List<UExpr<Sort>> {
+        // TODO optimizations based on type and size
+        private fun writeExprUnsafe(
+            expr: UExpr<Sort>,
+            exprType: IlType,
+            value: UExpr<Sort>,
+            valueType: IlType,
+            start: UExpr<UBvSort>,
+        ) = with (ctx) {
+            val exprSize : UExpr<UBvSort> = mkBv(exprType.size, bv32Sort)
+            val valueSize : UExpr<UBvSort> = mkBv(valueType.size, bv32Sort)
+            val zero : UExpr<UBvSort> = mkBv(0, bv32Sort)
+            val leftUnaffected = readExprUnsafe(expr, exprType, zero, start, zero, posIsStable = true)
+            val rightUnaffectedStart = mkBvAddExpr(start, valueSize)
+            val rightUnaffected =
+                readExprUnsafe(expr, exprType, rightUnaffectedStart, exprSize, rightUnaffectedStart, posIsStable = true)
+            val valueStart = mkBvNegationExpr(start)
+            val valueSlices = readExprUnsafe(
+                value,
+                valueType,
+                valueStart,
+                mkBvSubExpr(exprSize, start),
+                start,
+                posIsStable = false
+            )
+            val slices = listOf(leftUnaffected, valueSlices,  rightUnaffected).flatten()
+            val filtered = slices.filterIsInstance<Slice<Sort>>()
+            assert(slices.size == filtered.size)
+            mkCombine(filtered, exprType)
+        }
+
+        private fun readExprUnsafe(
+            expr: UExpr<Sort>,
+            exprType: IlType,
+            start: UExpr<UBvSort>,
+            end: UExpr<UBvSort>,
+            pos: UExpr<UBvSort>,
+            posIsStable: Boolean
+        ): List<UExpr<Sort>> {
             return when (expr) {
                 is Slice<Sort> -> {
                     val cut = Cut(start, end, pos, posIsStable)
@@ -60,8 +113,7 @@ class IlMemory(
                 }
                 is Combine<Sort> -> {
                     val slices = expr.slices
-                    val read = slices.flatMap { readExprUnsafe(it.expr, exprType,  start, end, pos, posIsStable) }
-                    read
+                    slices.flatMap { readExprUnsafe(it.expr, exprType,  start, end, pos, posIsStable) }
                 }
                 else -> {
                     val cut = Cut(start, end, pos, posIsStable)
@@ -95,7 +147,7 @@ class IlMemory(
             return with(offset.ctx) {
                 val viewSizeBv : UExpr<UBvSort> = mkBv(viewSize, bv32Sort)
                 val elemSizeBv : UExpr<UBvSort> = mkBv(elementSize, bv32Sort)
-                val fstAffectedIdx = mkBvSignedDivExpr(offset, mkBv(elementSize, offset.sort))
+                val fstAffectedIdx = mkBvSignedDivExpr(offset, elemSizeBv)
                 var currentOffset = mkBvMulExpr(elemSizeBv, fstAffectedIdx)
                 (0..<countToRead).map {
                     val idx = mkBvAddExpr(fstAffectedIdx, mkBv(it, fstAffectedIdx.sort))
@@ -108,6 +160,15 @@ class IlMemory(
                 }
             }
         }
+
+        private fun <Sort : USort> getAffectedFields(
+            type: IlType,
+            offset: UExpr<UBvSort>,
+            viewSize: UExpr<UBvSort>
+        ): List<AffectedField<Sort>> {
+
+        }
+
 
 //    fun convert(lValue: UnsafeLValue<Sort>) : List<ULValue<Key, Sort>> {
 //        lValue.
@@ -128,3 +189,14 @@ private data class AffectedIndex<Sort : USort>(
     val idx: UExpr<UBvSort>, val elem: UExpr<Sort>,
     val start: UExpr<UBvSort>, val end: UExpr<UBvSort>
 )
+
+private data class AffectedField<Sort : USort>(
+    val field: IlField, val value: UExpr<Sort>,
+    val start: UExpr<UBvSort>, val end: UExpr<UBvSort>
+)
+
+private val IlField.offset : Int
+    get() = TODO()
+
+private val zeroField : IlField
+    get() = TODO()
