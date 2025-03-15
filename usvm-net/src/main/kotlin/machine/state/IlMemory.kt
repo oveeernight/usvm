@@ -1,14 +1,8 @@
 package org.usvm.machine.state
 
-import org.jacodb.api.net.IlPublication
-import org.jacodb.api.net.generated.models.IlFieldDto
-import org.jacodb.api.net.generated.models.IlTypeDto
-import org.jacodb.api.net.generated.models.TypeId
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
-import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
-import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
@@ -25,6 +19,7 @@ import org.usvm.expressions.addCut
 import org.usvm.expressions.mkCombine
 import org.usvm.expressions.mkSlice
 import java.util.*
+import kotlin.math.max
 
 class IlMemory(
     override val ctx: UContext<*>,
@@ -98,20 +93,20 @@ class IlMemory(
         }
 
         private fun readExprUnsafe(
-            expr: UExpr<Sort>,
+            expr: UExpr<out USort>,
             exprType: IlType,
             start: UExpr<UBvSort>,
             end: UExpr<UBvSort>,
             pos: UExpr<UBvSort>,
             posIsStable: Boolean
-        ): List<UExpr<Sort>> {
+        ): List<UExpr<out USort>> {
             return when (expr) {
-                is Slice<Sort> -> {
+                is Slice<out USort> -> {
                     val cut = Cut(start, end, pos, posIsStable)
                     val newExpr = ctx.addCut(expr, cut)
                     listOf(newExpr)
                 }
-                is Combine<Sort> -> {
+                is Combine<out USort> -> {
                     val slices = expr.slices
                     slices.flatMap { readExprUnsafe(it.expr, exprType,  start, end, pos, posIsStable) }
                 }
@@ -124,6 +119,7 @@ class IlMemory(
             }
         }
 
+        // TODO possible index out of bounds because of extra + 1
         private fun getAffectedIndices(
             base: UArrayIndexLValue<IlType, Sort, USizeSort>,
             offset: UExpr<UBvSort>,
@@ -161,12 +157,53 @@ class IlMemory(
             }
         }
 
-        private fun <Sort : USort> getAffectedFields(
+        private fun commonReadFieldsUnsafe(
             type: IlType,
-            offset: UExpr<UBvSort>,
-            viewSize: UExpr<UBvSort>
-        ): List<AffectedField<Sort>> {
+            start: UExpr<UBvSort>,
+            end: UExpr<UBvSort>,
+            pos: UExpr<UBvSort>,
+            posIsStable: Boolean,
+            readField: (IlField) -> UExpr<out USort>
+        ) : List<UExpr<out USort>> {
+            val affectedFields = getAffectedFields(type, start, end, readField)
+            val slices = affectedFields.flatMap { (field, offset, value, s, e) ->
+                val p = ctx.mkBvAddExpr(offset, pos)
+                readExprUnsafe(value, field.fieldType, s, e, p, posIsStable)
+            }
+            return slices
+        }
 
+        // TODO optimize if start (so the end is) are concrete
+        private fun getAffectedFields(
+            type: IlType,
+            start: UExpr<UBvSort>,
+            end: UExpr<UBvSort>,
+            readField: (IlField) -> UExpr<out USort>
+        ): List<AffectedField<*>> {
+            val fieldTypeSize = type.size
+            val fields = type.fields.sortedBy { it.offset }
+            val fieldsWithZeros = LinkedList<IlField>()
+            fields.foldRight(fieldTypeSize) { field, nextOffset ->
+                val fieldOffset = field.offset
+                val size = field.fieldType.size
+                val extraZerosCount = max(0, nextOffset - fieldOffset + size)
+                repeat((0..<extraZerosCount).count()) { fieldsWithZeros.addFirst(zeroField) }
+                fieldsWithZeros.addFirst(field)
+                fieldOffset
+            }
+            val extraStartZeros = fields[0].offset
+            repeat((0..<extraStartZeros).count()) {
+                fieldsWithZeros.addFirst(zeroField)
+            }
+            return with(ctx) {
+                fieldsWithZeros.map {
+                    val fieldValue = readField(it)
+                    val offset : UExpr<UBvSort> = mkBv(it.offset, bv32Sort)
+                    val affectedStart = mkBvSubExpr(start , offset)
+                    val affectedEnd = mkBvSubExpr(end, offset)
+                    AffectedField(it, offset, fieldValue, affectedStart, affectedEnd)
+                }
+            }
         }
 
 
@@ -191,7 +228,7 @@ private data class AffectedIndex<Sort : USort>(
 )
 
 private data class AffectedField<Sort : USort>(
-    val field: IlField, val value: UExpr<Sort>,
+    val field: IlField, val fieldOffset: UExpr<UBvSort>, val value: UExpr<Sort>,
     val start: UExpr<UBvSort>, val end: UExpr<UBvSort>
 )
 
