@@ -170,6 +170,7 @@ abstract class IlTestStateResolver<T>(
 
     private fun resolveObject(heapRef: UHeapRef, evaledRef: UConcreteHeapRef, type: IlType): T {
         val obj = decoderApi.createObject(type, evaledRef.address)
+        cache[evaledRef.address] = obj
         for (field in type.fields) {
             val memory = memoryToRead(evaledRef)
             val fieldSort = ctx.typeToSort(field.fieldType)
@@ -177,7 +178,6 @@ abstract class IlTestStateResolver<T>(
             val resolvedValue = resolve(memory.read(fieldKey), field.fieldType)
             decoderApi.setObjectField(obj, field, resolvedValue)
         }
-        cache[evaledRef.address] = obj
         return obj
     }
 

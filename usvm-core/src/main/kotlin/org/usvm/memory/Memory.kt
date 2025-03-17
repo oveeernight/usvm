@@ -94,7 +94,7 @@ interface UWritableMemory<Type> : UReadOnlyMemory<Type> {
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class UMemory<Type, Method>(
-    internal val ctx: UContext<*>,
+    open val ctx: UContext<*>,
     override var ownership: MutabilityOwnership,
     override val types: UTypeConstraints<Type>,
     override val stack: URegistersStack = URegistersStack(),

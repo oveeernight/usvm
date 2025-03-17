@@ -173,7 +173,14 @@ class IlExprResolver(
     override fun visitIlBinaryOp(expr: IlBinaryOp): UExpr<out USort>? {
         val operator = IlBinaryOperator.resolve(expr)
         return resolveAfterResolved(expr.lhs, expr.rhs) { lhs, rhs ->
-            operator(lhs, rhs)
+            if (lhs.sort == ctx.addressSort) {
+                when (operator) {
+                    is IlBinaryOperator.CEq -> ctx.mkHeapRefEq(lhs.cast(), rhs.cast())
+                    is IlBinaryOperator.CNe -> ctx.mkNot(ctx.mkHeapRefEq(lhs.cast(), rhs.cast()))
+                    else -> error("Unexpected address sort binary operator $operator")
+                }
+            } else
+                operator(lhs, rhs)
         }
     }
 

@@ -18,11 +18,13 @@ import org.usvm.memory.*
 import org.usvm.expressions.addCut
 import org.usvm.expressions.mkCombine
 import org.usvm.expressions.mkSlice
+import org.usvm.machine.IlContext
+import org.usvm.machine.ilctx
 import java.util.*
 import kotlin.math.max
 
 class IlMemory(
-    override val ctx: UContext<*>,
+    ctx: UContext<*>,
     ownership: MutabilityOwnership,
     types: UTypeConstraints<IlType>,
     stack: URegistersStack = URegistersStack(),
@@ -37,15 +39,15 @@ class IlMemory(
         TODO("Not yet implemented")
     }
 
-    private inner class UnsafeKeysResolver<Key, Sort : USort> {
+    private inner class UnsafeKeysResolver<Sort : USort> {
         private fun readArrayUnsafe(base: UArrayIndexLValue<IlType, Sort, USizeSort>, offset: UExpr<UBvSort>, sightType: IlType): UExpr<Sort> {
             val affectedIndices = getAffectedIndices(base, offset, sightType)
             val slices = affectedIndices.flatMap { i ->
-                val pos = ctx.mkBvNegationExpr(i.start)
+                val pos = offset.ctx.mkBvNegationExpr(i.start)
                 readExprUnsafe(i.elem, base.arrayType, i.start, i.end, pos, posIsStable = false) }
             val filtered = slices.filterIsInstance<Slice<Sort>>()
             require(slices.size == filtered.size)
-            return ctx.mkCombine(filtered, sightType)
+            return offset.ilctx.mkCombine(filtered, sightType)
         }
 
         private fun writeArrayUnsafe(
@@ -58,7 +60,7 @@ class IlMemory(
             affectedIndices.forEach { i ->
                 val key = UArrayIndexLValue(base.sort, base.ref, i.idx, base.arrayType)
                 val newValue = writeExprUnsafe(i.elem, base.arrayType, value, valueType, i.start)
-                this@IlMemory.write(key, newValue, guard = ctx.trueExpr)
+                this@IlMemory.write(key, newValue, guard = offset.ilctx.trueExpr)
             }
         }
 
@@ -69,7 +71,7 @@ class IlMemory(
             value: UExpr<Sort>,
             valueType: IlType,
             start: UExpr<UBvSort>,
-        ) = with (ctx) {
+        ) = with (expr.ilctx) {
             val exprSize : UExpr<UBvSort> = mkBv(exprType.size, bv32Sort)
             val valueSize : UExpr<UBvSort> = mkBv(valueType.size, bv32Sort)
             val zero : UExpr<UBvSort> = mkBv(0, bv32Sort)
@@ -103,7 +105,7 @@ class IlMemory(
             return when (expr) {
                 is Slice<out USort> -> {
                     val cut = Cut(start, end, pos, posIsStable)
-                    val newExpr = ctx.addCut(expr, cut)
+                    val newExpr = expr.ilctx.addCut(expr, cut)
                     listOf(newExpr)
                 }
                 is Combine<out USort> -> {
@@ -113,7 +115,7 @@ class IlMemory(
                 else -> {
                     val cut = Cut(start, end, pos, posIsStable)
                     val cuts = LinkedList<Cut>().also { it.add(cut) }
-                    val slice = ctx.mkSlice(expr, exprType, cuts)
+                    val slice = expr.ilctx.mkSlice(expr, exprType, cuts)
                     listOf(slice)
                 }
             }
@@ -167,7 +169,7 @@ class IlMemory(
         ) : List<UExpr<out USort>> {
             val affectedFields = getAffectedFields(type, start, end, readField)
             val slices = affectedFields.flatMap { (field, offset, value, s, e) ->
-                val p = ctx.mkBvAddExpr(offset, pos)
+                val p = start.ctx.mkBvAddExpr(offset, pos)
                 readExprUnsafe(value, field.fieldType, s, e, p, posIsStable)
             }
             return slices
@@ -195,7 +197,7 @@ class IlMemory(
             repeat((0..<extraStartZeros).count()) {
                 fieldsWithZeros.addFirst(zeroField)
             }
-            return with(ctx) {
+            return with(start.ctx) {
                 fieldsWithZeros.map {
                     val fieldValue = readField(it)
                     val offset : UExpr<UBvSort> = mkBv(it.offset, bv32Sort)

@@ -21,7 +21,7 @@ class UnsafeLValue<Sort: USort>(
 
 
 abstract class UnsafeMemory<Type, Method>(
-    open val ctx: UContext<*>,
+    ctx: UContext<*>,
     ownership: MutabilityOwnership,
     types: UTypeConstraints<Type>,
     stack: URegistersStack = URegistersStack(),

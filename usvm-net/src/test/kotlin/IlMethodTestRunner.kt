@@ -44,3 +44,5 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
         val profilerPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.Application/bin/Release/net8.0/libvsharpCoverage.so"
     }
 }
+
+class IlTypeCoverage
