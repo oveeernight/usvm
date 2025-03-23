@@ -23,6 +23,13 @@ import org.usvm.machine.ilctx
 import java.util.*
 import kotlin.math.max
 
+sealed interface IlLocation
+
+// TODO get rid of isArray
+class IlHeapLocation(val ref: UHeapRef, val type: IlType, isArray: Boolean): IlLocation
+class IlStackLocation<Sort: USort>(val key: URegisterStackLValue<Sort>): IlLocation
+class IlStaticLocation(val type: IlType): IlLocation
+
 class IlMemory(
     ctx: UContext<*>,
     ownership: MutabilityOwnership,
@@ -218,7 +225,7 @@ class IlMemory(
         typeConstraints: UTypeConstraints<IlType>,
         thisOwnership: MutabilityOwnership,
         cloneOwnership: MutabilityOwnership
-    ): UnsafeMemory<IlType, IlMethod> =
+    ): IlMemory =
         IlMemory(ctx, cloneOwnership, typeConstraints, stack.clone(), mocks.clone(), regions).also {
             it.ownership = thisOwnership
         }
@@ -233,9 +240,6 @@ private data class AffectedField<Sort : USort>(
     val field: IlField, val fieldOffset: UExpr<UBvSort>, val value: UExpr<Sort>,
     val start: UExpr<UBvSort>, val end: UExpr<UBvSort>
 )
-
-private val IlField.offset : Int
-    get() = TODO()
 
 private val zeroField : IlField
     get() = TODO()

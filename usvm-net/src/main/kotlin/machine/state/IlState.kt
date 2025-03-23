@@ -22,7 +22,7 @@ class IlState(
     override val entrypoint: IlMethod,
     callStack: UCallStack<IlMethod, IlStmt> = UCallStack(),
     pathConstraints: UPathConstraints<IlType> = UPathConstraints(ctx, ownership),
-    override val memory: UnsafeMemory<IlType, IlMethod> = IlMemory(ctx, ownership, pathConstraints.typeConstraints),
+    override val memory: IlMemory = IlMemory(ctx, ownership, pathConstraints.typeConstraints),
     models: List<UModelBase<IlType>> = listOf(),
     pathNode: PathNode<IlStmt> = PathNode.root(),
     forkPoints: PathNode<PathNode<IlStmt>> = PathNode.root(),

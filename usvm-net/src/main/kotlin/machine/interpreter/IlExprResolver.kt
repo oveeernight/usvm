@@ -5,6 +5,7 @@ import io.ksmt.utils.cast
 import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
+import org.jacodb.api.net.ilinstances.impl.IlPointerType
 import org.jacodb.api.net.ilinstances.impl.IlPrimitiveType
 import org.jacodb.api.net.ilinstances.impl.IlReferenceType
 import org.usvm.*
@@ -12,13 +13,12 @@ import org.usvm.api.allocateArray
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
-import org.usvm.machine.IlContext
-import org.usvm.machine.IlMachineOptions
-import org.usvm.machine.USizeSort
+import org.usvm.machine.*
 import org.usvm.machine.state.insertConcreteCallStmt
 import org.usvm.machine.state.throwException
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
+import org.usvm.memory.with
 
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
 class IlExprResolver(
@@ -79,14 +79,13 @@ class IlExprResolver(
             is IlLocal -> localVarToLValue(expr)
             else -> error("resulveULValue: unexpected expr $expr")
         }
-
     }
 
     private fun localVarToLValue(local: IlLocal) : URegisterStackLValue<out USort> {
         val method = scope.calcOnState { callStack.lastMethod() }
         val (idx, type) = mapMethodLocalToIdx(method, local)
         val sort = ctx.typeToSort(type)
-        return URegisterStackLValue<USort>(sort, idx)
+        return URegisterStackLValue(sort, idx)
     }
 
     private fun arrayAccessToLValue(expr: IlArrayAccess): UArrayIndexLValue<*, *, *>? = with(ctx) {
@@ -122,7 +121,6 @@ class IlExprResolver(
         TODO("static fields")
     }
 
-    @Suppress("UNREACHABLE_CODE")
     private fun checkNullPointer(ref: UHeapRef) = with(ctx) {
 //        return@with
         val constr = !ctx.mkHeapRefEq(ref, nullRef)
@@ -244,25 +242,47 @@ class IlExprResolver(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun visitIlConvExpr(expr: IlConvCastExpr): UExpr<out USort>? = scope.calcOnState {
         if (expr.operand.type == expr.expectedType) return@calcOnState resolve(expr.operand)
-        when (expr.type) {
-            is IlPrimitiveType -> resolveAfterResolved(expr.operand) { resolved ->
-                resolvePrimitiveCast(resolved, expr.type, expr.expectedType)
-            }
-            else -> {
-                val e = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@calcOnState null
-                val currType = expr.operand.type
-                val expectedType = expr.expectedType
-                if (!ctx.typeSystem<IlType>().isSupertype(supertype = expectedType, type = currType)) {
-                    checkClassCast(e, expectedType)
+        val currType = expr.operand.type
+        val expectedType = expr.expectedType
+        resolveAfterResolved(expr.operand) { operand ->
+            if (isPtrType(expectedType)) {
+                when (operand) {
+                    is IlPtr<*, *> -> ctx.mkPtr(operand.base, operand.offset, expectedType)
+                    is IlManagedRef<*, *> -> {
+                        val (base, offset) = operand.toBaseAndOffset()
+                        offset as UExpr<UBvSort>
+                        ctx.mkPtr(base, offset, expectedType)
+                    }
+                    else -> error("Unexpected operand $operand of pointer cast")
                 }
-                e
+            }
+            else {
+                when (expr.type) {
+                    is IlPrimitiveType -> resolvePrimitiveCast(operand, currType, expectedType)
+                    else -> {
+                        val e = operand.asExpr(ctx.addressSort)
+                        if (!ctx.typeSystem<IlType>().isSupertype(supertype = expectedType, type = currType)) {
+                            checkClassCast(e, expectedType)
+                        }
+                        e
+                    }
+                }
             }
         }
     }
 
-    private fun resolvePrimitiveCast(expr: UExpr<out USort>, currType: IlType, expectedType: IlType): UExpr<out USort>? = with(ctx) {
+    private fun isPtrType(type: IlType): Boolean {
+        return (type is IlPointerType || type.name == "UIntPtr" || type.name == "IntPtr")
+    }
+
+    private fun resolvePrimitiveCast(
+        expr: UExpr<out USort>,
+        currType: IlType,
+        expectedType: IlType
+    ): UExpr<out USort>? = with(ctx) {
         when (expectedType) {
             boolType -> IlUnaryOperator.CastToBool(expr)
             int8Type -> IlUnaryOperator.CastToInt8(expr)
@@ -298,16 +318,20 @@ class IlExprResolver(
     }
 
     override fun visitIlIsInstExpr(expr: IlIsInstExpr): UExpr<out USort>? = scope.calcOnState {
-        val instance = expr.operand.accept(this@IlExprResolver)?.asExpr(ctx.addressSort) ?: return@calcOnState null
-        memory.types.evalIsSubtype(instance, expr.expectedType)
+        val inst = resolve(expr)?.asExpr(ctx.addressSort)
+        inst?.let { memory.types.evalIsSubtype(it, expr.expectedType) }
     }
 
     override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {
-        TODO("Not yet implemented")
+        val key = resolveLValue(expr.value) ?: return null
+        return scope.calcOnState {
+            memory.read(key)
+        }
     }
 
     override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): UExpr<out USort>? {
-        TODO("Not yet implemented")
+        val key = resolveLValue(expr.value) ?: return null
+        return IlManagedRef(ctx, key)
     }
 
     override fun visitIlMethodRefConst(const: IlMethodRef): UExpr<out USort>? {
@@ -320,7 +344,7 @@ class IlExprResolver(
         memory.allocateArray(arrayType, ctx.sizeSort, size)
     }
 
-    override fun visitIlNewExpr(expr: IlNewExpr): UExpr<out USort>? = scope.calcOnState {
+    override fun visitIlNewExpr(expr: IlNewExpr): UExpr<out USort> = scope.calcOnState {
         memory.allocConcrete(expr.type)
     }
 

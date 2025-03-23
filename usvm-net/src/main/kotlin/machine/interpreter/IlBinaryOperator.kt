@@ -13,7 +13,8 @@ import org.usvm.machine.ilctx
 sealed class IlBinaryOperator(
     val onBv: IlContext.(UExpr<UBvSort>, UExpr<UBvSort>) -> UExpr<out USort> = shouldNotBeCalled,
     val onFp: IlContext.(UExpr<KFpSort>, UExpr<KFpSort>) -> UExpr<out USort> = shouldNotBeCalled,
-    val onBool: IlContext.(UExpr<UBoolSort>, UExpr<UBoolSort>) -> UExpr<out USort> = shouldNotBeCalled
+    val onBool: IlContext.(UExpr<UBoolSort>, UExpr<UBoolSort>) -> UExpr<out USort> = shouldNotBeCalled,
+    val onAddressSort: IlContext.(UExpr<out USort>, UExpr<out USort>) -> UExpr<out USort> = shouldNotBeCalled
 ) {
 
     object Add : IlBinaryOperator(

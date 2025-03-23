@@ -8,16 +8,15 @@ import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
 import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
-import org.jacodb.api.net.publication.IlPredefinedAsmsExt.mscorelib
-import org.usvm.UBv32Sort
-import org.usvm.UContext
-import org.usvm.USort
+import org.jacodb.api.net.publication.IlPredefinedAsmExt.mscorelib
+import org.usvm.*
+import org.usvm.memory.ULValue
 
 typealias USizeSort = UBv32Sort
 
 class IlContext(val publication: IlPublication, components: IlComponents) : UContext<USizeSort>(components) {
     //
-    private val mscorelib by lazy { publication.mscorelib()!! }
+    private val mscorelib by lazy { publication.mscorelib() }
     val boolType by lazy { findTypeOrReportAbsence("Boolean") }
     val charType by lazy { findTypeOrReportAbsence("Char") }
     val int8Type by lazy { findTypeOrReportAbsence("SByte") }
@@ -52,6 +51,14 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     val void by lazy { VoidValue(this) }
 
+    fun <Key, Sort: USort> mkManagedRef(key: ULValue<Key, Sort>) : IlManagedRef<Key, Sort> =
+        IlManagedRef(this, key)
+
+    fun <Key, Sort : USort> mkPtr(
+        base: ULValue<Key, Sort>,
+        offset: UExpr<UBvSort>,
+        sightType: IlType
+    ): IlPtr<Key, Sort> = IlPtr(this, base, offset, sightType)
 
     val syntheticTypeField : IlField by lazy {
         val dto = IlFieldDto(
@@ -59,7 +66,8 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
             isStatic = false,
             name = "type",
             attrs = emptyList(),
-            isConstructed = false // idk
+            isConstructed = false, // idk,
+            offset = 0
         )
 
         IlFieldImpl(systemType as IlTypeImpl, dto, publication)

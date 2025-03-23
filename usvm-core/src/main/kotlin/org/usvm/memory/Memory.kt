@@ -1,17 +1,6 @@
 package org.usvm.memory
 
-import org.usvm.INITIAL_CONCRETE_ADDRESS
-import org.usvm.INITIAL_STATIC_ADDRESS
-import org.usvm.UBoolExpr
-import org.usvm.UConcreteHeapAddress
-import org.usvm.UConcreteHeapRef
-import org.usvm.UContext
-import org.usvm.UExpr
-import org.usvm.UHeapRef
-import org.usvm.UIndexedMocker
-import org.usvm.UMockEvaluator
-import org.usvm.UMocker
-import org.usvm.USort
+import org.usvm.*
 import org.usvm.collections.immutable.getOrPut
 import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
 import org.usvm.collections.immutable.internal.MutabilityOwnership

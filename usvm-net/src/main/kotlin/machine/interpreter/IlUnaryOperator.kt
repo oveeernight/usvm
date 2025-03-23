@@ -4,18 +4,15 @@ import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.IlNegOp
 import org.jacodb.api.net.ilinstances.IlNotOp
 import org.jacodb.api.net.ilinstances.IlUnaryOp
-import org.usvm.UBoolSort
-import org.usvm.UBvSort
-import org.usvm.UExpr
-import org.usvm.UFpSort
-import org.usvm.USort
+import org.usvm.*
 import org.usvm.machine.IlContext
 import org.usvm.machine.ilctx
 
 sealed class IlUnaryOperator(
     private val onBv : IlContext.(UExpr<UBvSort>) -> UExpr<out USort> = shouldNotBeCalled,
     private val onFp : IlContext.(UExpr<UFpSort>) -> UExpr<out USort> = shouldNotBeCalled,
-    private val onBool : IlContext.(UExpr<UBoolSort>) -> UExpr<out USort> = shouldNotBeCalled
+    private val onBool : IlContext.(UExpr<UBoolSort>) -> UExpr<out USort> = shouldNotBeCalled,
+    private val onAddress : IlContext.(UExpr<UAddressSort>) -> UExpr<out USort> = shouldNotBeCalled
 ) {
     object Not : IlUnaryOperator(
         onBool = { a -> mkNot(a) }
