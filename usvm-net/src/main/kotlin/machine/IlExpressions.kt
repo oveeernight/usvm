@@ -7,10 +7,8 @@ import io.ksmt.expr.*
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
 import io.ksmt.sort.KSortVisitor
-import org.jacodb.api.net.generated.models.TypeId
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
-import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
@@ -19,7 +17,7 @@ import org.usvm.machine.state.IlLocation
 import org.usvm.machine.state.IlStackLocation
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
-import org.usvm.memory.with
+import org.usvm.memory.UnsafeLValue
 
 class VoidSort(ctx: IlContext) : USort(ctx) {
     override fun <T> accept(visitor: KSortVisitor<T>): T {
@@ -51,12 +49,12 @@ class IlManagedRef<Key, Sort : USort>(ctx: IlContext, val memoryKey: ULValue<Key
         return transformer.transform(this)
     }
     @Suppress("UNCHECKED_CAST")
-    fun toBaseAndOffset() : Pair<IlLocation, UExpr<USizeSort>> =
+    fun toBaseAndOffset() : Pair<IlLocation<*>, UExpr<USizeSort>> =
         with(sort.ilctx) {
             when (memoryKey) {
                 is UArrayIndexLValue<*, *, *> -> {
                     val elemType = memoryKey.arrayType as IlType
-                    val base = IlHeapLocation(memoryKey.ref, elemType, isArray = true)
+                    val base = IlHeapLocation(memoryKey.ref, memoryKey.sort, elemType, isArray = true)
                     val elemSize = mkSizeExpr(elemType.size)
                     val idx = memoryKey.index as UExpr<USizeSort>
                     val offset = mkBvMulExpr(idx, elemSize)
@@ -65,7 +63,7 @@ class IlManagedRef<Key, Sort : USort>(ctx: IlContext, val memoryKey: ULValue<Key
                 is UFieldLValue<*, *> -> {
                     val field = memoryKey.field as IlField
                     val declaringType = field.declaringType
-                    val base = IlHeapLocation(memoryKey.ref, declaringType, isArray = false)
+                    val base = IlHeapLocation(memoryKey.ref, sort, declaringType, isArray = false)
                     val offset = mkSizeExpr(field.offset)
                     base to offset
                 }
@@ -88,12 +86,12 @@ class IlManagedRef<Key, Sort : USort>(ctx: IlContext, val memoryKey: ULValue<Key
 }
 
 
-class IlPtr(
+class IlPtr<Sort: USort>(
     ctx: UContext<*>,
-    val base: IlLocation,
-    val offset: UExpr<UBvSort>,
-    val sightType: IlType
-): UExpr<UAddressSort>(ctx) {
+    override val location: IlLocation<Sort>,
+    override val offset: UExpr<UBvSort>,
+    override val sightType: IlType
+): UExpr<UAddressSort>(ctx), UnsafeLValue<Sort> {
     override fun internEquals(other: Any): Boolean = structurallyEqual(other)
 
     override val sort: UAddressSort

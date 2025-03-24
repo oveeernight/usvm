@@ -2,14 +2,16 @@ package org.usvm.machine.interpreter
 
 import io.ksmt.sort.KFpSort
 import io.ksmt.utils.asExpr
+import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.*
 import org.usvm.*
 import org.usvm.machine.IlContext
+import org.usvm.machine.IlPtr
 import org.usvm.machine.USizeSort
 import org.usvm.machine.ilctx
 
 
-@Suppress("UNUSED_PARAMETER")
+@Suppress("UNCHECKED_CAST")
 sealed class IlBinaryOperator(
     val onBv: IlContext.(UExpr<UBvSort>, UExpr<UBvSort>) -> UExpr<out USort> = shouldNotBeCalled,
     val onFp: IlContext.(UExpr<KFpSort>, UExpr<KFpSort>) -> UExpr<out USort> = shouldNotBeCalled,
@@ -19,12 +21,23 @@ sealed class IlBinaryOperator(
 
     object Add : IlBinaryOperator(
         onBv = UContext<USizeSort>::mkBvAddExpr,
-        onFp = { a, b -> mkFpAddExpr(fpRoundingModeSortDefaultValue(), a, b) }
+        onFp = { a, b -> mkFpAddExpr(fpRoundingModeSortDefaultValue(), a, b) },
+        onAddressSort = { a, b ->
+            val (l, r) = normalizePtrOp(a, b)
+            l as IlPtr<*>
+            shiftPointer(l, r.cast())
+        }
     )
 
     object Sub : IlBinaryOperator(
         onBv = UContext<USizeSort>::mkBvSubExpr,
-        onFp = { a, b -> mkFpSubExpr(fpRoundingModeSortDefaultValue(), a, b) }
+        onFp = { a, b -> mkFpSubExpr(fpRoundingModeSortDefaultValue(), a, b) },
+        onAddressSort = { a, b ->
+            val (l, r) = normalizePtrOp(a, b)
+            l as IlPtr<*>
+            r as UExpr<UBvSort>
+            shiftPointer(l, mkBvNegationExpr(r))
+        }
     )
 
     object Mul : IlBinaryOperator(
@@ -156,10 +169,10 @@ sealed class IlBinaryOperator(
                 unifiedLhs = lhs
                 unifiedRhs = rhs.asExpr(rhs.ctx.boolSort).toBvIte()
             } else {
-                error("Sorts mismatch ${lhs.sort}, ${rhs.sort}")
+                unifiedLhs = lhs
+                unifiedRhs = rhs
             }
         }
-        assert(unifiedLhs.sort == unifiedLhs.sort)
         val ctx = lhs.ilctx
         return when (val sort = unifiedLhs.sort) {
             is UBvSort -> {
@@ -174,6 +187,9 @@ sealed class IlBinaryOperator(
                 ctx.onBool(unifiedLhs.asExpr(sort), unifiedRhs.asExpr(sort))
             }
 
+            is UAddressSort -> {
+                ctx.onAddressSort(unifiedLhs, unifiedRhs)
+            }
             else -> error("IlBinaryOperator: unexpected sorts: $sort")
         }
     }
@@ -183,6 +199,8 @@ sealed class IlBinaryOperator(
             ctx.mkBv(1, ctx.bv32Sort),
             ctx.mkBv(0, ctx.bv32Sort)
         )
+
+
 
     companion object {
         fun resolve(op: IlBinaryOp): IlBinaryOperator {
@@ -206,26 +224,24 @@ sealed class IlBinaryOperator(
                 else -> TODO()
             }
         }
+
+        private fun normalizePtrOp(lhs: UExpr<out USort>, rhs: UExpr<out USort>) =
+            if (lhs.sort is UAddressSort && rhs.sort is UBvSort) {
+                lhs to rhs
+            } else rhs to lhs
+
+        fun isPointerOp(op: IlBinaryOperator): Boolean =
+            when (op) {
+                is Add -> true
+                is Sub -> true
+                is Mul -> true
+                is Div -> true
+                is CEq -> true
+                is CNe -> true
+                else -> false
+            }
+
         private val shouldNotBeCalled: IlContext.(UExpr<out USort>, UExpr<out USort>) -> UExpr<out USort> =
             { _, _ -> error("Should not be called") }
-
-        /**
-         * Normalize binary shift value according to the specification.
-         * */
-        internal fun <T : UBvSort> normalizeBvShift(shift: UExpr<T>): UExpr<T> = with(shift.uctx) {
-            return when (shift.sort) {
-                bv32Sort -> {
-                    val mask = mkBv(31) // 0b11111
-                    mkBvAndExpr(shift.asExpr(bv32Sort), mask).asExpr(shift.sort)
-                }
-
-                bv64Sort -> {
-                    val mask = mkBv(63L) // 0b111111
-                    mkBvAndExpr(shift.asExpr(bv64Sort), mask).asExpr(shift.sort)
-                }
-
-                else -> error("Incorrect bv shift: $shift")
-            }
-        }
     }
 }

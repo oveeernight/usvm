@@ -54,6 +54,7 @@ class IlTestExecutor : Closeable {
                 arrangeStmts.addAll(arrange)
                 call = com.google.protobuf.Any.pack(methodCall)
                 expectedResult = com.google.protobuf.Any.pack(resultAsMessage)
+                raisesCriticalError = false
             }
             return test
         }

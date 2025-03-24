@@ -12,12 +12,16 @@ import org.usvm.collections.immutable.persistentHashMapOf
 import org.usvm.constraints.UTypeConstraints
 import org.usvm.UIndexedMocker
 
+interface ULocation<Sort: USort> {
+    val sort: Sort
+    fun memoryRegionId(): UMemoryRegionId<*, *>
+}
 
-class UnsafeLValue<Sort: USort>(
-    val base: UExpr<Sort>,
-    val offset: UExpr<UBvSort>,
+interface UnsafeLValue<Sort: USort> {
+    val location: ULocation<Sort>
+    val offset: UExpr<UBvSort>
     val sightType: CommonType
-)
+}
 
 
 abstract class UnsafeMemory<Type, Method>(
@@ -28,8 +32,8 @@ abstract class UnsafeMemory<Type, Method>(
     mocks: UIndexedMocker<Method> = UIndexedMocker(),
     regions: UPersistentHashMap<UMemoryRegionId<*, *>, UMemoryRegion<*, *>> = persistentHashMapOf()
 ) : UMemory<Type, Method>(ctx, ownership, types, stack, mocks, regions) {
-    abstract fun <Sort: USort> readUnsafe(lvalue: UnsafeLValue<Sort>): UExpr<Sort>
-    abstract fun <Sort: USort> writeUnsafe(lvalue: UnsafeLValue<Sort>, value: UExpr<Sort>)
+    abstract fun readUnsafe(lvalue: UnsafeLValue<out USort>): UExpr<out USort>
+    abstract fun writeUnsafe(lvalue: UnsafeLValue<out USort>, value: UExpr<out USort>)
     abstract override fun clone(
         typeConstraints: UTypeConstraints<Type>,
         thisOwnership: MutabilityOwnership,

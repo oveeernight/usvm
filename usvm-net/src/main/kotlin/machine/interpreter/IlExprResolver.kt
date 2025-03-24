@@ -7,7 +7,6 @@ import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.jacodb.api.net.ilinstances.impl.IlPointerType
 import org.jacodb.api.net.ilinstances.impl.IlPrimitiveType
-import org.jacodb.api.net.ilinstances.impl.IlReferenceType
 import org.usvm.*
 import org.usvm.api.allocateArray
 import org.usvm.collection.array.UArrayIndexLValue
@@ -18,7 +17,6 @@ import org.usvm.machine.state.insertConcreteCallStmt
 import org.usvm.machine.state.throwException
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
-import org.usvm.memory.with
 
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
 class IlExprResolver(
@@ -77,7 +75,8 @@ class IlExprResolver(
             is IlArrayAccess -> arrayAccessToLValue(expr)
             is IlFieldAccess -> fieldAccessToLValue(expr)
             is IlLocal -> localVarToLValue(expr)
-            else -> error("resulveULValue: unexpected expr $expr")
+            is IlManagedRefExpr -> resolveLValue(expr.value)
+            else -> error("resolveULValue: unexpected expr $expr")
         }
     }
 
@@ -122,7 +121,6 @@ class IlExprResolver(
     }
 
     private fun checkNullPointer(ref: UHeapRef) = with(ctx) {
-//        return@with
         val constr = !ctx.mkHeapRefEq(ref, nullRef)
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
@@ -171,7 +169,7 @@ class IlExprResolver(
     override fun visitIlBinaryOp(expr: IlBinaryOp): UExpr<out USort>? {
         val operator = IlBinaryOperator.resolve(expr)
         return resolveAfterResolved(expr.lhs, expr.rhs) { lhs, rhs ->
-            if (lhs.sort == ctx.addressSort) {
+            if (lhs.sort == ctx.addressSort && rhs.sort == ctx.addressSort) {
                 when (operator) {
                     is IlBinaryOperator.CEq -> ctx.mkHeapRefEq(lhs.cast(), rhs.cast())
                     is IlBinaryOperator.CNe -> ctx.mkNot(ctx.mkHeapRefEq(lhs.cast(), rhs.cast()))
@@ -250,7 +248,7 @@ class IlExprResolver(
         resolveAfterResolved(expr.operand) { operand ->
             if (isPtrType(expectedType)) {
                 when (operand) {
-                    is IlPtr<*, *> -> ctx.mkPtr(operand.base, operand.offset, expectedType)
+                    is IlPtr<*> -> ctx.mkPtr(operand.location, operand.offset, expectedType)
                     is IlManagedRef<*, *> -> {
                         val (base, offset) = operand.toBaseAndOffset()
                         offset as UExpr<UBvSort>
@@ -282,7 +280,7 @@ class IlExprResolver(
         expr: UExpr<out USort>,
         currType: IlType,
         expectedType: IlType
-    ): UExpr<out USort>? = with(ctx) {
+    ): UExpr<out USort> = with(ctx) {
         when (expectedType) {
             boolType -> IlUnaryOperator.CastToBool(expr)
             int8Type -> IlUnaryOperator.CastToInt8(expr)
@@ -323,9 +321,10 @@ class IlExprResolver(
     }
 
     override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {
-        val key = resolveLValue(expr.value) ?: return null
+        val ptr = resolve(expr.value) ?: return null
+        ptr as IlPtr<*>
         return scope.calcOnState {
-            memory.read(key)
+            memory.readUnsafe(ptr)
         }
     }
 

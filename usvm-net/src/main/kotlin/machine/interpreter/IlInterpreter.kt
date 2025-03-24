@@ -3,16 +3,12 @@ package org.usvm.machine.interpreter
 import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.IlMethodImpl
-import org.jacodb.api.net.ilinstances.impl.IlReferenceType
 import org.usvm.*
 import org.usvm.api.allocateStaticRef
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.forkblacklists.UForkBlackList
-import org.usvm.machine.IlApplicationGraph
-import org.usvm.machine.IlContext
-import org.usvm.machine.IlMachineOptions
+import org.usvm.machine.*
 import org.usvm.machine.state.*
-import org.usvm.machine.write
 import org.usvm.memory.URegisterStackLValue
 import org.usvm.solver.USatResult
 
@@ -130,16 +126,25 @@ class IlInterpreter(
 
     private fun visitAssignStmt(scope: IlStepScope, stmt: IlAssignStmt) {
         val resolver = mkExprResolver(scope)
-        val lvalue = resolver.resolveLValue(stmt.lhv) ?: return
         val rvalue = resolver.resolve(stmt.rhv) ?: return
-
-        // TODO check array store exception (inappropriate subtype, sort, etc)
-        scope.doWithState {
-            memory.write(lvalue, rvalue)
-            newStmt(stmt.next())
+        val lhv = stmt.lhv
+        if (lhv is IlUnmanagedDerefExpr) {
+            val ptr = resolver.resolve(lhv.value)
+            require(ptr is IlPtr<*>)
+            scope.doWithState {
+                memory.writeUnsafe(ptr, rvalue)
+            }
         }
+        else {
+            val lvalue = resolver.resolveLValue(stmt.lhv) ?: return
 
-        // TODO handle calls in rhs when cfg will be available
+            // TODO check array store exception (inappropriate subtype, sort, etc)
+            scope.doWithState {
+                memory.write(lvalue, rvalue)
+                newStmt(stmt.next())
+            }
+            // TODO handle calls in rhs when cfg will be available
+        }
     }
 
     private fun visitGotoStmt(scope: IlStepScope, stmt: IlGotoStmt) {
