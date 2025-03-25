@@ -91,7 +91,7 @@ class IlPtr<Sort: USort>(
     override val location: IlLocation<Sort>,
     override val offset: UExpr<UBvSort>,
     override val sightType: IlType
-): UExpr<UAddressSort>(ctx), UnsafeLValue<Sort> {
+): UExpr<UAddressSort>(ctx), UnsafeLValue<Sort, IlType> {
     override fun internEquals(other: Any): Boolean = structurallyEqual(other)
 
     override val sort: UAddressSort

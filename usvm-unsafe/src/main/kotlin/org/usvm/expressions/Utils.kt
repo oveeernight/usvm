@@ -20,8 +20,8 @@ fun <Sort: USort> UContext<*>.addCut(slice: Slice<Sort>, cut: Cut) : Slice<Sort>
     list.add(cut)
     return Slice(this, slice.expr, slice.exprType, list).simplify()
 }
-fun <Sort : USort> UContext<*>.mkCombine(slices: List<Slice<Sort>>, sightType: CommonType) =
-    Combine(this, slices, sightType)
+fun <Sort: USort> UContext<*>.mkCombine(slices: List<Slice<out USort>>, sort: Sort, sightType: CommonType) =
+    Combine(this, slices, sort, sightType)
 
 
 private fun <Sort: USort> Slice<Sort>.simplify() : Slice<Sort> {

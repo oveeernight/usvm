@@ -45,11 +45,10 @@ class Slice<Sort : USort>(
 
 class Combine<Sort: USort>(
     ctx: UContext<*>,
-    val slices: List<Slice<Sort>>,
+    val slices: List<Slice<out USort>>,
+    override val sort: Sort,
     val sightType: CommonType
 ): UExpr<Sort>(ctx){
-    override val sort: Sort
-        get() = TODO("Not yet implemented")
 
     override fun accept(transformer: KTransformerBase): KExpr<Sort> {
         require(transformer is UnsafeTransformer<*, *>) { "Expected an UTransformer, but got: $transformer" }
