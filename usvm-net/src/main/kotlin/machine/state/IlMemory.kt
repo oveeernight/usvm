@@ -20,6 +20,7 @@ import org.usvm.expressions.mkCombine
 import org.usvm.expressions.mkSlice
 import org.usvm.machine.USizeSort
 import org.usvm.machine.ilctx
+import org.usvm.machine.write
 import java.util.LinkedList
 import kotlin.math.max
 
@@ -35,7 +36,7 @@ class IlHeapLocation<Sort : USort>(
     val isArray: Boolean
 ) : IlLocation<Sort> {
     override fun affectedKeys(offset: UExpr<UBvSort>, viewType: IlType): List<AffectedKey<IlType, out USort>> {
-        val resolver = UnsafeResolver()
+        val resolver = UnsafeKeysResolver()
         return if (isArray) {
             resolver.getAffectedIndices(ref, type, sort, offset, viewType)
         } else {
@@ -46,7 +47,7 @@ class IlHeapLocation<Sort : USort>(
 
 class IlStackLocation<Sort: USort>(val key: URegisterStackLValue<Sort>): IlLocation<Sort> {
     override fun affectedKeys(offset: UExpr<UBvSort>, viewType: IlType): List<AffectedKey<IlType, out USort>> {
-        TODO("Not yet implemented")
+        return listOf(key.cast())
     }
 
     override val sort = key.sort
@@ -78,7 +79,6 @@ class IlMemory(
     override fun writeUnsafe(lvalue: UnsafeLValue<out USort, IlType>, value: UExpr<out USort>, valueType: IlType) {
         val affectedKeys = lvalue.location.affectedKeys(lvalue.offset, lvalue.sightType)
         affectedKeys.forEach { ak ->
-            val key = ak.key
             ak.write(this, value, valueType)
         }
     }
@@ -124,23 +124,27 @@ private data class AffectedField<Sort : USort>(
     }
 }
 
-private class UnsafeResolver {
-//    private fun writeArrayUnsafe(
-//        arrayRef: UHeapRef,
-//        elemType: IlType,
-//        elemSort: USort,
-//        offset: UExpr<UBvSort>,
-//        value: UExpr<out USort>,
-//        valueType: IlType
-//    ) {
-//        val affectedIndices = getAffectedIndices(arrayRef, elemType, elemSort, offset, valueType)
-//        affectedIndices.forEach { i ->
-//            val key = UArrayIndexLValue(elemSort, offset, i.idx, base.arrayType)
-//            val newValue = writeExprUnsafe(i.elem, base.arrayType, value, valueType, i.start)
-//            this@IlMemory.write(key, newValue.cast(), guard = offset.ilctx.trueExpr)
-//        }
-//    }
+private data class AffectedRegister<Sort : USort>(
+    override val key: ULValue<*, Sort>,
+    val type: IlType,
+    override val start: UExpr<UBvSort>,
+    override val end: UExpr<UBvSort>
+) : AffectedKey<IlType, Sort> {
+    override fun read(memory: UnsafeMemory<IlType, *>): List<UExpr<out USort>> {
+        val value = memory.read(key)
+        val pos = start.ctx.mkBvNegationExpr(start)
+        return readExprUnsafe(value, type, start, end, pos, posIsStable = false)
+    }
 
+    override fun write(memory: UnsafeMemory<IlType, *>, value: UExpr<out USort>, valueType: IlType) {
+        val oldValue = memory.read(key)
+        val newValue = writeExprUnsafe(oldValue, type, value, valueType, start)
+        memory.write(key, newValue)
+    }
+
+}
+
+private class UnsafeKeysResolver {
     // TODO possible index out of bounds because of extra + 1
     fun <Sort: USort> getAffectedIndices(
         arrayRef: UHeapRef,

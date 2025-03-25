@@ -1,6 +1,5 @@
 package org.usvm.memory
 
-import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.UBvSort
 import org.usvm.UContext
 import org.usvm.UExpr
