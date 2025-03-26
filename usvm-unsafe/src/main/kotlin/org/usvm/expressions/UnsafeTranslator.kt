@@ -60,12 +60,12 @@ open class UnsafeTranslator<Type, USizeSort : USort>(override val ctx: UContext<
                 val e = cut.end
                 val p = cut.pos
                 var cutLeft = mkBvSubExpr(s, accP)
-                cutLeft = bvMax(zero, cutLeft)
+                cutLeft = bvMax(cutLeft, zero)
                 var right = mkBvSubExpr(e, accP)
                 right = bvMin(right, accE)
                 val sliceSize = mkBvSubExpr(right, cutLeft)
                 val newS = mkBvAddExpr(accS, cutLeft)
-                val newE = mkBvAddExpr(newS, sliceSize)
+                val newE = bvMin(mkBvAddExpr(newS, sliceSize), accE)
                 val newPos = if (cut.posIsStable) {
                     bvMax(accP, p)
                 } else {

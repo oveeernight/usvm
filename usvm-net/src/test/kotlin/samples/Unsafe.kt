@@ -1,9 +1,11 @@
 package samples
 
 import IlMethodTestRunner
+import org.junit.jupiter.api.TestInstance
 import kotlin.test.Ignore
 import kotlin.test.Test
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Unsafe : IlMethodTestRunner() {
 
     @Test

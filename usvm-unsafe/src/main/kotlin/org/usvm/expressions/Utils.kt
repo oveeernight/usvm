@@ -42,7 +42,7 @@ private fun <Sort: USort> Slice<Sort>.simplify() : Slice<Sort> {
             continue
         }
         val cutLeft = max(concreteS.intValue - pos, 0)
-        val cutRight = min(concreteP.intValue - pos, exprSize)
+        val cutRight = min(concreteE.intValue - pos, end)
         val cutSize = cutRight - cutLeft
         start += cutLeft
         end = min(start + cutSize, end)
