@@ -1,7 +1,7 @@
 package org.usvm.expressions
 
 import io.ksmt.expr.KBitVec32Value
-import org.jacodb.api.common.CommonType
+import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
 import java.util.LinkedList
 import kotlin.math.max
@@ -14,13 +14,13 @@ fun <T, R> Collection<T>.mapToLinkedList(transform: (T) -> R): LinkedList<R> {
     return list
 }
 
-fun <Sort: USort> UContext<*>.mkSlice(expr: UExpr<Sort>, exprType: CommonType, cuts: LinkedList<Cut>) = Slice(this, expr, exprType, cuts)
+fun <Sort: USort> UContext<*>.mkSlice(expr: UExpr<Sort>, exprType: IlType, cuts: LinkedList<Cut>) = Slice(this, expr, exprType, cuts)
 fun <Sort: USort> UContext<*>.addCut(slice: Slice<Sort>, cut: Cut) : Slice<Sort> {
     val list = slice.cuts.mapToLinkedList { it }
     list.add(cut)
     return Slice(this, slice.expr, slice.exprType, list).simplify()
 }
-fun <Sort: USort> UContext<*>.mkCombine(slices: List<Slice<out USort>>, sort: Sort, sightType: CommonType) =
+fun <Sort: USort> UContext<*>.mkCombine(slices: List<Slice<out USort>>, sort: Sort, sightType: IlType) =
     Combine(this, slices, sort, sightType)
 
 

@@ -42,7 +42,7 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     }
 }
 
-class IlManagedRef<Key, Sort : USort>(ctx: IlContext, val memoryKey: ULValue<Key, Sort>) : UExpr<UAddressSort>(ctx) {
+class IlManagedRef<Key, Sort : USort>(ctx: IlContext, val type: IlType, val memoryKey: ULValue<Key, Sort>) : UExpr<UAddressSort>(ctx) {
     override val sort: UAddressSort get() = uctx.addressSort
     override fun accept(transformer: KTransformerBase): KExpr<UAddressSort> {
         require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
@@ -69,7 +69,7 @@ class IlManagedRef<Key, Sort : USort>(ctx: IlContext, val memoryKey: ULValue<Key
                 }
 
                 is URegisterStackLValue<*> -> {
-                    val base = IlStackLocation(memoryKey)
+                    val base = IlStackLocation(memoryKey, type)
                     base to mkSizeExpr(0)
                 }
                 else -> error("Unsupported memory key: $memoryKey")

@@ -22,6 +22,7 @@ interface AffectedKey<Type, Sort: USort> {
 
 interface ULocation<Sort: USort, Type> {
     val sort: Sort
+    val type: Type
     fun affectedKeys(offset: UExpr<UBvSort>, viewType: Type): List<AffectedKey<Type, out USort>>
 }
 

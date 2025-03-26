@@ -132,7 +132,8 @@ class IlInterpreter(
             val ptr = resolver.resolve(lhv.value)
             require(ptr is IlPtr<*>)
             scope.doWithState {
-                memory.writeUnsafe(ptr, rvalue)
+                memory.writeUnsafe(ptr, rvalue, stmt.rhv.type)
+                newStmt(stmt.next())
             }
         }
         else {

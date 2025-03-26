@@ -19,9 +19,23 @@ public class Unsafe
     //
     //     return 0;
     // }
+    
+    [SvmTest(88)]
+    public unsafe int StackUnsafe1(int a, int i)
+    {
+        var initValue = a;
+        var ptr = &a;
+        var casted = (byte*)ptr;
+        *(int*)(casted + i) = 322;
+        if (i == 0 && a != 322)
+        {
+            return -1;
+        }
+        return 0;
+    }
 
-    [SvmTest(90)]
-    public unsafe int SymbolicUnsafe1(int a, int i)
+    [SvmTest(91)]
+    public unsafe int StackUnsafe2(int a, int i)
     {
         var initValue = a;
         var ptr = &a;

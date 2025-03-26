@@ -1,5 +1,7 @@
 package org.usvm.org.usvm.expressions
 
+import io.ksmt.utils.cast
+import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.UBvSort
 import org.usvm.UComposer
 import org.usvm.UContext
@@ -21,9 +23,9 @@ open class UnsafeComposer<Type, USizeSort : USort>(
     override fun <Sort : USort> transform(slice: Slice<Sort>): Slice<Sort> {
         val expr = slice.expr.accept(this)
         val cuts = slice.cuts.mapNotNull { cut ->
-            val s = cut.start.accept(this)
-            val e = cut.end.accept(this)
-            val p = cut.pos.accept(this)
+            val s = compose(cut.start)
+            val e = compose(cut.end)
+            val p = compose(cut.pos)
             if (cutIsValid(s, e)) {
                 Cut(s, e, p, cut.posIsStable)
             } else null
@@ -34,12 +36,17 @@ open class UnsafeComposer<Type, USizeSort : USort>(
 
     override fun <Sort : USort> transform(combine: Combine<Sort>): UExpr<Sort> {
         val cuts = combine.slices.map { slice -> transform(slice) }
-        return Combine(ctx, cuts, combine.sightType)
+        val sort = combine.sort
+        require(combine.sort is UBvSort)
+        val composedCombine = Combine(ctx, cuts, combine.sort, combine.sightType)
+        val translator = UnsafeTranslator<IlType, USizeSort>(ctx)
+        val combineAsBv = translator.transform(composedCombine)
+        return combineAsBv.cast()
     }
 
     private fun cutIsValid(s: UExpr<UBvSort>, e: UExpr<UBvSort>) = with(s.ctx) {
-        val lengthIsZero = mkBvUnsignedGreaterOrEqualExpr(s, e).isTrue
-        val endIsNegative = mkBvUnsignedLessOrEqualExpr(s, mkBv(0, s.sort)).isTrue
+        val lengthIsZero = mkBvSignedGreaterOrEqualExpr(s, e).isTrue
+        val endIsNegative = mkBvUnsignedLessOrEqualExpr(e, mkBv(0, s.sort)).isTrue
         !lengthIsZero && !endIsNegative
     }
 

@@ -330,7 +330,8 @@ class IlExprResolver(
 
     override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): UExpr<out USort>? {
         val key = resolveLValue(expr.value) ?: return null
-        return IlManagedRef(ctx, key)
+        val type = expr.value.type
+        return IlManagedRef(ctx, type, key)
     }
 
     override fun visitIlMethodRefConst(const: IlMethodRef): UExpr<out USort>? {

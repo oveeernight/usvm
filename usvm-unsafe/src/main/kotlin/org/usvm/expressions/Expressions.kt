@@ -1,11 +1,14 @@
 package org.usvm.expressions
 
+import com.jetbrains.rd.util.string.print
+import com.jetbrains.rd.util.string.printToString
 import io.ksmt.cache.hash
 import io.ksmt.cache.structurallyEqual
 import io.ksmt.expr.KExpr
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
 import org.jacodb.api.common.CommonType
+import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.UBvSort
 import org.usvm.UContext
 import org.usvm.UExpr
@@ -18,12 +21,20 @@ data class Cut(
     val end: UExpr<UBvSort>,
     val pos: UExpr<UBvSort>,
     val posIsStable: Boolean
-)
+) {
+    fun print(printer: ExpressionPrinter) {
+        start.print(printer)
+        printer.append("..")
+        end.print(printer)
+        printer.append(" at ")
+        pos.print(printer)
+    }
+}
 
 class Slice<Sort : USort>(
     ctx: UContext<*>,
     val expr: UExpr<Sort>,
-    val exprType: CommonType,
+    val exprType: IlType,
     val cuts: LinkedList<Cut>,
 ) : UExpr<Sort>(ctx) {
     override val sort: Sort
@@ -39,7 +50,13 @@ class Slice<Sort : USort>(
     override fun internHashCode(): Int = hash()
 
     override fun print(printer: ExpressionPrinter) {
-        TODO("Not yet implemented")
+        expr.print(printer)
+        printer.append("[")
+        cuts.forEach {
+            it.print(printer)
+            printer.append(" ")
+        }
+        printer.append("]")
     }
 }
 
@@ -47,11 +64,11 @@ class Combine<Sort: USort>(
     ctx: UContext<*>,
     val slices: List<Slice<out USort>>,
     override val sort: Sort,
-    val sightType: CommonType
+    val sightType: IlType
 ): UExpr<Sort>(ctx){
 
     override fun accept(transformer: KTransformerBase): KExpr<Sort> {
-        require(transformer is UnsafeTransformer<*, *>) { "Expected an UTransformer, but got: $transformer" }
+        require(transformer is UnsafeTransformer<*, *>) { "Expected an UnsafeTransformer, but got: $transformer" }
         return transformer.transform(this)
     }
 
@@ -60,8 +77,11 @@ class Combine<Sort: USort>(
     override fun internHashCode(): Int = hash()
 
     override fun print(printer: ExpressionPrinter) {
-        TODO("Not yet implemented")
+        printer.append("[")
+        slices.forEach {
+            it.print(printer)
+            printer.append("\n")
+        }
+        printer.append("] as ${sightType.typeName}")
     }
 }
-
-val CommonType.size: Int get() = TODO()

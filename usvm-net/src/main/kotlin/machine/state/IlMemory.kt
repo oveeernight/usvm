@@ -32,7 +32,7 @@ sealed interface IlLocation<Sort: USort> : ULocation<Sort, IlType>
 class IlHeapLocation<Sort : USort>(
     val ref: UHeapRef,
     override val sort: Sort,
-    val type: IlType,
+    override val type: IlType,
     val isArray: Boolean
 ) : IlLocation<Sort> {
     override fun affectedKeys(offset: UExpr<UBvSort>, viewType: IlType): List<AffectedKey<IlType, out USort>> {
@@ -45,14 +45,16 @@ class IlHeapLocation<Sort : USort>(
     }
 }
 
-class IlStackLocation<Sort: USort>(val key: URegisterStackLValue<Sort>): IlLocation<Sort> {
-    override fun affectedKeys(offset: UExpr<UBvSort>, viewType: IlType): List<AffectedKey<IlType, out USort>> {
-        return listOf(key.cast())
+class IlStackLocation<Sort: USort>(val key: URegisterStackLValue<Sort>, override val type: IlType): IlLocation<Sort> {
+    override fun affectedKeys(offset: UExpr<UBvSort>, viewType: IlType): List<AffectedKey<IlType, out USort>> =
+        with(key.sort.ctx) {
+        val size : UExpr<UBvSort> = mkBv(type.size, bv32Sort)
+        val ak = AffectedRegister(key, type, offset, size)
+        return listOf(ak)
     }
-
     override val sort = key.sort
 }
-class IlStaticLocation<Sort: USort>(override val sort: Sort, val type: IlType): IlLocation<Sort> {
+class IlStaticLocation<Sort: USort>(override val sort: Sort, override val type: IlType): IlLocation<Sort> {
     override fun affectedKeys(offset: UExpr<UBvSort>, viewType: IlType): List<AffectedKey<IlType, out USort>> {
         TODO("Not yet implemented")
     }
@@ -281,11 +283,10 @@ fun <Sort : USort> writeExprUnsafe(
     val rightUnaffectedStart = mkBvAddExpr(start, valueSize)
     val rightUnaffected =
         readExprUnsafe(expr, exprType, rightUnaffectedStart, exprSize, rightUnaffectedStart, posIsStable = true)
-    val valueStart = mkBvNegationExpr(start)
     val valueSlices = readExprUnsafe(
         value,
         valueType,
-        valueStart,
+        mkBvNegationExpr(start),
         mkBvSubExpr(exprSize, start),
         start,
         posIsStable = false

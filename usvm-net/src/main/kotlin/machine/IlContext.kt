@@ -52,8 +52,8 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     val void by lazy { VoidValue(this) }
 
-    fun <Key, Sort: USort> mkManagedRef(key: ULValue<Key, Sort>) : IlManagedRef<Key, Sort> =
-        IlManagedRef(this, key)
+    fun <Key, Sort: USort> mkManagedRef(key: ULValue<Key, Sort>, type: IlType) : IlManagedRef<Key, Sort> =
+        IlManagedRef(this, type, key)
 
     fun <Sort : USort> mkPtr(
         base: IlLocation<Sort>,
