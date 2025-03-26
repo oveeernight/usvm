@@ -30,34 +30,42 @@ sealed class IlUnaryOperator(
     object CastToInt8 : IlUnaryOperator(
         onBool = { it.extendToBv(Byte.SIZE_BITS) },
         onBv = { it.mkNarrow(Byte.SIZE_BITS, signed = true) },
+        onAddress = { it.toNumeric().mkNarrow(Byte.SIZE_BITS, signed = true) }
     )
     object CastToUInt8 : IlUnaryOperator(
         onBool = { it.extendToBv(UByte.SIZE_BITS) },
         onBv = { it.mkNarrow(UByte.SIZE_BITS, signed = false) },
+        onAddress = { it.toNumeric().mkNarrow(UByte.SIZE_BITS, signed = false) }
     )
     object CastToInt16 : IlUnaryOperator(
         onBool = { it.extendToBv(Short.SIZE_BITS) },
         onBv = { it.mkNarrow(Short.SIZE_BITS, signed = true) },
+        onAddress = { it.toNumeric().mkNarrow(Short.SIZE_BITS, signed = true) }
     )
     object CastToUInt16 : IlUnaryOperator(
         onBool = { it.extendToBv(UShort.SIZE_BITS) },
         onBv = { it.mkNarrow(UShort.SIZE_BITS, signed = false) },
+        onAddress = { it.toNumeric().mkNarrow(UShort.SIZE_BITS, signed = false) }
     )
     object CastToInt32 : IlUnaryOperator(
         onBool = { it.extendToBv(Int.SIZE_BITS) },
         onBv = { it.mkNarrow(Int.SIZE_BITS, signed = true) },
+        onAddress = { it.toNumeric().mkNarrow(Int.SIZE_BITS, signed = true) }
     )
     object CastToUInt32 : IlUnaryOperator(
         onBool = { it.extendToBv(UInt.SIZE_BITS) },
         onBv = { it.mkNarrow(UInt.SIZE_BITS, signed = false) },
+        onAddress = { it.toNumeric().mkNarrow(UInt.SIZE_BITS, signed = false) }
     )
     object CastToInt64 : IlUnaryOperator(
         onBool = { it.extendToBv(Long.SIZE_BITS) },
         onBv = { it.mkNarrow(Long.SIZE_BITS, signed = true) },
+        onAddress = { it.toNumeric().mkNarrow(Long.SIZE_BITS, signed = true) }
     )
     object CastToUInt64 : IlUnaryOperator(
         onBool = { it.extendToBv(ULong.SIZE_BITS) },
-        onBv = { it.mkNarrow(ULong.SIZE_BITS, signed = false) }
+        onBv = { it.mkNarrow(ULong.SIZE_BITS, signed = false) },
+        onAddress = { it.toNumeric().mkNarrow(ULong.SIZE_BITS, signed = false) }
     )
     object CastToFloat : IlUnaryOperator(
         onBv = { mkBvToFpExpr(fp32Sort, fpRoundingModeSortDefaultValue(), it , signed = true) },
@@ -73,6 +81,7 @@ sealed class IlUnaryOperator(
             is UBvSort -> expr.ilctx.onBv(expr.cast())
             is UFpSort -> expr.ilctx.onFp(expr.cast())
             is UBoolSort -> expr.ilctx.onBool(expr.cast())
+            is UAddressSort -> expr.ilctx.onAddress(expr.cast())
             else -> error("IlUnaryOperator: unexpected sort sort ${expr.sort}")
         }
 

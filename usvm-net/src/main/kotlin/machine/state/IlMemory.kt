@@ -1,5 +1,8 @@
 package org.usvm.machine.state
 
+import io.ksmt.expr.KBitVec32Value
+import io.ksmt.expr.KBitVecNumberValue
+import io.ksmt.expr.KBitVecValue
 import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlMethod
@@ -146,9 +149,10 @@ private data class AffectedRegister<Sort : USort>(
 
 }
 
+
 private class UnsafeKeysResolver {
     // TODO possible index out of bounds because of extra + 1
-    fun <Sort: USort> getAffectedIndices(
+    fun <Sort : USort> getAffectedIndices(
         arrayRef: UHeapRef,
         elementType: IlType,
         elemSort: Sort,
@@ -157,17 +161,23 @@ private class UnsafeKeysResolver {
     ): List<AffectedKey<IlType, Sort>> {
         val viewSize = sightType.size
         val elementSize = elementType.size
+        val concreteOffset = offset as? KBitVec32Value
         val countToRead =
-            if (viewSize == 1) {
-                // it is not possible to affect 2 elements
-                // +1 because of offset can point to middle of element
-                viewSize / elementSize + 1
+            if (concreteOffset != null) {
+                val offsetInsideElement = concreteOffset.intValue % elementSize
+                val finalByte = concreteOffset.intValue + viewSize
+                if (finalByte % elementSize == 0 && offsetInsideElement == 0) viewSize / elementSize
+                else {
+                    // it is possible to affect 2 elements
+                    // consider case when we write short value in integer array with offset 3
+                    // or writing 20 byte struct in long array with offset 6
+                    // extra +1 because of this case. if it is no the case, it will be translated to empty slice
+                    viewSize / elementSize + 1 + if (viewSize % elementSize > 1) 1 else 0
+                }
             } else {
-                // it is possible to affect 2 elements
-                // consider case when we write short value in integer array with offset 3
-                // extra +1 because of this case. if it is no the case, it will be translated to empty slice
-                viewSize / elementSize + 2
+                viewSize / elementSize + 1 + if (viewSize % elementSize > 1) 1 else 0
             }
+
 
         // TODO check bounds, check if simplify current offset will improve perfomance
         return with(offset.ctx) {

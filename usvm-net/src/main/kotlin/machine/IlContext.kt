@@ -10,6 +10,7 @@ import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
 import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
 import org.jacodb.api.net.publication.IlPredefinedAsmExt.mscorelib
 import org.usvm.*
+import org.usvm.machine.state.IlHeapLocation
 import org.usvm.machine.state.IlLocation
 import org.usvm.memory.ULValue
 
@@ -61,6 +62,11 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
         sightType: IlType
     ): IlPtr<Sort> = IlPtr(this, base, offset, sightType)
 
+    fun mkDetachedPtr(offset: UExpr<UBvSort>, sightType: IlType): IlPtr<UAddressSort> {
+        val location = IlHeapLocation(nullRef, addressSort, sightType, isArray = false)
+        return IlPtr(this, location, offset, sightType)
+    }
+
     val syntheticTypeField : IlField by lazy {
         val dto = IlFieldDto(
             fieldType = TypeId(asmName = mscorelib, typeName = "Type", typeArgs = emptyList()),
@@ -76,13 +82,13 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     fun typeToSort(type: IlType): USort {
         // TODO unsigned
-        return when (type) {
-            boolType -> boolSort
-            charType -> charSort
+        return when (type.fullname) {
+            boolType.fullname -> boolSort
+            charType.fullname -> charSort
 //            int8Type -> byteSort
-            int16Type -> int16sort
-            int32Type -> sizeSort
-            int64Type -> int64sort
+            int16Type.fullname -> int16sort
+            int32Type.fullname -> sizeSort
+            int64Type.fullname -> int64sort
             else -> addressSort
         }
     }
@@ -112,6 +118,11 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     fun isPrimitiveType(type: IlType): Boolean =
         type == uint8Type || type == int32Type || type == int64Type || type == charType || type == boolType
 
+    fun UExpr<UAddressSort>.toNumeric() : UExpr<UBvSort> =
+        when (this) {
+            is IlPtr<*> -> this.toNumeric()
+            else -> error("can not convert $this to numeric")
+        }
 }
 
 private val SYSTEM_PREFIX = "System."

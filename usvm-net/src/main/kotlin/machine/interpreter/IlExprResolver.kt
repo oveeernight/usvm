@@ -340,7 +340,7 @@ class IlExprResolver(
 
     override fun visitIlNewArrayExpr(expr: IlNewArrayExpr): UExpr<out USort>? = scope.calcOnState {
         val arrayType = expr.elementType
-        val size = expr.size.accept(this@IlExprResolver)?.asExpr(ctx.sizeSort) ?: return@calcOnState null
+        val size = resolve(expr.size)?.asExpr(ctx.sizeSort) ?: return@calcOnState null
         memory.allocateArray(arrayType, ctx.sizeSort, size)
     }
 

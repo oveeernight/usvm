@@ -61,6 +61,43 @@ public class Unsafe
         return 0;
     }
 
+
+    [SvmTest(90)]
+    public unsafe int DetachedPtr()
+    {
+        var array = new int[4];
+        fixed (int* ptr = &array[0])
+        {
+            *ptr = 10;
+        }
+
+        if (array[0] != 10)
+        {
+            return -1;
+        }
+        
+        return 0;
+    }
+    
+    [SvmTest(94)]
+    public unsafe int ConcreteArrayUnsafe1()
+    {
+        var array = new int[4];
+        array[0] = 1;
+        array[1] = 2;
+        array[2] = 3;
+        array[3] = 4;
+        fixed (int* ptr = &array[0])
+        {
+            *ptr = 10;
+            if (array[0] != 10)
+            {
+                return -1;
+            }
+        
+            return 0;
+        }
+    }
     public unsafe int RefField(MyClass o)
     {
         fixed (int* r = &o.x)
