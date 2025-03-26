@@ -369,7 +369,12 @@ class IlExprResolver(
     }
 
     override fun visitIlUnmanagedDerefExpr(expr: IlUnmanagedDerefExpr): UExpr<out USort>? {
-        TODO("Not yet implemented")
+        // visitAssignStmt catches cases when managed deref is a key, here it is a value
+        val ptr = resolve(expr.value)
+        ptr as IlPtr<*>
+        return scope.calcOnState {
+            memory.readUnsafe(ptr)
+        }
     }
 
     override fun visitIlUnmanagedRefExpr(expr: IlUnmanagedRefExpr): UExpr<out USort>? {

@@ -2,23 +2,36 @@ namespace samples;
 
 public class Unsafe
 {
-    // [SvmTest(90)]
-    // public int ConcreteUnsafe1()
-    // {
-    //     var a = 20;
-    //     var b = 10;
-    //     unsafe
-    //     {
-    //         *&a = *&b;
-    //     }
-    //
-    //     if (a != 10)
-    //     {
-    //         return -1;
-    //     }    
-    //
-    //     return 0;
-    // }
+    [SvmTest(88)]
+    public int ConcreteUnsafe1()
+    {
+        var a = 20;
+        var b = 10;
+        unsafe
+        {
+            *&a = *&b;
+        }
+    
+        if (a != 10)
+        {
+            return -1;
+        }    
+    
+        return 0;
+    }
+
+    [SvmTest(81)]
+    public unsafe int ManagedRef(int a)
+    {
+        var ptr = &a;
+        *ptr = 442;
+        if (a != 442)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
     
     [SvmTest(88)]
     public unsafe int StackUnsafe1(int a, int i)

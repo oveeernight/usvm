@@ -6,6 +6,10 @@ import kotlin.test.Test
 class Unsafe : IlMethodTestRunner() {
 
     @Test
+    fun managedRef() {
+        runner(::managedRef, options)
+    }
+    @Test
     fun concreteUnsafe1() {
         runner(::concreteUnsafe1, options)
     }

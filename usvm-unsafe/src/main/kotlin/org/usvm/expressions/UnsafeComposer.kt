@@ -35,10 +35,9 @@ open class UnsafeComposer<Type, USizeSort : USort>(
     }
 
     override fun <Sort : USort> transform(combine: Combine<Sort>): UExpr<Sort> {
-        val cuts = combine.slices.map { slice -> transform(slice) }
-        val sort = combine.sort
+        val slices = combine.slices.map { slice -> transform(slice) }.filter { it.cuts.size > 0}
         require(combine.sort is UBvSort)
-        val composedCombine = Combine(ctx, cuts, combine.sort, combine.sightType)
+        val composedCombine = Combine(ctx, slices, combine.sort, combine.sightType)
         val translator = UnsafeTranslator<IlType, USizeSort>(ctx)
         val combineAsBv = translator.transform(composedCombine)
         return combineAsBv.cast()
