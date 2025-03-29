@@ -37,4 +37,13 @@ class Unsafe : IlMethodTestRunner() {
     fun concreteArrayUnsafe1() {
         runner(::concreteArrayUnsafe1, options)
     }
+    @Test
+    fun concreteArrayUnsafe2() {
+        runner(::concreteArrayUnsafe2, options)
+    }
+
+    @Test
+    fun symbolicArrayUnsafe1() {
+        runner(::symbolicArrayUnsafe1, options)
+    }
 }

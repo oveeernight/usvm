@@ -98,6 +98,42 @@ public class Unsafe
             return 0;
         }
     }
+
+    [SvmTest(93)]
+    public unsafe int ConcreteArrayUnsafe2()
+    {
+        var array = new int[4];
+        fixed (int* ptr = &array[0])
+        {
+            var casted = (byte*)ptr;
+            var shifted = (int*)(casted + 3);
+            *shifted = 322;
+            if (array[0] != 1107296256 || array[1] != 1)
+            {
+                return -1;
+            }
+            return 0;
+        }
+    }
+    
+    [SvmTest(94)]
+    public unsafe int SymbolicArrayUnsafe1(int i)
+    {
+        var array = new int[4];
+        fixed (int* ptr = &array[0])
+        {
+            var casted = (byte*)ptr;
+            var shifted = (int*)(casted + i);
+            *shifted = 322;
+            if (array[0] == 1107296256 && array[1] == 1 && i != 3)
+            {
+                return -1;
+            }
+            return 0;
+        }
+    }
+    
+    
     public unsafe int RefField(MyClass o)
     {
         fixed (int* r = &o.x)

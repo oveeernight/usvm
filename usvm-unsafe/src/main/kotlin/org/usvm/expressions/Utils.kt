@@ -14,14 +14,14 @@ fun <T, R> Collection<T>.mapToLinkedList(transform: (T) -> R): LinkedList<R> {
     return list
 }
 
-fun <Sort: USort> UContext<*>.mkSlice(expr: UExpr<Sort>, exprType: IlType, cuts: LinkedList<Cut>) = Slice(this, expr, exprType, cuts)
+fun <Sort: USort> UContext<*>.mkSlice(expr: UExpr<Sort>, exprType: IlType, cuts: LinkedList<Cut>) = Slice(this, expr, exprType, cuts).simplify()
 fun <Sort: USort> UContext<*>.addCut(slice: Slice<Sort>, cut: Cut) : Slice<Sort> {
     val list = slice.cuts.mapToLinkedList { it }
     list.add(cut)
     return Slice(this, slice.expr, slice.exprType, list).simplify()
 }
 fun <Sort: USort> UContext<*>.mkCombine(slices: List<Slice<out USort>>, sort: Sort, sightType: IlType) =
-    Combine(this, slices, sort, sightType)
+    Combine(this, slices.filter { it.cuts.size > 0 }, sort, sightType)
 
 
 private fun <Sort: USort> Slice<Sort>.simplify() : Slice<Sort> {

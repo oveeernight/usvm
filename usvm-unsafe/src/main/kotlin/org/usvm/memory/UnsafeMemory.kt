@@ -12,7 +12,7 @@ import org.usvm.constraints.UTypeConstraints
 import org.usvm.UIndexedMocker
 
 interface AffectedKey<Type, Sort: USort> {
-    val key: ULValue<*, Sort>
+    val key: ULValue<*, *>
     val start: UExpr<UBvSort>
     val end: UExpr<UBvSort>
     fun read(memory: UnsafeMemory<Type, *>): List<UExpr<out USort>>

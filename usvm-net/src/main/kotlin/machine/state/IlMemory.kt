@@ -1,8 +1,6 @@
 package org.usvm.machine.state
 
 import io.ksmt.expr.KBitVec32Value
-import io.ksmt.expr.KBitVecNumberValue
-import io.ksmt.expr.KBitVecValue
 import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlMethod

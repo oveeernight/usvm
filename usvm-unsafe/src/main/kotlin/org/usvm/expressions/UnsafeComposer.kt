@@ -9,10 +9,7 @@ import org.usvm.USort
 import org.usvm.UExpr
 import org.usvm.isTrue
 import org.usvm.collections.immutable.internal.MutabilityOwnership
-import org.usvm.expressions.Combine
-import org.usvm.expressions.Cut
-import org.usvm.expressions.Slice
-import org.usvm.expressions.mapToLinkedList
+import org.usvm.expressions.*
 import org.usvm.memory.UReadOnlyMemory
 
 open class UnsafeComposer<Type, USizeSort : USort>(
@@ -31,7 +28,7 @@ open class UnsafeComposer<Type, USizeSort : USort>(
             } else null
         }.mapToLinkedList { it }
 
-        return Slice(ctx, expr, slice.exprType, cuts)
+        return ctx.mkSlice(expr, slice.exprType, cuts)
     }
 
     override fun <Sort : USort> transform(combine: Combine<Sort>): UExpr<Sort> {

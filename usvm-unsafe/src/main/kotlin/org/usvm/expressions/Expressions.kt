@@ -31,7 +31,7 @@ data class Cut(
     }
 }
 
-class Slice<Sort : USort>(
+class Slice<Sort : USort> internal constructor(
     ctx: UContext<*>,
     val expr: UExpr<Sort>,
     val exprType: IlType,
