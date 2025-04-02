@@ -248,7 +248,7 @@ class IlExprResolver(
         resolveAfterResolved(expr.operand) { operand ->
             if (isPtrType(expectedType)) {
                 when (operand) {
-                    is IlPtr<*> -> ctx.mkPtr(operand.location, operand.offset, expectedType)
+                    is IlPtr<*> -> ctx.mkPtr(operand.base, operand.offset, expectedType)
                     is IlManagedRef<*, *> -> {
                         val (base, offset) = operand.toBaseAndOffset()
                         offset as UExpr<UBvSort>

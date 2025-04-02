@@ -10,8 +10,6 @@ import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
 import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
 import org.jacodb.api.net.publication.IlPredefinedAsmExt.mscorelib
 import org.usvm.*
-import org.usvm.machine.state.IlHeapLocation
-import org.usvm.machine.state.IlLocation
 import org.usvm.memory.ULValue
 
 typealias USizeSort = UBv32Sort
@@ -57,15 +55,15 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
         IlManagedRef(this, type, key)
 
     fun <Sort : USort> mkPtr(
-        base: IlLocation<Sort>,
+        base: ULValue<*, Sort>,
         offset: UExpr<UBvSort>,
         sightType: IlType
     ): IlPtr<Sort> = IlPtr(this, base, offset, sightType)
 
-    fun mkDetachedPtr(offset: UExpr<UBvSort>, sightType: IlType): IlPtr<UAddressSort> {
-        val location = IlHeapLocation(nullRef, addressSort, sightType, isArray = false)
-        return IlPtr(this, location, offset, sightType)
-    }
+//    fun mkDetachedPtr(offset: UExpr<UBvSort>, sightType: IlType): IlPtr<UAddressSort> {
+//        val location = IlHeapLocation(nullRef, addressSort, sightType, isArray = false)
+//        return IlPtr(this, location, offset, sightType)
+//    }
 
     val syntheticTypeField : IlField by lazy {
         val dto = IlFieldDto(

@@ -11,23 +11,16 @@ import org.usvm.collections.immutable.persistentHashMapOf
 import org.usvm.constraints.UTypeConstraints
 import org.usvm.UIndexedMocker
 
-interface AffectedKey<Type, Sort: USort> {
-    val key: ULValue<*, *>
+interface AffectedValue<Type, Sort: USort> {
+    val value: UExpr<out USort>
+    val valueType: Type
     val start: UExpr<UBvSort>
     val end: UExpr<UBvSort>
-    fun read(memory: UnsafeMemory<Type, *>): List<UExpr<out USort>>
-    fun write(memory: UnsafeMemory<Type, *>, value: UExpr<out USort>, valueType: Type)
 }
 
-
-interface ULocation<Sort: USort, Type> {
-    val sort: Sort
-    val type: Type
-    fun affectedKeys(offset: UExpr<UBvSort>, viewType: Type): List<AffectedKey<Type, out USort>>
-}
 
 interface UnsafeLValue<Sort: USort, Type> {
-    val location: ULocation<Sort, Type>
+    val base: ULValue<*, *>
     val offset: UExpr<UBvSort>
     val sightType: Type
 }

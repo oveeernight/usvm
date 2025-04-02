@@ -4,6 +4,7 @@ import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlMethodImpl
+import org.usvm.UCallStack
 import org.usvm.UExpr
 import org.usvm.USort
 import org.usvm.UStackTraceFrame
@@ -28,6 +29,22 @@ fun IlState.returnValue(value: UExpr<out USort>) {
 fun IlMethod.localsCount() : Int {
     this as IlMethodImpl
     return locals.size + temps.size + errs.size
+}
+
+fun IlMethod.typeOfRegister(reg: Int) : IlType {
+    this as IlMethodImpl
+    val paramsCount = parameters.size
+    val localsCount = locals.size
+    val tempsCount = temps.size
+    val errsCount = errs.size
+    return when {
+        reg < paramsCount -> parameters[reg].type
+        reg < paramsCount + localsCount -> locals[reg - paramsCount].type
+        reg < paramsCount + localsCount + tempsCount -> temps[reg - paramsCount - localsCount].type
+        reg < paramsCount + localsCount + tempsCount + errsCount -> errs[reg - paramsCount - localsCount - tempsCount].type
+        else -> error("Unexpected reg $reg")
+    }
+
 }
 
 fun IlState.throwException(type: IlType, frame: UStackTraceFrame<IlMethod, IlStmt>) {

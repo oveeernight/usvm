@@ -46,4 +46,9 @@ class Unsafe : IlMethodTestRunner() {
     fun symbolicArrayUnsafe1() {
         runner(::symbolicArrayUnsafe1, options)
     }
+
+    @Test
+    fun writeStructConcrete() {
+        runner(::writeStructConcrete, options)
+    }
 }
