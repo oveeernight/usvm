@@ -7,9 +7,12 @@ import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
+import org.jacodb.api.net.ilinstances.impl.IlStructType
 import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
 import org.jacodb.api.net.publication.IlPredefinedAsmExt.mscorelib
 import org.usvm.*
+import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
+import org.usvm.collections.immutable.persistentHashMapOf
 import org.usvm.memory.ULValue
 
 typealias USizeSort = UBv32Sort
@@ -42,6 +45,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val floatSort = fp32Sort
     val doubleSort = fp64Sort
     val voidSort by lazy { VoidSort(this) }
+    val structSort by lazy { StructSort(this) }
     val sizeSort = bv32Sort
 
     val byteBitSize = 8u
@@ -51,14 +55,26 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     val void by lazy { VoidValue(this) }
 
-    fun <Key, Sort: USort> mkManagedRef(key: ULValue<Key, Sort>, type: IlType) : IlManagedRef<Key, Sort> =
-        IlManagedRef(this, type, key)
+//    fun <Key, Sort: USort> mkManagedRef(key: ULValue<Key, Sort>, type: IlType) : IlManagedHeapRef<Key, Sort> =
+//        IlManagedHeapRef(this, type, key)
 
     fun <Sort : USort> mkPtr(
         base: ULValue<*, Sort>,
         offset: UExpr<UBvSort>,
         sightType: IlType
     ): IlPtr<Sort> = IlPtr(this, base, offset, sightType)
+
+    fun mkStruct(type: IlType, fields: UPersistentHashMap<IlField, UExpr<out USort>> = persistentHashMapOf()) : IlStruct {
+        val declaredFields = type.fields
+        var populated = fields
+        val notSetFields = declaredFields.filter { !fields.containsKey(it) }
+        notSetFields.forEach { field ->
+            val sort = typeToSort(field.fieldType)
+            val defaultValue = sort.sampleUValue()
+            populated = populated.put(field, defaultValue, defaultOwnership)
+        }
+        return IlStruct(this, type, populated)
+    }
 
 //    fun mkDetachedPtr(offset: UExpr<UBvSort>, sightType: IlType): IlPtr<UAddressSort> {
 //        val location = IlHeapLocation(nullRef, addressSort, sightType, isArray = false)
@@ -80,6 +96,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     fun typeToSort(type: IlType): USort {
         // TODO unsigned
+        if (type is IlStructType) return structSort
         return when (type.fullname) {
             boolType.fullname -> boolSort
             charType.fullname -> charSort

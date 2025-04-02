@@ -7,16 +7,19 @@ import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.jacodb.api.net.ilinstances.impl.IlPointerType
 import org.jacodb.api.net.ilinstances.impl.IlPrimitiveType
+import org.jacodb.api.net.ilinstances.impl.IlStructType
 import org.usvm.*
 import org.usvm.api.allocateArray
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.*
+import org.usvm.machine.state.StructFieldLValue
 import org.usvm.machine.state.insertConcreteCallStmt
 import org.usvm.machine.state.throwException
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
+import org.usvm.memory.URegistersStack
 
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
 class IlExprResolver(
@@ -76,6 +79,7 @@ class IlExprResolver(
             is IlFieldAccess -> fieldAccessToLValue(expr)
             is IlLocal -> localVarToLValue(expr)
             is IlManagedRefExpr -> resolveLValue(expr.value)
+            is IlManagedDerefExpr -> resolveLValue(expr.value)
             else -> error("resolveULValue: unexpected expr $expr")
         }
     }
@@ -109,13 +113,18 @@ class IlExprResolver(
         lvalue
     }
 
-    private fun fieldAccessToLValue(expr: IlFieldAccess): UFieldLValue<*, *>? {
+    private fun fieldAccessToLValue(expr: IlFieldAccess): ULValue<*, *>? {
         val fieldIsStatic = expr.instance == null
         val field = expr.field
-        if (!fieldIsStatic) {
-            val instance = resolve(expr.instance!!)?.asExpr(ctx.addressSort) ?: return null
-            checkNullPointer(instance)
-            return UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
+        if (field.declaringType is IlStructType) {
+            val structLocation = resolveLValue(expr.instance!!) ?: return null
+            return StructFieldLValue(ctx.typeToSort(field.fieldType), structLocation.cast(), field)
+        } else {
+            if (!fieldIsStatic) {
+                val instance = resolve(expr.instance!!)?.asExpr(ctx.addressSort) ?: return null
+                checkNullPointer(instance)
+                return UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
+            }
         }
         TODO("static fields")
     }
@@ -251,6 +260,7 @@ class IlExprResolver(
                     is IlPtr<*> -> ctx.mkPtr(operand.base, operand.offset, expectedType)
                     is IlManagedRef<*, *> -> {
                         val (base, offset) = operand.toBaseAndOffset()
+                        base as ULValue<*, *>
                         offset as UExpr<UBvSort>
                         ctx.mkPtr(base, offset, expectedType)
                     }
@@ -262,6 +272,9 @@ class IlExprResolver(
                     is IlPrimitiveType -> resolvePrimitiveCast(operand, currType, expectedType)
                     else -> {
                         val e = operand.asExpr(ctx.addressSort)
+                        if (e == ctx.nullRef) {
+                            return@calcOnState e
+                        }
                         if (!ctx.typeSystem<IlType>().isSupertype(supertype = expectedType, type = currType)) {
                             checkClassCast(e, expectedType)
                         }
@@ -297,7 +310,7 @@ class IlExprResolver(
         }
     }
 
-    fun checkClassCast(ref: UHeapRef, type: IlType) = scope.calcOnState {
+    private fun checkClassCast(ref: UHeapRef, type: IlType) = scope.calcOnState {
         val isSubtype = memory.types.evalIsSubtype(ref, type)
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
@@ -321,17 +334,23 @@ class IlExprResolver(
     }
 
     override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {
-        val ptr = resolve(expr.value) ?: return null
-        ptr as IlPtr<*>
+        val ref = resolve(expr.value) ?: return null
+        ref as IlManagedRef<*, *>
         return scope.calcOnState {
-            memory.readUnsafe(ptr)
+            ref.read(memory)
         }
     }
 
-    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): UExpr<out USort>? {
+    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): IlManagedRef<*, out USort>? {
         val key = resolveLValue(expr.value) ?: return null
         val type = expr.value.type
-        return IlManagedRef(ctx, type, key)
+        return if (key is URegisterStackLValue<*>) {
+            val frameIdx = scope.calcOnState { callStack.size - 1 }
+            IlManagedStackRef(ctx, type, key, frameIdx)
+
+        } else {
+            IlManagedHeapRef(ctx, type, key)
+        }
     }
 
     override fun visitIlMethodRefConst(const: IlMethodRef): UExpr<out USort>? {
@@ -345,7 +364,11 @@ class IlExprResolver(
     }
 
     override fun visitIlNewExpr(expr: IlNewExpr): UExpr<out USort> = scope.calcOnState {
-        memory.allocConcrete(expr.type)
+        if (expr.type is IlStructType) {
+            ctx.mkStruct(expr.type)
+        } else {
+            memory.allocConcrete(expr.type)
+        }
     }
 
     override fun visitIlSizeOfExpr(expr: IlSizeOfExpr): UExpr<out USort>? {

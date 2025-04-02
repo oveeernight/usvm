@@ -7,12 +7,15 @@ import io.ksmt.expr.*
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
 import io.ksmt.sort.KSortVisitor
+import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
+import org.usvm.collections.immutable.internal.MutabilityOwnership
+import org.usvm.machine.state.IlMemory
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
 import org.usvm.memory.UnsafeLValue
@@ -36,7 +39,7 @@ class StructSort(ctx: IlContext) : USort(ctx) {
 }
 
 class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
-    override val sort: USort = VoidSort(ctx)
+    override val sort: USort = ctx.voidSort
 
     override fun accept(transformer: KTransformerBase): VoidValue = this
 
@@ -49,8 +52,13 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     }
 }
 
-class IlStruct(ctx: IlContext, val fields: UPersistentHashMap<IlField, UExpr<out USort>>): UExpr<StructSort>(ctx) {
-    override val sort: StructSort = StructSort(ctx)
+class IlStruct(ctx: IlContext, val type: IlType, val fields: UPersistentHashMap<IlField, UExpr<out USort>>): UExpr<StructSort>(ctx) {
+    override val sort: StructSort = ctx.structSort
+
+    fun writeField(field: IlField, value: UExpr<out USort>, ownership: MutabilityOwnership) : IlStruct {
+        val updatedFields = fields.put(field, value, ownership)
+        return value.ilctx.mkStruct(type, updatedFields)
+    }
 
     override fun accept(transformer: KTransformerBase): KExpr<StructSort> {
         TODO("Not yet implemented")
@@ -70,36 +78,49 @@ class IlStruct(ctx: IlContext, val fields: UPersistentHashMap<IlField, UExpr<out
 
 }
 
+abstract class IlManagedRef<Key, Sort: USort>(ctx: IlContext) : UExpr<UAddressSort>(ctx) {
+    override val sort: UAddressSort
+        get() = uctx.addressSort
+    abstract val type: IlType
+    abstract val memoryKey: Key
+    abstract fun toBaseAndOffset() : Pair<Key, UExpr<USizeSort>>
+    abstract fun read(memory: IlMemory) : UExpr<Sort>
+    abstract fun write(memory: IlMemory, value: UExpr<out USort>)
+}
 
-class IlManagedRef<Key, Sort : USort>(ctx: IlContext, val type: IlType, val memoryKey: ULValue<Key, Sort>) : UExpr<UAddressSort>(ctx) {
-    override val sort: UAddressSort get() = uctx.addressSort
+class IlManagedHeapRef<Sort : USort>(
+    ctx: IlContext,
+    override val type: IlType,
+    override val memoryKey: ULValue<*, Sort>
+) : IlManagedRef<ULValue<*, Sort>, Sort>(ctx) {
     override fun accept(transformer: KTransformerBase): KExpr<UAddressSort> {
         require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
         return transformer.transform(this)
     }
     @Suppress("UNCHECKED_CAST")
-    fun toBaseAndOffset() : Pair<ULValue<*, *>, UExpr<USizeSort>> =
+    override fun toBaseAndOffset() : Pair<ULValue<*, Sort>, UExpr<USizeSort>> =
         with(sort.ilctx) {
             when (memoryKey) {
                 is UArrayIndexLValue<*, *, *> -> {
                     val elemType = memoryKey.arrayType as IlType
                     val elemSize = mkSizeExpr(elemType.size)
                     val idx = memoryKey.index as UExpr<USizeSort>
-                    val offset = mkBvMulExpr(idx, elemSize)
+                    val offset : UExpr<USizeSort> = mkBvMulExpr(idx, elemSize)
                     memoryKey to offset
                 }
                 is UFieldLValue<*, *> -> {
                     val field = memoryKey.field as IlField
-                    val offset = mkSizeExpr(field.offset)
+                    val offset : UExpr<USizeSort> = mkSizeExpr(field.offset)
                     memoryKey to offset
                 }
 
-                is URegisterStackLValue<*> -> {
-                    memoryKey to mkSizeExpr(0)
-                }
                 else -> error("Unsupported memory key: $memoryKey")
             }
-        }
+        }.cast()
+
+    override fun read(memory: IlMemory): UExpr<Sort> = memory.read(memoryKey)
+
+    override fun write(memory: IlMemory, value: UExpr<out USort>) = memory.write(memoryKey, value)
 
     override fun internEquals(other: Any): Boolean = structurallyEqual(other)
 
@@ -108,6 +129,42 @@ class IlManagedRef<Key, Sort : USort>(ctx: IlContext, val type: IlType, val memo
     override fun print(printer: ExpressionPrinter) {
         TODO("Not yet implemented")
     }
+}
+
+class IlManagedStackRef<Sort : USort>(
+    ctx: IlContext,
+    override val type: IlType,
+    override val memoryKey: URegisterStackLValue<Sort>,
+    private val frameIdx: Int
+) : IlManagedRef<URegisterStackLValue<Sort>, Sort>(ctx) {
+    override val sort: UAddressSort
+        get() = uctx.addressSort
+
+    override fun accept(transformer: KTransformerBase): KExpr<UAddressSort> {
+        TODO("Not yet implemented")
+    }
+
+    override fun internEquals(other: Any): Boolean = structurallyEqual(other)
+
+    override fun internHashCode(): Int = hash()
+
+    override fun print(printer: ExpressionPrinter) {
+        TODO("Not yet implemented")
+    }
+
+    override fun toBaseAndOffset(): Pair<URegisterStackLValue<Sort>, UExpr<USizeSort>> {
+        val offset = ilctx.mkSizeExpr(0)
+        return (memoryKey to offset)
+    }
+
+    override fun read(memory: IlMemory): UExpr<Sort> {
+        return memory.stack.readFrame(frameIdx, memoryKey.idx, memoryKey.sort)
+    }
+
+    override fun write(memory: IlMemory, value: UExpr<out USort>) {
+        memory.stack.writeFrame(frameIdx, memoryKey.idx, value)
+    }
+
 }
 
 

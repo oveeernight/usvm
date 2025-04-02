@@ -27,15 +27,15 @@ import kotlin.math.max
 // TODO get rid of isArray
 
 
-
-
-class StructFieldLValue<Sort: USort> : ULValue<StructFieldLValue<Sort>, Sort> {
-    override val sort: Sort
-        get() = TODO("Not yet implemented")
-    override val memoryRegionId: UMemoryRegionId<StructFieldLValue<Sort>, Sort>
-        get() = TODO("Not yet implemented")
-    override val key: StructFieldLValue<Sort>
-        get() = TODO("Not yet implemented")
+class StructFieldLValue<Sort : USort>(
+    override val sort: Sort,
+    val structLocation: ULValue<*, StructSort>,
+    val field: IlField
+) : ULValue<ULValue<*, StructSort>, Sort> {
+    override val memoryRegionId: UMemoryRegionId<ULValue<*, StructSort>, Sort>
+        get() = structLocation.memoryRegionId.cast()
+    override val key: ULValue<*, StructSort>
+        get() = structLocation
 }
 
 class IlMemory(
@@ -47,6 +47,24 @@ class IlMemory(
     mocks: UIndexedMocker<IlMethod> = UIndexedMocker(),
     regions: UPersistentHashMap<UMemoryRegionId<*, *>, UMemoryRegion<*, *>> = persistentHashMapOf()
 ) : UnsafeMemory<IlType, IlMethod>(ctx, ownership, types, stack, mocks, regions) {
+    override fun <Key, Sort : USort> read(lvalue: ULValue<Key, Sort>): UExpr<Sort> {
+        if (lvalue is StructFieldLValue<*>) {
+            val location = lvalue.structLocation
+            val struct = super.read(location) as IlStruct
+            return struct.fields[lvalue.field].cast()
+        }
+        return super.read(lvalue)
+    }
+
+    override fun <Key, Sort : USort> write(lvalue: ULValue<Key, Sort>, rvalue: UExpr<Sort>, guard: UBoolExpr) {
+        if (lvalue is StructFieldLValue<*>) {
+            val oldStruct = read(lvalue.structLocation) as IlStruct
+            val updated : UExpr<out USort> = oldStruct.writeField(lvalue.field, rvalue, ownership)
+            write(lvalue.structLocation, updated.cast(), guard)
+            return
+        }
+        return super.write(lvalue, rvalue, guard)
+    }
     override fun readUnsafe(lvalue: UnsafeLValue<out USort, IlType>): UExpr<out USort> {
         lvalue as IlPtr<*>
         return when (val base = lvalue.base) {

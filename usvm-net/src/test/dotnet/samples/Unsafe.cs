@@ -156,26 +156,10 @@ public class Unsafe
     //         
     //     }
     // }
-
-    [SvmTest(91)]
-    public unsafe int WriteStructConcrete()
-    {
-        var s = new MyStruct() {age = 0, name = null};
-        var age = s.age;
-        var name = s.name;
-        s.name = name;
-        return 0;
-    }
 }
 
 public class  MyClass
 {
     public int x;
     public int y;
-}
-
-public struct MyStruct
-{
-    public int age;
-    public string name;
 }

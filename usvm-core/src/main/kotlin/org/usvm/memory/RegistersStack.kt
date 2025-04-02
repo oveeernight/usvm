@@ -66,6 +66,15 @@ class URegistersStack(
         frames.last()[index] = value
     }
 
+    fun writeFrame(frameIndex: Int, regIndex: Int, value: UExpr<out USort>) {
+        frames[frameIndex][regIndex] = value
+    }
+
+    fun <Sort: USort> readFrame(frameIndex: Int, regIndex: Int, sort: Sort) : UExpr<Sort> {
+        return frames[frameIndex].read(regIndex, sort)
+    }
+
+
     fun pop() = frames.removeLast()
 
     fun clone(): URegistersStack {
