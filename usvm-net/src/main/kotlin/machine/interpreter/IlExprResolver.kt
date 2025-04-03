@@ -19,7 +19,6 @@ import org.usvm.machine.state.insertConcreteCallStmt
 import org.usvm.machine.state.throwException
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
-import org.usvm.memory.URegistersStack
 
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
 class IlExprResolver(
@@ -258,9 +257,8 @@ class IlExprResolver(
             if (isPtrType(expectedType)) {
                 when (operand) {
                     is IlPtr<*> -> ctx.mkPtr(operand.base, operand.offset, expectedType)
-                    is IlManagedRef<*, *> -> {
+                    is IlManagedRef<*> -> {
                         val (base, offset) = operand.toBaseAndOffset()
-                        base as ULValue<*, *>
                         offset as UExpr<UBvSort>
                         ctx.mkPtr(base, offset, expectedType)
                     }
@@ -335,21 +333,25 @@ class IlExprResolver(
 
     override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {
         val ref = resolve(expr.value) ?: return null
-        ref as IlManagedRef<*, *>
+        ref as IlManagedRef<*>
         return scope.calcOnState {
-            ref.read(memory)
+            memory.read(ref)
         }
     }
 
-    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): IlManagedRef<*, out USort>? {
+    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): IlManagedRef<out USort>? {
         val key = resolveLValue(expr.value) ?: return null
         val type = expr.value.type
-        return if (key is URegisterStackLValue<*>) {
-            val frameIdx = scope.calcOnState { callStack.size - 1 }
-            IlManagedStackRef(ctx, type, key, frameIdx)
-
-        } else {
-            IlManagedHeapRef(ctx, type, key)
+        return when {
+            key is URegisterStackLValue<*> -> {
+                val frameIdx = scope.calcOnState { callStack.size - 1 }
+                IlManagedStackRef(ctx, type, key, frameIdx)
+            }
+            key is StructFieldLValue<*> && key.structLocation is URegisterStackLValue<*> -> {
+                val frameIdx = scope.calcOnState { callStack.size - 1 }
+                IlManagedStackRef(ctx, type, key, frameIdx)
+            }
+        else -> IlManagedHeapRef(ctx, type, key)
         }
     }
 

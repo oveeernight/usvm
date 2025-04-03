@@ -78,21 +78,19 @@ class IlStruct(ctx: IlContext, val type: IlType, val fields: UPersistentHashMap<
 
 }
 
-abstract class IlManagedRef<Key, Sort: USort>(ctx: IlContext) : UExpr<UAddressSort>(ctx) {
+abstract class IlManagedRef<Sort: USort>(ctx: IlContext) : UExpr<UAddressSort>(ctx) {
     override val sort: UAddressSort
         get() = uctx.addressSort
     abstract val type: IlType
-    abstract val memoryKey: Key
-    abstract fun toBaseAndOffset() : Pair<Key, UExpr<USizeSort>>
-    abstract fun read(memory: IlMemory) : UExpr<Sort>
-    abstract fun write(memory: IlMemory, value: UExpr<out USort>)
+    abstract val memoryKey: ULValue<*, Sort>
+    abstract fun toBaseAndOffset() : Pair<ULValue<*, Sort>, UExpr<USizeSort>>
 }
 
 class IlManagedHeapRef<Sort : USort>(
     ctx: IlContext,
     override val type: IlType,
     override val memoryKey: ULValue<*, Sort>
-) : IlManagedRef<ULValue<*, Sort>, Sort>(ctx) {
+) : IlManagedRef<Sort>(ctx) {
     override fun accept(transformer: KTransformerBase): KExpr<UAddressSort> {
         require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
         return transformer.transform(this)
@@ -118,10 +116,6 @@ class IlManagedHeapRef<Sort : USort>(
             }
         }.cast()
 
-    override fun read(memory: IlMemory): UExpr<Sort> = memory.read(memoryKey)
-
-    override fun write(memory: IlMemory, value: UExpr<out USort>) = memory.write(memoryKey, value)
-
     override fun internEquals(other: Any): Boolean = structurallyEqual(other)
 
     override fun internHashCode(): Int = hash()
@@ -134,9 +128,9 @@ class IlManagedHeapRef<Sort : USort>(
 class IlManagedStackRef<Sort : USort>(
     ctx: IlContext,
     override val type: IlType,
-    override val memoryKey: URegisterStackLValue<Sort>,
-    private val frameIdx: Int
-) : IlManagedRef<URegisterStackLValue<Sort>, Sort>(ctx) {
+    override val memoryKey: ULValue<*, Sort>,
+    val frameIdx: Int
+) : IlManagedRef<Sort>(ctx) {
     override val sort: UAddressSort
         get() = uctx.addressSort
 
@@ -152,19 +146,10 @@ class IlManagedStackRef<Sort : USort>(
         TODO("Not yet implemented")
     }
 
-    override fun toBaseAndOffset(): Pair<URegisterStackLValue<Sort>, UExpr<USizeSort>> {
+    override fun toBaseAndOffset(): Pair<ULValue<*, Sort>, UExpr<USizeSort>> {
         val offset = ilctx.mkSizeExpr(0)
         return (memoryKey to offset)
     }
-
-    override fun read(memory: IlMemory): UExpr<Sort> {
-        return memory.stack.readFrame(frameIdx, memoryKey.idx, memoryKey.sort)
-    }
-
-    override fun write(memory: IlMemory, value: UExpr<out USort>) {
-        memory.stack.writeFrame(frameIdx, memoryKey.idx, value)
-    }
-
 }
 
 

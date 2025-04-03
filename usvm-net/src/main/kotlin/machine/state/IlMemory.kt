@@ -47,21 +47,64 @@ class IlMemory(
     mocks: UIndexedMocker<IlMethod> = UIndexedMocker(),
     regions: UPersistentHashMap<UMemoryRegionId<*, *>, UMemoryRegion<*, *>> = persistentHashMapOf()
 ) : UnsafeMemory<IlType, IlMethod>(ctx, ownership, types, stack, mocks, regions) {
+    fun <Sort: USort> read(ref: IlManagedRef<Sort>) : UExpr<Sort> =
+        when (ref) {
+            is IlManagedHeapRef<Sort> -> read(ref.memoryKey)
+            is IlManagedStackRef<Sort> -> {
+                when (val key = ref.memoryKey) {
+                    is URegisterStackLValue<*> -> stack.readFrame(ref.frameIdx, key.idx, key.sort)
+                    is StructFieldLValue<*> -> {
+                        val struct = read(key.structLocation) as IlStruct
+                        struct.fields[key.field].cast()
+                    }
+                    else -> error("Unexpected managed stack ref base $key")
+                }
+            }
+            else -> error("unreachable")
+    }
+
+    fun write(ref: IlManagedRef<*>, value: UExpr<out USort>) =
+        when (ref) {
+            is IlManagedHeapRef<*> -> write(ref.memoryKey, value)
+            is IlManagedStackRef<*> -> {
+                when (val key = ref.memoryKey) {
+                    is URegisterStackLValue<*> -> stack.writeFrame(ref.frameIdx, key.idx, value)
+                    is StructFieldLValue<*> -> {
+                        val struct = read(key.structLocation) as IlStruct
+                        val newStruct = struct.writeField(key.field, value, ownership)
+                        write(key.structLocation, newStruct)
+                    }
+                    else -> error("Unexpected managed stack ref base $key")
+                }
+            }
+            else -> error("unreachable")
+        }
+
     override fun <Key, Sort : USort> read(lvalue: ULValue<Key, Sort>): UExpr<Sort> {
         if (lvalue is StructFieldLValue<*>) {
             val location = lvalue.structLocation
-            val struct = super.read(location) as IlStruct
-            return struct.fields[lvalue.field].cast()
+            val struct = super.read(location)
+            return when (struct) {
+                is IlManagedRef<*> -> read(struct)
+                is IlStruct -> struct.fields[lvalue.field]
+                else -> error("unexpected struct $struct")
+            }.cast()
         }
         return super.read(lvalue)
     }
 
     override fun <Key, Sort : USort> write(lvalue: ULValue<Key, Sort>, rvalue: UExpr<Sort>, guard: UBoolExpr) {
         if (lvalue is StructFieldLValue<*>) {
-            val oldStruct = read(lvalue.structLocation) as IlStruct
-            val updated : UExpr<out USort> = oldStruct.writeField(lvalue.field, rvalue, ownership)
-            write(lvalue.structLocation, updated.cast(), guard)
-            return
+            when (val oldStruct = read(lvalue.structLocation)) {
+                is IlManagedRef<*,> -> {
+                    write(oldStruct, rvalue)
+                }
+                is IlStruct -> {
+                    val newStruct = oldStruct.writeField(lvalue.field, rvalue, ownership)
+                    super.write(lvalue.structLocation, newStruct, guard)
+                }
+                else -> error("unexpected struct $oldStruct")
+            }
         }
         return super.write(lvalue, rvalue, guard)
     }
