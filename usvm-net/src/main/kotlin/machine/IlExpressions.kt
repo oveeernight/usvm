@@ -16,6 +16,7 @@ import org.usvm.collection.field.UFieldLValue
 import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.machine.state.IlMemory
+import org.usvm.machine.state.IlRegisterStackLValue
 import org.usvm.memory.ULValue
 import org.usvm.memory.URegisterStackLValue
 import org.usvm.memory.UnsafeLValue
@@ -78,25 +79,19 @@ class IlStruct(ctx: IlContext, val type: IlType, val fields: UPersistentHashMap<
 
 }
 
-abstract class IlManagedRef<Sort: USort>(ctx: IlContext) : UExpr<UAddressSort>(ctx) {
+class IlManagedRef<Key, Sort : USort>(
+    ctx: IlContext,
+    val type: IlType,
+    val memoryKey: ULValue<Key, Sort>
+) : UExpr<UAddressSort>(ctx) {
     override val sort: UAddressSort
         get() = uctx.addressSort
-    abstract val type: IlType
-    abstract val memoryKey: ULValue<*, Sort>
-    abstract fun toBaseAndOffset() : Pair<ULValue<*, Sort>, UExpr<USizeSort>>
-}
-
-class IlManagedHeapRef<Sort : USort>(
-    ctx: IlContext,
-    override val type: IlType,
-    override val memoryKey: ULValue<*, Sort>
-) : IlManagedRef<Sort>(ctx) {
     override fun accept(transformer: KTransformerBase): KExpr<UAddressSort> {
         require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
         return transformer.transform(this)
     }
     @Suppress("UNCHECKED_CAST")
-    override fun toBaseAndOffset() : Pair<ULValue<*, Sort>, UExpr<USizeSort>> =
+    fun toBaseAndOffset() : Pair<ULValue<*, Sort>, UExpr<USizeSort>> =
         with(sort.ilctx) {
             when (memoryKey) {
                 is UArrayIndexLValue<*, *, *> -> {
@@ -112,6 +107,11 @@ class IlManagedHeapRef<Sort : USort>(
                     memoryKey to offset
                 }
 
+                is IlRegisterStackLValue<*> -> {
+                    val offset : UExpr<USizeSort> = mkSizeExpr((0))
+                    memoryKey to offset
+                }
+
                 else -> error("Unsupported memory key: $memoryKey")
             }
         }.cast()
@@ -124,34 +124,6 @@ class IlManagedHeapRef<Sort : USort>(
         TODO("Not yet implemented")
     }
 }
-
-class IlManagedStackRef<Sort : USort>(
-    ctx: IlContext,
-    override val type: IlType,
-    override val memoryKey: ULValue<*, Sort>,
-    val frameIdx: Int
-) : IlManagedRef<Sort>(ctx) {
-    override val sort: UAddressSort
-        get() = uctx.addressSort
-
-    override fun accept(transformer: KTransformerBase): KExpr<UAddressSort> {
-        TODO("Not yet implemented")
-    }
-
-    override fun internEquals(other: Any): Boolean = structurallyEqual(other)
-
-    override fun internHashCode(): Int = hash()
-
-    override fun print(printer: ExpressionPrinter) {
-        TODO("Not yet implemented")
-    }
-
-    override fun toBaseAndOffset(): Pair<ULValue<*, Sort>, UExpr<USizeSort>> {
-        val offset = ilctx.mkSizeExpr(0)
-        return (memoryKey to offset)
-    }
-}
-
 
 class IlPtr<Sort: USort>(
     ctx: UContext<*>,

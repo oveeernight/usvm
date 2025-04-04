@@ -14,6 +14,7 @@ import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.*
+import org.usvm.machine.state.IlRegisterStackLValue
 import org.usvm.machine.state.StructFieldLValue
 import org.usvm.machine.state.insertConcreteCallStmt
 import org.usvm.machine.state.throwException
@@ -117,7 +118,10 @@ class IlExprResolver(
         val field = expr.field
         if (field.declaringType is IlStructType) {
             val structLocation = resolveLValue(expr.instance!!) ?: return null
-            return StructFieldLValue(ctx.typeToSort(field.fieldType), structLocation.cast(), field)
+                return scope.calcOnState {
+                    val structRegion = memory.getRegion(structLocation.memoryRegionId)
+                    StructFieldLValue(ctx.typeToSort(field.fieldType), structRegion.cast(), structLocation, field)
+                }
         } else {
             if (!fieldIsStatic) {
                 val instance = resolve(expr.instance!!)?.asExpr(ctx.addressSort) ?: return null
@@ -257,7 +261,7 @@ class IlExprResolver(
             if (isPtrType(expectedType)) {
                 when (operand) {
                     is IlPtr<*> -> ctx.mkPtr(operand.base, operand.offset, expectedType)
-                    is IlManagedRef<*> -> {
+                    is IlManagedRef<*, *> -> {
                         val (base, offset) = operand.toBaseAndOffset()
                         offset as UExpr<UBvSort>
                         ctx.mkPtr(base, offset, expectedType)
@@ -333,26 +337,16 @@ class IlExprResolver(
 
     override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {
         val ref = resolve(expr.value) ?: return null
-        ref as IlManagedRef<*>
+        ref as IlManagedRef<*, *>
         return scope.calcOnState {
-            memory.read(ref)
+            memory.read(ref.memoryKey)
         }
     }
 
-    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): IlManagedRef<out USort>? {
+    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): IlManagedRef<*, out USort>? {
         val key = resolveLValue(expr.value) ?: return null
         val type = expr.value.type
-        return when {
-            key is URegisterStackLValue<*> -> {
-                val frameIdx = scope.calcOnState { callStack.size - 1 }
-                IlManagedStackRef(ctx, type, key, frameIdx)
-            }
-            key is StructFieldLValue<*> && key.structLocation is URegisterStackLValue<*> -> {
-                val frameIdx = scope.calcOnState { callStack.size - 1 }
-                IlManagedStackRef(ctx, type, key, frameIdx)
-            }
-        else -> IlManagedHeapRef(ctx, type, key)
-        }
+        return IlManagedRef(ctx, type, key)
     }
 
     override fun visitIlMethodRefConst(const: IlMethodRef): UExpr<out USort>? {

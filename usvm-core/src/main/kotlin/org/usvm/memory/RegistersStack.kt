@@ -18,7 +18,7 @@ object URegisterStackId : UMemoryRegionId<URegisterStackLValue<*>, USort> {
     override fun emptyRegion(): UMemoryRegion<URegisterStackLValue<*>, USort> = URegistersStack()
 }
 
-class URegisterStackLValue<Sort : USort>(
+open class URegisterStackLValue<Sort : USort>(
     override val sort: Sort,
     val idx: Int,
 ) : ULValue<URegisterStackLValue<*>, USort> {
@@ -34,8 +34,8 @@ interface UReadOnlyRegistersStack : UReadOnlyMemoryRegion<URegisterStackLValue<*
     override fun read(key: URegisterStackLValue<*>): UExpr<USort> = readRegister(key.idx, key.sort)
 }
 
-class URegistersStack(
-    private val frames: MutableList<Array<UExpr<out USort>?>> = mutableListOf(),
+open class URegistersStack(
+    protected val frames: MutableList<Array<UExpr<out USort>?>> = mutableListOf(),
 ) : UReadOnlyRegistersStack, UMemoryRegion<URegisterStackLValue<*>, USort>, UMergeable<URegistersStack, MergeGuard> {
     fun push(registersCount: Int) = frames.add(Array(registersCount) { null })
 
@@ -45,7 +45,7 @@ class URegistersStack(
     fun push(arguments: Array<UExpr<out USort>>, localsCount: Int) =
         frames.add(arguments.copyOf(arguments.size + localsCount))
 
-    private fun <Sort : USort> Array<UExpr<out USort>?>?.read(index: Int, sort: Sort): UExpr<Sort> =
+    protected fun <Sort : USort> Array<UExpr<out USort>?>?.read(index: Int, sort: Sort): UExpr<Sort> =
         this?.get(index)?.asExpr(sort) ?: sort.uctx.mkRegisterReading(index, sort)
 
     override fun <Sort : USort> readRegister(index: Int, sort: Sort): UExpr<Sort> =
@@ -65,15 +65,6 @@ class URegistersStack(
     fun writeRegister(index: Int, value: UExpr<out USort>) {
         frames.last()[index] = value
     }
-
-    fun writeFrame(frameIndex: Int, regIndex: Int, value: UExpr<out USort>) {
-        frames[frameIndex][regIndex] = value
-    }
-
-    fun <Sort: USort> readFrame(frameIndex: Int, regIndex: Int, sort: Sort) : UExpr<Sort> {
-        return frames[frameIndex].read(regIndex, sort)
-    }
-
 
     fun pop() = frames.removeLast()
 

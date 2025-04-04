@@ -21,7 +21,7 @@ public class Unsafe
     }
 
     [SvmTest(81)]
-    public unsafe int ManagedRef(int a)
+    public unsafe int ArgumentWrite(int a)
     {
         var ptr = &a;
         *ptr = 442;

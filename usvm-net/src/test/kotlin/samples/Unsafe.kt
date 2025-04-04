@@ -9,8 +9,8 @@ import kotlin.test.Test
 class Unsafe : IlMethodTestRunner() {
 
     @Test
-    fun managedRef() {
-        runner(::managedRef, options)
+    fun argumentWrite() {
+        runner(::argumentWrite, options)
     }
     @Test
     fun concreteUnsafe1() {

@@ -4,6 +4,7 @@ import io.ksmt.expr.KBitVec32Value
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
 import java.util.LinkedList
+import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
 
@@ -17,7 +18,7 @@ fun <T, R> Collection<T>.mapToLinkedList(transform: (T) -> R): LinkedList<R> {
 fun <Sort: USort> UContext<*>.mkSlice(expr: UExpr<Sort>, exprType: IlType, cuts: LinkedList<Cut>) = Slice(this, expr, exprType, cuts).simplify()
 fun <Sort: USort> UContext<*>.addCut(slice: Slice<Sort>, cut: Cut) : Slice<Sort> {
     val list = slice.cuts.mapToLinkedList { it }
-    list.add(cut)
+    list.addLast(cut)
     return Slice(this, slice.expr, slice.exprType, list).simplify()
 }
 fun <Sort: USort> UContext<*>.mkCombine(slices: List<Slice<out USort>>, sort: Sort, sightType: IlType) =
@@ -32,7 +33,7 @@ private fun <Sort: USort> Slice<Sort>.simplify() : Slice<Sort> {
     var pos = 0
     var posIsStable = false
     val symbolicCuts = LinkedList<Cut>()
-    val ordered = cuts.reversed()
+    val ordered = cuts
     for (cut in ordered) {
         val concreteS = cut.start as? KBitVec32Value
         val concreteE = cut.end as? KBitVec32Value
@@ -69,7 +70,9 @@ private fun <Sort: USort> Slice<Sort>.simplify() : Slice<Sort> {
                 val p : UExpr<UBvSort> = mkBv(pos, bv32Sort)
                 Cut(s, e, p, posIsStable)
             }
-            symbolicCuts.addLast(simplificationCut)
+            val narrowed = start > 0 || pos != 0 || end < exprSize
+            if (narrowed)
+                symbolicCuts.addFirst(simplificationCut)
             Slice(ctx as UContext<*>, expr, exprType, symbolicCuts)
         } else {
             Slice(ctx as UContext<*>, expr, exprType, cuts = LinkedList())
