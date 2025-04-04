@@ -9,6 +9,7 @@ import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
+import org.usvm.collections.immutable.getOrPut
 import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.collections.immutable.persistentHashMapOf
@@ -30,7 +31,7 @@ class IlMemory(
     ownership: MutabilityOwnership,
     types: UTypeConstraints<IlType>,
     private val callStack: UCallStack<IlMethod, IlStmt>,
-    stack: URegistersStack = URegistersStack(),
+    stack: URegistersStack = IlRegistersStack(),
     mocks: UIndexedMocker<IlMethod> = UIndexedMocker(),
     regions: UPersistentHashMap<UMemoryRegionId<*, *>, UMemoryRegion<*, *>> = persistentHashMapOf()
 ) : UnsafeMemory<IlType, IlMethod>(ctx, ownership, types, stack, mocks, regions) {
@@ -95,12 +96,23 @@ class IlMemory(
 //        }
 //        return super.write(lvalue, rvalue, guard)
 //    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <Key, Sort : USort> getRegion(regionId: UMemoryRegionId<Key, Sort>): UMemoryRegion<Key, Sort> {
+        if (regionId is IlRegisterStackId) return stack as UMemoryRegion<Key, Sort>
+
+        val (updatedRegions, region) = regions.getOrPut(regionId, ownership) { regionId.emptyRegion() }
+        regions = updatedRegions
+        return region as UMemoryRegion<Key, Sort>
+    }
+
+
     override fun <Key, Sort : USort> setRegion(
         regionId: UMemoryRegionId<Key, Sort>,
         newRegion: UMemoryRegion<Key, Sort>
     ) {
         if (regionId is StructsRegionId<*, *> && newRegion is StructsMemoryRegion<*, *>) {
-            val structRegion = newRegion.updatedStructRegion
+            val structRegion = newRegion.structRegion
             val structRegionId = (regionId.structKey as ULValue<*, *>).memoryRegionId
             if (structRegionId is IlRegisterStackId) {
                 check(structRegion === stack) { "Stack is mutable" }

@@ -9,7 +9,6 @@ import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.forkblacklists.UForkBlackList
 import org.usvm.machine.*
 import org.usvm.machine.state.*
-import org.usvm.memory.URegisterStackLValue
 import org.usvm.solver.USatResult
 
 typealias IlStepScope = StepScope<IlState, IlType, IlStmt, IlContext>
@@ -25,7 +24,7 @@ class IlInterpreter(
     private val strings = mutableMapOf<String, UConcreteHeapRef>()
 
     private val typeInstances = mutableMapOf<IlType, UConcreteHeapRef>()
-    private fun typesAlloactor(type: IlType): UConcreteHeapRef =
+    private fun typesAllocator(type: IlType): UConcreteHeapRef =
         typeInstances.getOrPut(type) { ctx.allocateStaticRef() }
 
     private val methodLocals = mutableMapOf<IlMethod, MutableMap<String, Int>>()
@@ -53,7 +52,7 @@ class IlInterpreter(
         with(ctx) {
             // TODO type constraints on abstract
             if (!method.isStatic) {
-                val thisLValue = URegisterStackLValue(addressSort, 0)
+                val thisLValue = IlRegisterStackLValue(addressSort, 0, 0)
                 val ref = state.memory.read(thisLValue).asExpr(addressSort)
                 state.pathConstraints += !mkHeapRefEq(ref, nullRef)
             }
@@ -62,7 +61,7 @@ class IlInterpreter(
             method.parameters.forEachIndexed { idx, param ->
                 val type = param.type
                 if (!isPrimitiveType(type)) {
-                    val paramLValue = URegisterStackLValue(typeToSort(type), idx)
+                    val paramLValue = IlRegisterStackLValue(typeToSort(type), 0, idx)
                     val paramRValue = state.memory.read(paramLValue).asExpr(addressSort)
 //                    val constr = ctx.mkIsSubtypeExpr(paramRValue, param.type)
 //                    state.pathConstraints += constr
@@ -215,5 +214,5 @@ class IlInterpreter(
     private fun IlStmt.next() : IlStmt = location.method.instList[location.index + 1]
 
     private fun mkExprResolver(scope: IlStepScope) =
-        IlExprResolver(ctx, scope, ilOptions, strings, ::typesAlloactor, ::mapMethodLocals)
+        IlExprResolver(ctx, scope, ilOptions, strings, ::typesAllocator, ::mapMethodLocals)
 }

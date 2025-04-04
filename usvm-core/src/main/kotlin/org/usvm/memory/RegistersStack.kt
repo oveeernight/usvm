@@ -68,7 +68,7 @@ open class URegistersStack(
 
     fun pop() = frames.removeLast()
 
-    fun clone(): URegistersStack {
+    open fun clone(): URegistersStack {
         val newStack = ArrayDeque(frames.map { it.clone() })
         return URegistersStack(newStack)
     }

@@ -1,10 +1,7 @@
 package org.usvm.machine.state
 
-import org.usvm.UBoolExpr
-import org.usvm.UExpr
-import org.usvm.USort
+import org.usvm.*
 import org.usvm.collections.immutable.internal.MutabilityOwnership
-import org.usvm.isTrue
 import org.usvm.memory.*
 
 object IlRegisterStackId : UMemoryRegionId<URegisterStackLValue<*>, USort> {
@@ -31,7 +28,11 @@ class IlRegistersStack(frames: MutableList<Array<UExpr<out USort>?>> = mutableLi
     }
 
     private fun <Sort: USort> readFrame(frameIndex: Int, regIndex: Int, sort: Sort) : UExpr<Sort> {
-        return frames[frameIndex].read(regIndex, sort)
+        return if (frames.size > 0) {
+            frames[frameIndex].read(regIndex, sort)
+        } else { // getInitialStateCase
+            sort.uctx.mkRegisterReading(regIndex, sort)
+        }
     }
 
     override fun read(key: URegisterStackLValue<*>): UExpr<USort> {
@@ -49,5 +50,10 @@ class IlRegistersStack(frames: MutableList<Array<UExpr<out USort>?>> = mutableLi
         check(guard.isTrue) { "Guarded writes are not supported for register" }
         writeFrame(key.frameIdx, key.regIdx, value)
         return this
+    }
+
+    override fun clone(): URegistersStack {
+        val newStack = ArrayDeque(frames.map { it.clone() })
+        return URegistersStack(newStack)
     }
 }

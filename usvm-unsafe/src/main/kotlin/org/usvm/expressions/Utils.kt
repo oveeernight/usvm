@@ -71,7 +71,8 @@ private fun <Sort: USort> Slice<Sort>.simplify() : Slice<Sort> {
                 Cut(s, e, p, posIsStable)
             }
             val narrowed = start > 0 || pos != 0 || end < exprSize
-            if (narrowed)
+            val shouldAddSimplifyCut = narrowed || symbolicCuts.size == 0 && cuts.size != 0
+            if (narrowed || symbolicCuts.size == 0)
                 symbolicCuts.addFirst(simplificationCut)
             Slice(ctx as UContext<*>, expr, exprType, symbolicCuts)
         } else {

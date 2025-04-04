@@ -41,7 +41,7 @@ class StructsRegionId<Key, Sort : USort>(
 
 class StructsMemoryRegion<Key, Sort : USort>(
     private val sort: Sort,
-    private val structRegion: UMemoryRegion<Key, Sort>,
+    val structRegion: UMemoryRegion<Key, Sort>,
     private val structKey: Key,
     private val field: IlField
 ) : UMemoryRegion<StructFieldLValue<Key, Sort>, Sort> {
@@ -58,10 +58,9 @@ class StructsMemoryRegion<Key, Sort : USort>(
     ): UMemoryRegion<StructFieldLValue<Key, Sort>, Sort> {
         val struct = structRegion.read(structKey) as IlStruct
         val updated = struct.writeField(field, value, ownership)
-        updatedStructRegion = structRegion.write(structKey, updated.cast(), guard, ownership)
-        return this
+        val updatedStructRegion = structRegion.write(structKey, updated.cast(), guard, ownership)
+        return StructsMemoryRegion(sort, updatedStructRegion, structKey, field)
     }
 
-    internal lateinit var updatedStructRegion: UMemoryRegion<Key, Sort>
 
 }

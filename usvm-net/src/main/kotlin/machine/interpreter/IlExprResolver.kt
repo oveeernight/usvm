@@ -84,11 +84,11 @@ class IlExprResolver(
         }
     }
 
-    private fun localVarToLValue(local: IlLocal) : URegisterStackLValue<out USort> {
-        val method = scope.calcOnState { callStack.lastMethod() }
-        val (idx, type) = mapMethodLocalToIdx(method, local)
+    private fun localVarToLValue(local: IlLocal) : IlRegisterStackLValue<out USort> {
+        val (method, frameIdx) = scope.calcOnState { callStack.lastMethod() to callStack.size - 1 }
+        val (regIdx, type) = mapMethodLocalToIdx(method, local)
         val sort = ctx.typeToSort(type)
-        return URegisterStackLValue(sort, idx)
+        return IlRegisterStackLValue(sort, frameIdx, regIdx)
     }
 
     private fun arrayAccessToLValue(expr: IlArrayAccess): UArrayIndexLValue<*, *, *>? = with(ctx) {
