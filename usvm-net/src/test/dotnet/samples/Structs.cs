@@ -34,7 +34,7 @@ public class Structs
         return 0;
     }
     
-    [SvmTest(83)]
+    [SvmTest(84)]
     public int StructMutabilityCheck()
     {
         var s = new MyStruct();

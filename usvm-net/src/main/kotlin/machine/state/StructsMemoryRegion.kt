@@ -61,6 +61,4 @@ class StructsMemoryRegion<Key, Sort : USort>(
         val updatedStructRegion = structRegion.write(structKey, updated.cast(), guard, ownership)
         return StructsMemoryRegion(sort, updatedStructRegion, structKey, field)
     }
-
-
 }

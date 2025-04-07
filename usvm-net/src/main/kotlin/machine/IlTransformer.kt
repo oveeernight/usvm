@@ -12,14 +12,14 @@ import org.usvm.org.usvm.expressions.UnsafeTransformer
 import org.usvm.org.usvm.expressions.UnsafeTranslator
 
 interface IlTransformer : UnsafeTransformer<IlType, USizeSort> {
-    fun <Key, Sort: USort> transform(ref: IlManagedRef<Key, Sort>): UExpr<UAddressSort>
+    fun <Sort: USort> transform(ref: IlManagedRef<Sort>): UExpr<UAddressSort>
     fun <Sort: USort> transform(ptr: IlPtr<Sort>): UExpr<UAddressSort>
 }
 
 class IlComposer(ctx: UContext<USizeSort>, memory: UReadOnlyMemory<IlType>, ownership: MutabilityOwnership) :
     UnsafeComposer<IlType, USizeSort>(ctx, memory, ownership), IlTransformer {
 
-    override fun <Key, Sort : USort> transform(ref: IlManagedRef<Key, Sort>): UExpr<UAddressSort> {
+    override fun <Sort : USort> transform(ref: IlManagedRef<Sort>): UExpr<UAddressSort> {
         TODO("Not yet implemented")
     }
 
@@ -29,7 +29,7 @@ class IlComposer(ctx: UContext<USizeSort>, memory: UReadOnlyMemory<IlType>, owne
 }
 
 class IlTranslator(ctx: UContext<USizeSort>) : IlTransformer, UnsafeTranslator<IlType, USizeSort>(ctx) {
-    override fun <Key, Sort : USort> transform(ref: IlManagedRef<Key, Sort>): UExpr<UAddressSort> {
+    override fun <Sort : USort> transform(ref: IlManagedRef<Sort>): UExpr<UAddressSort> {
         TODO("Not yet implemented")
     }
 

@@ -18,6 +18,7 @@ import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.machine.state.IlMemory
 import org.usvm.machine.state.IlRegisterStackLValue
 import org.usvm.memory.ULValue
+import org.usvm.memory.UMemoryRegion
 import org.usvm.memory.URegisterStackLValue
 import org.usvm.memory.UnsafeLValue
 
@@ -79,10 +80,11 @@ class IlStruct(ctx: IlContext, val type: IlType, val fields: UPersistentHashMap<
 
 }
 
-class IlManagedRef<Key, Sort : USort>(
+class IlManagedRef<Sort : USort>(
     ctx: IlContext,
     val type: IlType,
-    val memoryKey: ULValue<Key, Sort>
+    val memoryRegion: UMemoryRegion<*, *>,
+    val memoryKey: ULValue<*, Sort>
 ) : UExpr<UAddressSort>(ctx) {
     override val sort: UAddressSort
         get() = uctx.addressSort

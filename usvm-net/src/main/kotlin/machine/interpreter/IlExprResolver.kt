@@ -19,7 +19,7 @@ import org.usvm.machine.state.StructFieldLValue
 import org.usvm.machine.state.insertConcreteCallStmt
 import org.usvm.machine.state.throwException
 import org.usvm.memory.ULValue
-import org.usvm.memory.URegisterStackLValue
+import org.usvm.memory.UMemoryRegion
 
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
 class IlExprResolver(
@@ -116,20 +116,27 @@ class IlExprResolver(
     private fun fieldAccessToLValue(expr: IlFieldAccess): ULValue<*, *>? {
         val fieldIsStatic = expr.instance == null
         val field = expr.field
-        if (field.declaringType is IlStructType) {
+        return if (field.declaringType is IlStructType) {
             val structLocation = resolveLValue(expr.instance!!) ?: return null
-                return scope.calcOnState {
+            scope.calcOnState {
+                val struct = memory.read(structLocation)
+                if (struct is IlManagedRef<*>) {
+                    val structRegion = struct.memoryRegion
+                    val structKey = struct.memoryKey
+                    StructFieldLValue(ctx.typeToSort(field.fieldType), structRegion.cast(), structKey, field)
+                } else {
                     val structRegion = memory.getRegion(structLocation.memoryRegionId)
                     StructFieldLValue(ctx.typeToSort(field.fieldType), structRegion.cast(), structLocation, field)
                 }
+            }
         } else {
             if (!fieldIsStatic) {
                 val instance = resolve(expr.instance!!)?.asExpr(ctx.addressSort) ?: return null
                 checkNullPointer(instance)
-                return UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
+                UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
             }
+            TODO("static fields")
         }
-        TODO("static fields")
     }
 
     private fun checkNullPointer(ref: UHeapRef) = with(ctx) {
@@ -261,7 +268,7 @@ class IlExprResolver(
             if (isPtrType(expectedType)) {
                 when (operand) {
                     is IlPtr<*> -> ctx.mkPtr(operand.base, operand.offset, expectedType)
-                    is IlManagedRef<*, *> -> {
+                    is IlManagedRef<*> -> {
                         val (base, offset) = operand.toBaseAndOffset()
                         offset as UExpr<UBvSort>
                         ctx.mkPtr(base, offset, expectedType)
@@ -337,16 +344,17 @@ class IlExprResolver(
 
     override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {
         val ref = resolve(expr.value) ?: return null
-        ref as IlManagedRef<*, *>
+        ref as IlManagedRef<*>
         return scope.calcOnState {
             memory.read(ref.memoryKey)
         }
     }
 
-    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): IlManagedRef<*, out USort>? {
+    override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): IlManagedRef<out USort>? {
         val key = resolveLValue(expr.value) ?: return null
+        val mr : UMemoryRegion<*, *> = scope.calcOnState { memory.getRegion(key.memoryRegionId) }
         val type = expr.value.type
-        return IlManagedRef(ctx, type, key)
+        return IlManagedRef(ctx, type, mr, key)
     }
 
     override fun visitIlMethodRefConst(const: IlMethodRef): UExpr<out USort>? {
