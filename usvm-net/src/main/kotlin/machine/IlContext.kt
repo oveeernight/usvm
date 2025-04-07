@@ -131,7 +131,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     }
     // TODO fix
     fun isPrimitiveType(type: IlType): Boolean =
-        type == uint8Type || type == int32Type || type == int64Type || type == charType || type == boolType
+        type is IlStructType || type == uint8Type || type == int32Type || type == int64Type || type == charType || type == boolType
 
     fun UExpr<UAddressSort>.toNumeric() : UExpr<UBvSort> =
         when (this) {

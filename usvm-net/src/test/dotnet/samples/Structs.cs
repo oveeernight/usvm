@@ -56,10 +56,12 @@ public class Structs
         s.age++;
     }
 
-[SvmTest(91)]
+[SvmTest(95)]
     public int ConcreteArrayOfStructs()
     {
-        var array = new MyStruct[2] {new MyStruct {age = 10, name = null}, new MyStruct {age = 20, name = "asd"}};
+        var array = new MyStruct[2];
+        array[0] = new MyStruct { age = 10, name = null };
+        array[1] = new MyStruct {age = 20, name = "asd"};
         array[0].age = 20;
         if (array[0].age != 20)
         {

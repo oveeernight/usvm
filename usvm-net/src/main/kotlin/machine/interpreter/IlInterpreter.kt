@@ -125,9 +125,9 @@ class IlInterpreter(
 
     private fun visitAssignStmt(scope: IlStepScope, stmt: IlAssignStmt) {
         val resolver = mkExprResolver(scope)
-        val rvalue = resolver.resolve(stmt.rhv) ?: return
         val lhv = stmt.lhv
         if (lhv is IlUnmanagedDerefExpr) {
+            val rvalue = resolver.resolve(stmt.rhv) ?: return
             val ptr = resolver.resolve(lhv.value)
             require(ptr is IlPtr<*>)
             scope.doWithState {
@@ -137,7 +137,12 @@ class IlInterpreter(
         }
         else {
             val lvalue = resolver.resolveLValue(stmt.lhv) ?: return
-
+            val rvalue = if (stmt.lhv.type != stmt.rhv.type) {
+                val convCast = IlConvCastExpr(stmt.lhv.type, stmt.rhv)
+                resolver.resolve(convCast) ?: return
+            } else {
+                resolver.resolve(stmt.rhv) ?: return
+            }
             // TODO check array store exception (inappropriate subtype, sort, etc)
             scope.doWithState {
                 memory.write(lvalue, rvalue)
