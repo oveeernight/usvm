@@ -11,12 +11,12 @@ public class Unsafe
         {
             *&a = *&b;
         }
-    
+
         if (a != 10)
         {
             return -1;
-        }    
-    
+        }
+
         return 0;
     }
 
@@ -32,7 +32,7 @@ public class Unsafe
 
         return 0;
     }
-    
+
     [SvmTest(88)]
     public unsafe int StackUnsafe1(int a, int i)
     {
@@ -44,6 +44,7 @@ public class Unsafe
         {
             return -1;
         }
+
         return 0;
     }
 
@@ -58,6 +59,7 @@ public class Unsafe
         {
             return -1;
         }
+
         return 0;
     }
 
@@ -75,10 +77,10 @@ public class Unsafe
         {
             return -1;
         }
-        
+
         return 0;
     }
-    
+
     [SvmTest(94)]
     public unsafe int ConcreteArrayUnsafe1()
     {
@@ -94,7 +96,7 @@ public class Unsafe
             {
                 return -1;
             }
-        
+
             return 0;
         }
     }
@@ -112,10 +114,11 @@ public class Unsafe
             {
                 return -1;
             }
+
             return 0;
         }
     }
-    
+
     [SvmTest(94)]
     public unsafe int SymbolicArrayUnsafe1(int i)
     {
@@ -129,26 +132,64 @@ public class Unsafe
             {
                 return -1;
             }
+
             return 0;
         }
     }
-    
-    
+
+
+    [SvmTest(86)]
     public unsafe int RefField(MyClass o)
     {
         fixed (int* r = &o.x)
         {
             *r = 322;
-        }
+            if (o.x == 322)
+            {
+                return 0;
+            }
 
-        if (o.x == 322)
-        {
-            return 0;
+            return -1;
         }
-        return -1;
     }
 
-    // public unsafe int RefArray(int i)
+    [SvmTest(90)]
+    public unsafe int ConcreteStructWrite()
+    {
+        var s = new MyStruct();
+        var ptr = &s;
+        var casted = (byte*)ptr;
+        *(int*)(casted + 3) = 322;
+        if (s.x != 1107296256 || s.y != 1)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+
+    [SvmTest(90)]
+    public unsafe int SymbolicStructWrite(int i)
+    {
+        var array = new MyStruct[2];
+        array[0] =  new MyStruct() { x = 5 };
+        array[1] = new MyStruct() { y = 1 };
+        fixed (MyStruct* ptr = &array[0])
+        {
+            var casted = (byte*)ptr;
+            *(int*)(casted + i) = 500;
+            if (array[0].y == 500 && i != 4)
+            {
+                return -1;
+            }
+
+            return 0;
+        }
+    }
+
+
+
+// public unsafe int RefArray(int i)
     // {
     //     var a = new int[] { 1, 2, 3, 4, 5 };
     //     fixed (int* p = &a[1])
@@ -159,6 +200,12 @@ public class Unsafe
 }
 
 public class  MyClass
+{
+    public int x;
+    public int y;
+}
+
+public struct MyStruct
 {
     public int x;
     public int y;

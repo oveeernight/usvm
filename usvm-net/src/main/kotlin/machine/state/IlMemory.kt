@@ -23,6 +23,7 @@ import org.usvm.expressions.mkCombine
 import org.usvm.expressions.mkSlice
 import org.usvm.machine.*
 import java.util.LinkedList
+import kotlin.math.exp
 import kotlin.math.max
 
 
@@ -35,68 +36,6 @@ class IlMemory(
     mocks: UIndexedMocker<IlMethod> = UIndexedMocker(),
     regions: UPersistentHashMap<UMemoryRegionId<*, *>, UMemoryRegion<*, *>> = persistentHashMapOf()
 ) : UnsafeMemory<IlType, IlMethod>(ctx, ownership, types, stack, mocks, regions) {
-//    fun <Sort: USort> read(ref: IlManagedRef<Sort>) : UExpr<Sort> =
-//        when (ref) {
-//            is IlManagedHeapRef<Sort> -> read(ref.memoryKey)
-//            is IlManagedStackRef<Sort> -> {
-//                when (val key = ref.memoryKey) {
-//                    is URegisterStackLValue<*> -> stack.readFrame(ref.frameIdx, key.idx, key.sort)
-//                    is StructFieldLValue<*> -> {
-//                        val struct = read(key.structLocation) as IlStruct
-//                        struct.fields[key.field].cast()
-//                    }
-//                    else -> error("Unexpected managed stack ref base $key")
-//                }
-//            }
-//            else -> error("unreachable")
-//    }
-//
-//    fun write(ref: IlManagedRef<*>, value: UExpr<out USort>) =
-//        when (ref) {
-//            is IlManagedHeapRef<*> -> write(ref.memoryKey, value)
-//            is IlManagedStackRef<*> -> {
-//                when (val key = ref.memoryKey) {
-//                    is URegisterStackLValue<*> -> stack.writeFrame(ref.frameIdx, key.idx, value)
-//                    is StructFieldLValue<*> -> {
-//                        val struct = read(key.structLocation) as IlStruct
-//                        val newStruct = struct.writeField(key.field, value, ownership)
-//                        write(key.structLocation, newStruct)
-//                    }
-//                    else -> error("Unexpected managed stack ref base $key")
-//                }
-//            }
-//            else -> error("unreachable")
-//        }
-
-//    override fun <Key, Sort : USort> read(lvalue: ULValue<Key, Sort>): UExpr<Sort> {
-//        if (lvalue is StructFieldLValue<*>) {
-//            val location = lvalue.structLocation
-//            val struct = super.read(location)
-//            return when (struct) {
-//                is IlManagedRef<*> -> read(struct)
-//                is IlStruct -> struct.fields[lvalue.field]
-//                else -> error("unexpected struct $struct")
-//            }.cast()
-//        }
-//        return super.read(lvalue)
-//    }
-//
-//    override fun <Key, Sort : USort> write(lvalue: ULValue<Key, Sort>, rvalue: UExpr<Sort>, guard: UBoolExpr) {
-//        if (lvalue is StructFieldLValue<*>) {
-//            when (val oldStruct = read(lvalue.structLocation)) {
-//                is IlManagedRef<*,> -> {
-//                    write(oldStruct, rvalue)
-//                }
-//                is IlStruct -> {
-//                    val newStruct = oldStruct.writeField(lvalue.field, rvalue, ownership)
-//                    super.write(lvalue.structLocation, newStruct, guard)
-//                }
-//                else -> error("unexpected struct $oldStruct")
-//            }
-//        }
-//        return super.write(lvalue, rvalue, guard)
-//    }
-
     @Suppress("UNCHECKED_CAST")
     override fun <Key, Sort : USort> getRegion(regionId: UMemoryRegionId<Key, Sort>): UMemoryRegion<Key, Sort> {
         if (regionId is IlRegisterStackId) return stack as UMemoryRegion<Key, Sort>
@@ -104,6 +43,23 @@ class IlMemory(
         val (updatedRegions, region) = regions.getOrPut(regionId, ownership) { regionId.emptyRegion() }
         regions = updatedRegions
         return region as UMemoryRegion<Key, Sort>
+    }
+
+    override fun <Key, Sort : USort> read(lvalue: ULValue<Key, Sort>): UExpr<Sort> {
+        val reading = super.read(lvalue)
+        val lvalueSort = lvalue.sort
+        return if (lvalueSort is StructSort && reading is UCollectionReading<*, *, *>) {
+            val structType = lvalueSort.structType
+            val fields = structType.fields.map { f ->
+                f to StructFieldReading(lvalueSort.ilctx, reading, f)
+            }.fold(persistentHashMapOf<IlField, UExpr<out USort>>()) { fields, (f, v) ->
+                fields.put(f, v, ownership)
+            }
+            val struct = lvalueSort.ilctx.mkStruct(structType, fields)
+            struct.cast()
+        } else {
+            reading
+        }
     }
 
 
@@ -192,8 +148,8 @@ class IlMemory(
             }
 
             is UFieldLValue<*, *> -> {
-                val fieldTyp = base.field as IlType
-                val affectedFields = getAffectedFields(fieldTyp.declaringType!!, lvalue.offset, lvalue.sightType) { field ->
+                val field = base.field as IlField
+                val affectedFields = getAffectedFields(field.declaringType, lvalue.offset, lvalue.sightType) { field ->
                     read(UFieldLValue(lvalue.offset.ilctx.typeToSort(field.fieldType), base.ref, field))
                 }
                 affectedFields.forEach { (fv, ft, s, _, _, f) ->
@@ -218,6 +174,27 @@ class IlMemory(
         return fields.flatMap { (v, vt, s, e, fieldOffset) ->
             val p = offset.ctx.mkBvAddExpr(pos, fieldOffset)
             readExprUnsafe(v, vt, viewType, s, e, p, posIsStable = false)
+        }
+    }
+
+    private fun writeStructUnsafe(struct: IlStruct, offset: UExpr<UBvSort>, valueType: IlType, value: UExpr<out USort>) : UExpr<out USort> {
+        val affectedFields = commonWriteFields(struct.type, offset, valueType, value) { f -> struct.fields[f]!! }
+        return affectedFields.fold(struct) { acc, (f, value) ->
+            acc.writeField(f, value, ownership)
+        }
+    }
+
+    private fun commonWriteFields(
+        type: IlType,
+        offset: UExpr<UBvSort>,
+        viewType: IlType,
+        value: UExpr<out USort>,
+        readField: (IlField) -> UExpr<out USort>
+    ) : List<Pair<IlField, UExpr<out USort>>> {
+        val affectedFields = getAffectedFields(type, offset, viewType, readField)
+        return affectedFields.map { (fv, ft, s, _, _, f) ->
+            val newValue = writeExprUnsafe(fv, ft, value, viewType, s)
+            f to newValue
         }
     }
 
@@ -283,7 +260,7 @@ class IlMemory(
         fields.foldRight(fieldTypeSize) { field, nextOffset ->
             val fieldOffset = field.offset
             val size = field.fieldType.size
-            val extraZerosCount = max(0, nextOffset - fieldOffset + size)
+            val extraZerosCount = max(0, nextOffset - fieldOffset - size)
             repeat((0..<extraZerosCount).count()) { fieldsWithZeros.addFirst(zeroField) }
             fieldsWithZeros.addFirst(field)
             fieldOffset
@@ -295,9 +272,9 @@ class IlMemory(
         return with(offset.ilctx) {
             fieldsWithZeros.map {
                 val value = readField(it)
-                val fieldOffset : UExpr<UBvSort> = mkBv(it.fieldType.size, bv32Sort)
+                val fieldOffset : UExpr<UBvSort> = mkBv(it.offset, bv32Sort)
                 val affectedStart = mkBvSubExpr(offset, fieldOffset)
-                val affectedEnd = mkBvSubExpr(end, offset)
+                val affectedEnd = mkBvSubExpr(end, fieldOffset)
                 IlAffectedField(value, it.fieldType, affectedStart, affectedEnd, fieldOffset, it)
             }
         }
@@ -315,7 +292,7 @@ class IlMemory(
         return when (expr) {
             is IlStruct -> {
                 commonReadFields(exprType, start, pos, sightType) { f ->
-                    expr.fields[f].cast()
+                    expr.fields[f]!!
                 }
             }
 
@@ -347,27 +324,34 @@ class IlMemory(
         valueType: IlType,
         start: UExpr<UBvSort>,
     ): UExpr<out USort> = with(expr.ilctx) {
-        val exprSize: UExpr<UBvSort> = mkBv(exprType.size, bv32Sort)
-        val valueSize: UExpr<UBvSort> = mkBv(valueType.size, bv32Sort)
-        val zero: UExpr<UBvSort> = mkBv(0, bv32Sort)
-        val leftUnaffected = readExprUnsafe(expr, exprType, valueType, zero, start, zero, posIsStable = true)
-        val rightUnaffectedStart = mkBvAddExpr(start, valueSize)
-        val rightUnaffected =
-            readExprUnsafe(expr, exprType, valueType, rightUnaffectedStart, exprSize, rightUnaffectedStart, posIsStable = true)
-        val valueSlices = readExprUnsafe(
-            value,
-            valueType,
-            valueType,
-            mkBvNegationExpr(start),
-            mkBvSubExpr(exprSize, start),
-            start,
-            posIsStable = false
-        )
-        val slices = listOf(leftUnaffected, valueSlices, rightUnaffected).flatten()
-        val filtered = slices.filterIsInstance<Slice<Sort>>()
-        assert(slices.size == filtered.size)
-        val exprSort = expr.ilctx.typeToSort(exprType)
-        mkCombine(filtered, exprSort, exprType)
+        when {
+            start == mkBv(0, bv32Sort) && valueType.size == exprType.size -> value
+            expr.sort == addressSort -> TODO()
+            expr.sort is StructSort -> writeStructUnsafe(expr as IlStruct, start, valueType, value)
+            else -> {
+                val exprSize: UExpr<UBvSort> = mkBv(exprType.size, bv32Sort)
+                val valueSize: UExpr<UBvSort> = mkBv(valueType.size, bv32Sort)
+                val zero: UExpr<UBvSort> = mkBv(0, bv32Sort)
+                val leftUnaffected = readExprUnsafe(expr, exprType, valueType, zero, start, zero, posIsStable = true)
+                val rightUnaffectedStart = mkBvAddExpr(start, valueSize)
+                val rightUnaffected =
+                    readExprUnsafe(expr, exprType, valueType, rightUnaffectedStart, exprSize, rightUnaffectedStart, posIsStable = true)
+                val valueSlices = readExprUnsafe(
+                    value,
+                    valueType,
+                    valueType,
+                    mkBvNegationExpr(start),
+                    mkBvSubExpr(exprSize, start),
+                    start,
+                    posIsStable = false
+                )
+                val slices = listOf(leftUnaffected, valueSlices, rightUnaffected).flatten()
+                val filtered = slices.filterIsInstance<Slice<Sort>>()
+                assert(slices.size == filtered.size)
+                val exprSort = expr.ilctx.typeToSort(exprType)
+                mkCombine(filtered, exprSort, exprType)
+            }
+        }
     }
 
     override fun clone(

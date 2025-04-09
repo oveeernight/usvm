@@ -46,4 +46,19 @@ class Unsafe : IlMethodTestRunner() {
     fun symbolicArrayUnsafe1() {
         runner(::symbolicArrayUnsafe1, options)
     }
+
+    @Test
+    fun refField() {
+        runner(::refField, options)
+    }
+
+    @Test
+    fun concreteStructWrite() {
+        runner(::concreteStructWrite, options)
+    }
+
+    @Test
+    fun symbolicStructWrite() {
+        runner(::symbolicStructWrite, options)
+    }
 }

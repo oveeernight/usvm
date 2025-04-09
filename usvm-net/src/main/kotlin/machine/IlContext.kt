@@ -33,6 +33,8 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val floatType by lazy { findTypeOrReportAbsence("Float") }
     val doubleType by lazy { findTypeOrReportAbsence("Double") }
     val stringType by lazy { findTypeOrReportAbsence("String") }
+    val intPtrType by lazy { findTypeOrReportAbsence("IntPtr") }
+    val uintPtrType by lazy { findTypeOrReportAbsence("UIntPtr") }
 
     val objectType by lazy { findTypeOrReportAbsence("Object") }
     val systemType by lazy { findTypeOrReportAbsence("Type") }
@@ -45,8 +47,12 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val floatSort = fp32Sort
     val doubleSort = fp64Sort
     val voidSort by lazy { VoidSort(this) }
-    val structSort by lazy { StructSort(this) }
     val sizeSort = bv32Sort
+
+    private val structSortsCache = mutableMapOf<String, StructSort>()
+    private fun structSort(structType: IlType) =
+        structSortsCache.getOrPut(structType.fullname) { StructSort(this, structType) }
+
 
     val byteBitSize = 8u
     val shortBitSize = 16u
@@ -73,7 +79,8 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
             val defaultValue = sort.sampleUValue()
             populated = populated.put(field, defaultValue, defaultOwnership)
         }
-        return IlStruct(this, type, populated)
+        val structSort = structSort(type)
+        return IlStruct(this, structSort,  type, populated)
     }
 
 //    fun mkDetachedPtr(offset: UExpr<UBvSort>, sightType: IlType): IlPtr<UAddressSort> {
@@ -96,14 +103,15 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     fun typeToSort(type: IlType): USort {
         // TODO unsigned
-        if (type is IlStructType) return structSort
-        return when (type.fullname) {
-            boolType.fullname -> boolSort
-            charType.fullname -> charSort
+        if (type is IlStructType) return structSort(type)
+        return when (type) {
+            boolType -> boolSort
+            charType -> charSort
 //            int8Type -> byteSort
-            int16Type.fullname -> int16sort
-            int32Type.fullname -> sizeSort
-            int64Type.fullname -> int64sort
+            int16Type -> int16sort
+            int32Type -> sizeSort
+            int64Type -> int64sort
+            uint32Type -> int32sort
             else -> addressSort
         }
     }

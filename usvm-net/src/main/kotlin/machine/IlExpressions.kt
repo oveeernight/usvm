@@ -10,6 +10,7 @@ import io.ksmt.sort.KSortVisitor
 import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
+import org.jacodb.api.net.ilinstances.impl.IlStructType
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
@@ -31,7 +32,7 @@ class VoidSort(ctx: IlContext) : USort(ctx) {
     }
 }
 
-class StructSort(ctx: IlContext) : USort(ctx) {
+class StructSort(ctx: IlContext, val structType: IlType) : USort(ctx) {
     override fun <T> accept(visitor: KSortVisitor<T>): T {
         error("Should not be called")
     }
@@ -54,9 +55,12 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     }
 }
 
-class IlStruct(ctx: IlContext, val type: IlType, val fields: UPersistentHashMap<IlField, UExpr<out USort>>): UExpr<StructSort>(ctx) {
-    override val sort: StructSort = ctx.structSort
-
+class IlStruct(
+    ctx: IlContext,
+    override val sort: StructSort,
+    val type: IlType,
+    val fields: UPersistentHashMap<IlField, UExpr<out USort>>
+) : UExpr<StructSort>(ctx) {
     fun writeField(field: IlField, value: UExpr<out USort>, ownership: MutabilityOwnership) : IlStruct {
         val updatedFields = fields.put(field, value, ownership)
         return value.ilctx.mkStruct(type, updatedFields)

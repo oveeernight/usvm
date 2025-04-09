@@ -133,7 +133,7 @@ class IlExprResolver(
             if (!fieldIsStatic) {
                 val instance = resolve(expr.instance!!)?.asExpr(ctx.addressSort) ?: return null
                 checkNullPointer(instance)
-                UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
+                return UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
             }
             TODO("static fields")
         }
@@ -271,7 +271,8 @@ class IlExprResolver(
                     is IlManagedRef<*> -> {
                         val (base, offset) = operand.toBaseAndOffset()
                         offset as UExpr<UBvSort>
-                        ctx.mkPtr(base, offset, expectedType)
+                        val expectedPointedType = extractPointedType(expectedType)
+                        ctx.mkPtr(base, offset, expectedPointedType)
                     }
                     else -> error("Unexpected operand $operand of pointer cast")
                 }
@@ -297,6 +298,13 @@ class IlExprResolver(
     private fun isPtrType(type: IlType): Boolean {
         return (type is IlPointerType || type.name == "UIntPtr" || type.name == "IntPtr")
     }
+
+    private fun extractPointedType(type: IlType): IlType =
+        when {
+            type.name == "UIntPtr" -> ctx.uint32Type
+            type.name == "IntPtr" -> ctx.int32Type
+            else -> TODO()
+        }
 
     private fun resolvePrimitiveCast(
         expr: UExpr<out USort>,
