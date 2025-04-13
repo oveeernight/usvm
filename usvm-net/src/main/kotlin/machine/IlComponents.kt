@@ -34,8 +34,7 @@ class IlComponents(private val typeSystem: IlTypeSystem, private val options: UM
     }
 
     override fun <Context : UContext<UBv32Sort>> mkSolver(ctx: Context): USolverBase<IlType> {
-        val translator = IlTranslator(ctx)
-        val decoder = ULazyModelDecoder(translator)
+        val (translator, decoder) = buildTranslatorAndLazyDecoder(ctx)
         val solverFactory = SolverFactory.mkFactory(options.runSolverInAnotherProcess)
         val solver = solverFactory.mkSolver(ctx, options.solverType)
         val typeSolver = UTypeSolver(typeSystem)

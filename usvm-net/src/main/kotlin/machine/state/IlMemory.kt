@@ -45,24 +45,6 @@ class IlMemory(
         return region as UMemoryRegion<Key, Sort>
     }
 
-    override fun <Key, Sort : USort> read(lvalue: ULValue<Key, Sort>): UExpr<Sort> {
-        val reading = super.read(lvalue)
-        val lvalueSort = lvalue.sort
-        return if (lvalueSort is StructSort && reading is UCollectionReading<*, *, *>) {
-            val structType = lvalueSort.structType
-            val fields = structType.fields.map { f ->
-                f to StructFieldReading(lvalueSort.ilctx, reading, f)
-            }.fold(persistentHashMapOf<IlField, UExpr<out USort>>()) { fields, (f, v) ->
-                fields.put(f, v, ownership)
-            }
-            val struct = lvalueSort.ilctx.mkStruct(structType, fields)
-            struct.cast()
-        } else {
-            reading
-        }
-    }
-
-
     override fun <Key, Sort : USort> setRegion(
         regionId: UMemoryRegionId<Key, Sort>,
         newRegion: UMemoryRegion<Key, Sort>
@@ -327,7 +309,7 @@ class IlMemory(
         when {
             start == mkBv(0, bv32Sort) && valueType.size == exprType.size -> value
             expr.sort == addressSort -> TODO()
-            expr.sort is StructSort -> writeStructUnsafe(expr as IlStruct, start, valueType, value)
+            expr.sort is StructSort -> writeStructUnsafe(expr.toStruct(), start, valueType, value)
             else -> {
                 val exprSize: UExpr<UBvSort> = mkBv(exprType.size, bv32Sort)
                 val valueSize: UExpr<UBvSort> = mkBv(valueType.size, bv32Sort)

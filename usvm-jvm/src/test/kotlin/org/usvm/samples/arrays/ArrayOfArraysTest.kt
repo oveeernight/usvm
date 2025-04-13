@@ -12,6 +12,14 @@ import org.usvm.test.util.checkers.ignoreNumberOfAnalysisResults
 @Suppress("NestedLambdaShadowedImplicitParameter")
 internal class ArrayOfArraysTest : JavaMethodTestRunner() {
     @Test
+    fun myTest() {
+        checkDiscoveredProperties(
+            ArrayOfArrays::someTest,
+            eq(1),
+        )
+    }
+
+    @Test
     fun testDefaultValues() {
         checkDiscoveredProperties(
             ArrayOfArrays::defaultValues,

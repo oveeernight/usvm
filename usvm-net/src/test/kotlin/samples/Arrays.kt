@@ -23,6 +23,11 @@ class Arrays : IlMethodTestRunner() {
         runner(::arraySimpleBranch, options)
     }
 
+    @Test
+    fun concreteArraySymbolicIndex() {
+        runner(::concreteArraySymbolicIndex, options)
+    }
+
     @Ignore("unsafe")
     @Test
     fun stringIndex() {

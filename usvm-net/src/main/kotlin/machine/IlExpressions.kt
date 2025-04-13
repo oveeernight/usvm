@@ -1,5 +1,6 @@
 package org.usvm.machine
 
+import com.jetbrains.rd.util.string.print
 import io.ksmt.KAst
 import io.ksmt.cache.hash
 import io.ksmt.cache.structurallyEqual
@@ -7,20 +8,19 @@ import io.ksmt.expr.*
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
 import io.ksmt.sort.KSortVisitor
+import io.ksmt.sort.KUninterpretedSort
 import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
-import org.jacodb.api.net.ilinstances.impl.IlStructType
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
 import org.usvm.collections.immutable.internal.MutabilityOwnership
-import org.usvm.machine.state.IlMemory
+import org.usvm.collections.immutable.persistentHashMapOf
 import org.usvm.machine.state.IlRegisterStackLValue
 import org.usvm.memory.ULValue
 import org.usvm.memory.UMemoryRegion
-import org.usvm.memory.URegisterStackLValue
 import org.usvm.memory.UnsafeLValue
 
 class VoidSort(ctx: IlContext) : USort(ctx) {
@@ -32,9 +32,9 @@ class VoidSort(ctx: IlContext) : USort(ctx) {
     }
 }
 
-class StructSort(ctx: IlContext, val structType: IlType) : USort(ctx) {
+class StructSort(ctx: IlContext, val structType: IlType) : KUninterpretedSort ("struct", ctx) {
     override fun <T> accept(visitor: KSortVisitor<T>): T {
-        error("Should not be called")
+        return visitor.visit(this)
     }
     override fun print(builder: StringBuilder) {
         builder.append("struct sort")
@@ -66,20 +66,29 @@ class IlStruct(
         return value.ilctx.mkStruct(type, updatedFields)
     }
 
+    fun <Sort: USort> readField(field: IlField) : UExpr<Sort> = fields[field].cast()
+
     override fun accept(transformer: KTransformerBase): KExpr<StructSort> {
-        TODO("Not yet implemented")
+        val fields = fields.fold(persistentHashMapOf<IlField, UExpr<out USort>>()) { acc, (f, v) ->
+            val transformedValue = v.accept(transformer)
+            acc.put(f, transformedValue, sort.uctx.defaultOwnership)
+        }
+        return IlStruct(sort.ilctx, sort, type, fields)
     }
 
-    override fun internEquals(other: Any): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun internEquals(other: Any): Boolean = structurallyEqual(other, { fields }, { type }, { sort })
 
-    override fun internHashCode(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun internHashCode(): Int = hash(fields, type)
 
     override fun print(printer: ExpressionPrinter) {
-        TODO("Not yet implemented")
+        printer.append("STRUCT[\n")
+        for (field in type.fields) {
+            val value = fields[field]!!
+            printer.append("${field.name} ->")
+            value.print(printer)
+            printer.append("\n")
+        }
+        printer.append("]")
     }
 
 }

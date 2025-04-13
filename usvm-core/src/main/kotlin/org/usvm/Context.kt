@@ -392,7 +392,7 @@ open class UContext<USizeSort : USort>(
 
     override fun <S : KBvSort> bvSortDefaultValue(sort: S): KExpr<S> = mkBv(0, sort)
 
-    fun mkUValueSampler(): KSortVisitor<KExpr<*>> {
+    open fun mkUValueSampler(): KSortVisitor<KExpr<*>> {
         return UValueSampler(this)
     }
 

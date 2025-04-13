@@ -69,4 +69,19 @@ public class Structs
         }
         return 0;
     }
+    
+    [SvmTest(90)]
+    public unsafe int SymbolicStructWrite(int i)
+    {
+        var array = new SomeStruct[2];
+        array[0] =  new SomeStruct() { x = 5 };
+        array[1] = new SomeStruct() { y = 1 };
+        var reading = array[i];
+        if (reading.y == 1 && i != 0)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
 }

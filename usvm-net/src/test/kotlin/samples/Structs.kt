@@ -26,4 +26,9 @@ class Structs : IlMethodTestRunner() {
     fun concreteArrayOfStructs() {
         runner(::concreteArrayOfStructs, options)
     }
+
+    @Test
+    fun symbolicStructWrite() {
+        runner(::symbolicStructWrite, options)
+    }
 }

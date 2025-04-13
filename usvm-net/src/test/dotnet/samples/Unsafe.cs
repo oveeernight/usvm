@@ -156,7 +156,7 @@ public class Unsafe
     [SvmTest(90)]
     public unsafe int ConcreteStructWrite()
     {
-        var s = new MyStruct();
+        var s = new SomeStruct();
         var ptr = &s;
         var casted = (byte*)ptr;
         *(int*)(casted + 3) = 322;
@@ -171,10 +171,10 @@ public class Unsafe
     [SvmTest(90)]
     public unsafe int SymbolicStructWrite(int i)
     {
-        var array = new MyStruct[2];
-        array[0] =  new MyStruct() { x = 5 };
-        array[1] = new MyStruct() { y = 1 };
-        fixed (MyStruct* ptr = &array[0])
+        var array = new SomeStruct[2];
+        array[0] =  new SomeStruct() { x = 5 };
+        array[1] = new SomeStruct() { y = 1 };
+        fixed (SomeStruct* ptr = &array[0])
         {
             var casted = (byte*)ptr;
             *(int*)(casted + i) = 500;
@@ -205,7 +205,7 @@ public class  MyClass
     public int y;
 }
 
-public struct MyStruct
+public struct SomeStruct
 {
     public int x;
     public int y;

@@ -1,5 +1,9 @@
 package org.usvm.machine
 
+import io.ksmt.expr.KExpr
+import io.ksmt.sort.KSortVisitor
+import io.ksmt.sort.KUninterpretedSort
+import io.ksmt.utils.DefaultValueSampler
 import org.jacodb.api.net.IlPublication
 import org.jacodb.api.net.generated.models.IlFieldDto
 import org.jacodb.api.net.generated.models.TypeId
@@ -52,6 +56,28 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     private val structSortsCache = mutableMapOf<String, StructSort>()
     private fun structSort(structType: IlType) =
         structSortsCache.getOrPut(structType.fullname) { StructSort(this, structType) }
+
+    override fun mkUValueSampler(): KSortVisitor<KExpr<*>> {
+        return IlValueSampler(this)
+    }
+
+    class IlValueSampler(val ilctx: IlContext) : DefaultValueSampler(ilctx) {
+        override fun visit(sort: KUninterpretedSort): KExpr<*> {
+            return when {
+                sort == ilctx.addressSort -> ilctx.nullRef
+                sort is StructSort -> {
+                    val type = sort.structType
+                    var fields = persistentHashMapOf<IlField, UExpr<out USort>>()
+                    type.fields.forEach {
+                        val fieldSample = ilctx.typeToSort(it.fieldType).accept(this)
+                        fields = fields.put(it, fieldSample, ilctx.defaultOwnership)
+                    }
+                    IlStruct(ilctx, sort, type, fields)
+                }
+                else -> super.visit(sort)
+            }
+        }
+    }
 
 
     val byteBitSize = 8u
