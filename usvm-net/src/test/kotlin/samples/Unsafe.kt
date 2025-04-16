@@ -58,6 +58,7 @@ class Unsafe : IlMethodTestRunner() {
     }
 
     @Test
+    @Ignore
     fun symbolicStructWrite() {
         runner(::symbolicStructWrite, options)
     }

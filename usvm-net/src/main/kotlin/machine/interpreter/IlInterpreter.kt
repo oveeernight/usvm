@@ -119,6 +119,10 @@ class IlInterpreter(
             is IlConcreteCallStmt -> {
                 scope.doWithState { callMethod(stmt.method, stmt.args, stmt.returnSite) }
             }
+
+            is IlVirtualCallStmt -> {
+
+            }
             else -> error("visitTransparentCall: unexpected call ${stmt.method}")
         }
     }
@@ -216,7 +220,10 @@ class IlInterpreter(
         TODO()
     }
 
-    //TODO inefficient?
+    private fun resolveVirtualCall(callStmt: IlVirtualCallStmt, stepScope: IlStepScope) {
+
+    }
+
     private fun IlStmt.next() : IlStmt = location.method.instList[location.index + 1]
 
     private fun mkExprResolver(scope: IlStepScope) =

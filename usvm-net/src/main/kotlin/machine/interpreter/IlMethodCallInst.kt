@@ -13,7 +13,7 @@ sealed interface IlTransparentStatement : IlStmt {
     val originalStmt: IlStmt
 }
 
-interface TransparentMethodCallBaseStmt : IlTransparentStatement{
+interface TransparentMethodCallBaseStmt : IlTransparentStatement {
     override val method: IlMethod
 }
 
@@ -48,6 +48,24 @@ data class IlConcreteCallStmt(
     override val location: IlStmtLocation = returnSite.location
 
     override fun <T> accept(visitor: IlStmtVisitor<T>): T {
-        error("IlConcreteCall: visitor should not be called on transparent instructions")
+        error("IlConcreteCallStmt: visitor should not be called on transparent instructions")
+    }
+}
+
+data class IlVirtualCallStmt(
+    override val method: IlMethod,
+    override val args: List<UExpr<out USort>>,
+    override val returnSite: IlStmt
+) : MethodCall, TransparentMethodCallBaseStmt {
+    override val originalStmt: IlStmt
+        get() = returnSite
+    override val location: IlStmtLocation
+        get() = returnSite.location
+
+    fun toConcreteCallStmt(concreteMethod: IlMethod): IlConcreteCallStmt = IlConcreteCallStmt(concreteMethod, args, returnSite)
+
+
+    override fun <T> accept(visitor: IlStmtVisitor<T>): T {
+        error("IlVirtualCallStmt: visitor should not be called on transparent instructions")
     }
 }

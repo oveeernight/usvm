@@ -1,12 +1,10 @@
 package org.usvm.machine.state
 
-import com.jetbrains.rd.util.string.print
 import io.ksmt.cache.hash
 import io.ksmt.cache.structurallyEqual
 import io.ksmt.expr.KExpr
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
-import io.ksmt.utils.asExpr
 import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.IlField
 import org.usvm.*

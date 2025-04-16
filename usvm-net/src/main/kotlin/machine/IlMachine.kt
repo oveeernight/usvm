@@ -50,7 +50,8 @@ class IlMachine(
     }
 }
 
-class IlMachineOptions {
-    val maxArraySize = 1_000
-    val forkOnImplicitExceptions = true
-}
+class IlMachineOptions(
+    val forkOnRemainingTypes: Boolean = false,
+    val maxArraySize: Int = 1_000,
+    val forkOnImplicitExceptions: Boolean = true,
+)
