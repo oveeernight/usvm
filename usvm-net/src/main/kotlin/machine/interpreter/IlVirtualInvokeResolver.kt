@@ -2,7 +2,6 @@ package org.usvm.machine.interpreter
 
 import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.IlType
-import org.jacodb.panda.staticvm.ir.PandaRefTypeCheckInstIr
 import org.usvm.UBoolExpr
 import org.usvm.UConcreteHeapRef
 import org.usvm.UHeapRef

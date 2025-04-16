@@ -1,6 +1,7 @@
 package executor
 
 import IlMethodTestRunner
+import com.jetbrains.rd.framework.util.NetUtils
 import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -8,11 +9,10 @@ import org.usvm.machine.logger
 import testrunner.expressions.ConcreteExecutorGrpcKt
 import testrunner.expressions.TestExpressions
 
-class ConcreteTestRunner(val proc: Process) {
+class ConcreteTestRunner(private val proc: Process, private val serverPort: Int) {
 
     fun run(testBatch: TestExpressions.IlTestBatch) : TestExpressions.ExecutionResult {
-        val port = 8980
-        val channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().enableRetry().build()
+        val channel = ManagedChannelBuilder.forAddress("localhost", serverPort).usePlaintext().enableRetry().build()
         val stub = ConcreteExecutorGrpcKt.ConcreteExecutorCoroutineStub(channel)
 
         val result = runBlocking {

@@ -1,6 +1,7 @@
 package executor
 
 import com.google.protobuf.Message
+import com.jetbrains.rd.framework.util.NetUtils
 import common.IlTestStateResolver
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
@@ -15,8 +16,9 @@ import java.io.Closeable
 import kotlin.math.log
 
 class IlTestExecutor : Closeable {
-    private val dotnetProc : Process = RunnerProcessBuilder.build().start()
-    private val concreteRunner = ConcreteTestRunner(dotnetProc)
+    private val port = NetUtils.findFreePort(0)
+    private val dotnetProc : Process = RunnerProcessBuilder.build(port).start()
+    private val concreteRunner = ConcreteTestRunner(dotnetProc, port)
 
     fun execute(states: List<IlState>, method: IlMethod) : TestExpressions.ExecutionResult {
         val tests = states.map { state ->

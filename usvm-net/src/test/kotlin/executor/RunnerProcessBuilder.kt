@@ -1,12 +1,13 @@
 package executor
 
 import IlMethodTestRunner
+import org.usvm.machine.logger
 import java.io.File
-import kotlin.io.path.name
 
 class RunnerProcessBuilder {
     companion object {
-        fun build(): ProcessBuilder {
+        fun build(port: Int): ProcessBuilder {
+            logger.info { "Executor server listening on port $port" }
             val executorDir = File(IlMethodTestRunner.executorPath)
             val samplesAsm = IlMethodTestRunner.samplesAsmPath
             val builder = ProcessBuilder()
@@ -17,7 +18,7 @@ class RunnerProcessBuilder {
                 coreclrEnableProfiling = enabled,
                 instrumentMainOnly = enabled,
             )
-            return builder.command("./TestExecutor.Application", "--asm", samplesAsm)
+            return builder.command("./TestExecutor.Application", "--asm", samplesAsm, "--port", port.toString())
                 .directory(executorDir)
                 .withEnvironmentConfig(instrumentMainOnlyConfig)
         }

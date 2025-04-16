@@ -17,13 +17,14 @@ class JacoDBContainer(
     builder: IlSettings.() -> Unit
 ) {
     lateinit var publication: IlPublication
+    val server: RdServer
 
     init {
         val settings = IlSettings()
         settings.builder()
         val database = IlDatabaseImpl(settings)
         val freePort = NetUtils.findFreePort(0)
-        val server = RdServer(freePort, tacBuilderPath, database)
+        server = RdServer(freePort, tacBuilderPath, database)
         server.protocol.scheduler.queue {
             val res =
                 server.protocol.ilModel.ilSigModel.publication.sync(
@@ -42,7 +43,6 @@ class JacoDBContainer(
                 )
             )
         }
-        server.close()
     }
 
     companion object {
