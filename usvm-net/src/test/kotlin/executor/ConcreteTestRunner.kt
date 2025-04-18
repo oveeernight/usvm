@@ -19,10 +19,11 @@ class ConcreteTestRunner(private val proc: Process, private val serverPort: Int)
             delay(500)
             stub.execute(testBatch)
         }
+        channel.shutdown()
 
         val isSuccess = result.resultCase == TestExpressions.ExecutionResult.ResultCase.SUCCESS
         require(isSuccess) {
-            proc.destroy()
+//            proc.destroy()
             val failReason = result.fail.reason
             "Some executions failed:\n$failReason"
         }
