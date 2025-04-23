@@ -2,6 +2,7 @@ package org.usvm.machine.interpreter
 
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
+import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.usvm.types.TypesResult
 import org.usvm.types.UTypeStream
 
@@ -41,6 +42,13 @@ class IlTypeStreamPrioritization(private val typesToScore: Int) {
 
     private fun IlType.score() : Double {
         var score = 0.0
+        if (isConstructed) {
+            score += 1
+        }
+        if (this is IlArrayType) {
+            val elementScore = elementType.score()
+            score += elementScore / 10
+        }
         return score
     }
 }

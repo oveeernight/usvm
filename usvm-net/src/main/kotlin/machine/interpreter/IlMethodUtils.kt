@@ -5,7 +5,8 @@ import org.jacodb.api.net.ilinstances.IlType
 
 fun IlType.findMethod(method: IlMethod) : IlMethod {
     val typeMethods = methods
-    typeMethods.find { it.name == method.name && it.signature == method.signature }?.let { return it }
+    // TODO method name is not enough!!!
+    typeMethods.find { it.name == method.name }?.let { return it }
     val declaringType = baseType!!
     return declaringType.findMethod(method)
 }

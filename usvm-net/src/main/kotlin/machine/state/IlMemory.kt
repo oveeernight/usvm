@@ -311,7 +311,15 @@ class IlMemory(
                 val leftUnaffected = readExprUnsafe(expr, exprType, valueType, zero, start, zero, posIsStable = true)
                 val rightUnaffectedStart = mkBvAddExpr(start, valueSize)
                 val rightUnaffected =
-                    readExprUnsafe(expr, exprType, valueType, rightUnaffectedStart, exprSize, rightUnaffectedStart, posIsStable = true)
+                    readExprUnsafe(
+                        expr,
+                        exprType,
+                        valueType,
+                        rightUnaffectedStart,
+                        exprSize,
+                        rightUnaffectedStart,
+                        posIsStable = true
+                    )
                 val valueSlices = readExprUnsafe(
                     value,
                     valueType,

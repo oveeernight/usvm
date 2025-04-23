@@ -11,6 +11,7 @@ import org.usvm.api.allocateConcreteRef
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.interpreter.IlConcreteCallStmt
 import org.usvm.machine.interpreter.IlMethodResult
+import org.usvm.machine.interpreter.IlVirtualCallStmt
 import org.usvm.machine.write
 
 fun IlState.newStmt(stmt: IlStmt) {
@@ -57,7 +58,14 @@ fun IlState.throwException(type: IlType, frame: UStackTraceFrame<IlMethod, IlStm
 fun IlState.insertConcreteCallStmt(method: IlMethod, args: List<UExpr<out USort>>) =
     newStmt(IlConcreteCallStmt(method, args, currentStatement))
 
+fun IlState.insertVirtualCallStmt(method: IlMethod, args: List<UExpr<out USort>>) =
+    newStmt(IlVirtualCallStmt(method, args, currentStatement))
+
 fun IlState.callMethod(method: IlMethod, args: List<UExpr<out USort>>, returnSite: IlStmt) {
+    if (method.returnType == ctx.voidType && method.instList.size == 0) {
+        returnValue(ctx.void)
+        return
+    }
     callStack.push(method, returnSite)
     memory.stack.push(args.toTypedArray(), method.localsCount())
     newStmt(method.instList.first())

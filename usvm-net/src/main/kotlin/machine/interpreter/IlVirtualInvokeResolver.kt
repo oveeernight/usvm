@@ -2,9 +2,7 @@ package org.usvm.machine.interpreter
 
 import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.IlType
-import org.usvm.UBoolExpr
-import org.usvm.UConcreteHeapRef
-import org.usvm.UHeapRef
+import org.usvm.*
 import org.usvm.api.evalTypeEquals
 import org.usvm.api.typeStreamOf
 import org.usvm.machine.IlContext
@@ -19,14 +17,15 @@ fun resolveVirtualInvoke(
     callStmt: IlVirtualCallStmt,
     ctx: IlContext,
     scope: IlStepScope,
+    typeSelector: IlTypeSelector,
     forkOnRemainingTypes: Boolean
 ) {
     val models = scope.calcOnState { models }
     if (models.isNotEmpty()) {
-        resolveVirtualInvokeWithModel(callStmt, ctx, scope, models.first())
+        resolveVirtualInvokeWithModel(callStmt, ctx, scope, models.first(), typeSelector, forkOnRemainingTypes)
     }
     else {
-        resolveVirtualInvokeWithoutModel(callStmt, ctx, scope, forkOnRemainingTypes)
+        resolveVirtualInvokeWithoutModel(callStmt, ctx, scope, typeSelector, forkOnRemainingTypes)
     }
 }
 
@@ -34,6 +33,7 @@ private fun resolveVirtualInvokeWithoutModel(
     callStmt: IlVirtualCallStmt,
     ctx: IlContext,
     scope: IlStepScope,
+    typeSelector: IlTypeSelector,
     forkOnRemainingTypes: Boolean
 ) {
     val instance = callStmt.args[0].asExpr(ctx.addressSort)
@@ -51,11 +51,19 @@ private fun resolveVirtualInvokeWithoutModel(
             refsWithConditions += condition to ref
         })
 
-//    val conditionsWithBlock = refsWithConditions.flatMapTo(mutableListOf()) {
-//        TODO()
-//    }
-    val typeStream = scope.calcOnState { memory.types.getTypeStream(instance) }
-    TODO()
+    val conditionsWithBlock: List<Pair<UBoolExpr, (IlState) -> Unit>> =
+        refsWithConditions.flatMapTo(mutableListOf()) { (c, ref) ->
+        when {
+            isAllocatedConcreteHeapRef(ref) -> callStmt.prepareInvokeOnConcreteRef(scope, ref, c)
+            ref is USymbolicHeapRef -> {
+                val typeStream = scope.calcOnState { memory.types.getTypeStream(instance) }
+                callStmt.makeConcreteCallsForPossibleTypes(scope, ctx, ref, typeStream, typeSelector, forkOnRemainingTypes)
+
+            }
+            else -> error("resolveVirtualInvokeWithoutModel: unexpected ref $ref")
+        }
+    }
+    scope.forkMulti(conditionsWithBlock)
 }
 
 private fun IlVirtualCallStmt.makeConcreteCallsForPossibleTypes(
@@ -91,12 +99,21 @@ private fun resolveVirtualInvokeWithModel(
     callStmt: IlVirtualCallStmt,
     ctx: IlContext,
     scope: IlStepScope,
-    model: UModelBase<IlType>
+    model: UModelBase<IlType>,
+    typeSelector: IlTypeSelector,
+    forkOnRemainingTypes: Boolean
 ) {
     val instance = callStmt.args[0].asExpr(ctx.addressSort)
     val evaledInstance = model.eval(instance) as UConcreteHeapRef
-    val concreteInvokes = callStmt.prepareInvokeOnConcreteRef(scope, evaledInstance, ctx.trueExpr)
-    scope.forkMulti(concreteInvokes)
+    if (isAllocatedConcreteHeapRef(evaledInstance) || isStaticHeapRef(evaledInstance)) {
+        val concreteInvoke = callStmt.prepareInvokeOnConcreteRef(scope, evaledInstance, ctx.trueExpr)
+        scope.forkMulti(concreteInvoke)
+    }
+    // ref is symbolic
+    val typeStream = scope.calcOnState { model.typeStreamOf(evaledInstance) }
+    val symbolicInvokes =
+        callStmt.makeConcreteCallsForPossibleTypes(scope, ctx, instance, typeStream, typeSelector, forkOnRemainingTypes)
+    scope.forkMulti(symbolicInvokes)
 }
 
 private fun IlVirtualCallStmt.prepareInvokeOnConcreteRef(

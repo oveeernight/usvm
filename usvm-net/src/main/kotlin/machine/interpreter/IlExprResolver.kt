@@ -206,9 +206,14 @@ class IlExprResolver(
         val method = expr.method
         val params = method.parameters
         val (instance, funArgs) = if (method.isStatic) {
-            args[0] to args.subList(1, args.size)
-        } else {
             null to args
+        } else {
+            args[0] to args.subList(1, args.size)
+        }
+        if (method.isVirtual) {
+            return checkCall(instance, method, args, params) { resolvedArgs ->
+                scope.doWithState { insertVirtualCallStmt(method, resolvedArgs) }
+            }
         }
         return checkCall(
             instance,
@@ -348,8 +353,9 @@ class IlExprResolver(
     }
 
     override fun visitIlIsInstExpr(expr: IlIsInstExpr): UExpr<out USort>? = scope.calcOnState {
-        val inst = resolve(expr)?.asExpr(ctx.addressSort)
-        inst?.let { memory.types.evalIsSubtype(it, expr.expectedType) }
+        val inst = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@calcOnState null
+        val isInstCond = memory.types.evalIsSubtype(inst, expr.expectedType)
+        ctx.mkIte(isInstCond, inst, ctx.nullRef)
     }
 
     override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {

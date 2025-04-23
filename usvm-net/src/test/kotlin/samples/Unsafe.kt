@@ -9,56 +9,55 @@ class Unsafe : IlMethodTestRunner() {
 
     @Test
     fun argumentWrite() {
-        runner(::argumentWrite, options)
+        runnerWithDefaultOptions(::argumentWrite)
     }
     @Test
     fun concreteUnsafe1() {
-        runner(::concreteUnsafe1, options)
+        runnerWithDefaultOptions(::concreteUnsafe1)
     }
 
     @Test
     fun stackUnsafe1() {
-        runner(::stackUnsafe1, options)
+        runnerWithDefaultOptions(::stackUnsafe1)
     }
 
     @Test
     fun stackUnsafe2() {
-        runner(::stackUnsafe2, options)
+        runnerWithDefaultOptions(::stackUnsafe2)
     }
 
     @Ignore("")
     @Test
     fun detachedPtr() {
-        runner(::detachedPtr, options)
+        runnerWithDefaultOptions(::detachedPtr)
     }
 
     @Test
     fun concreteArrayUnsafe1() {
-        runner(::concreteArrayUnsafe1, options)
+        runnerWithDefaultOptions(::concreteArrayUnsafe1)
     }
     @Test
     fun concreteArrayUnsafe2() {
-        runner(::concreteArrayUnsafe2, options)
+        runnerWithDefaultOptions(::concreteArrayUnsafe2)
     }
 
     @Test
     fun symbolicArrayUnsafe1() {
-        runner(::symbolicArrayUnsafe1, options)
+        runnerWithDefaultOptions(::symbolicArrayUnsafe1)
     }
 
     @Test
     fun refField() {
-        runner(::refField, options)
+        runnerWithDefaultOptions(::refField)
     }
 
     @Test
     fun concreteStructWrite() {
-        runner(::concreteStructWrite, options)
+        runnerWithDefaultOptions(::concreteStructWrite)
     }
 
     @Test
-    @Ignore
     fun symbolicStructWrite() {
-        runner(::symbolicStructWrite, options)
+        runnerWithDefaultOptions(::symbolicStructWrite)
     }
 }

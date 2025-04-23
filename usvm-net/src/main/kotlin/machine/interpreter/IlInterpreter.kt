@@ -10,6 +10,7 @@ import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.forkblacklists.UForkBlackList
 import org.usvm.machine.*
 import org.usvm.machine.state.*
+import org.usvm.memory.URegisterStackLValue
 import org.usvm.solver.USatResult
 
 typealias IlStepScope = StepScope<IlState, IlType, IlStmt, IlContext>
@@ -66,7 +67,8 @@ class IlInterpreter(
                 if (!isPrimitiveType(type)) {
                     val refinedRValue = if (type is IlStructType) {
                         state.copyStruct(paramRValue.asExpr(ctx.addressSort), type)
-                    } else paramRValue
+                    } else paramRValue.asExpr(ctx.addressSort)
+                    state.pathConstraints += mkIsSubtypeExpr(refinedRValue, type)
                     entrypointArgs += type to refinedRValue
                 } else entrypointArgs += type to paramRValue
             }
@@ -123,9 +125,7 @@ class IlInterpreter(
                 scope.doWithState { callMethod(stmt.method, stmt.args, stmt.returnSite) }
             }
 
-            is IlVirtualCallStmt -> {
-
-            }
+            is IlVirtualCallStmt -> resolveVirtualCall(stmt, scope)
             else -> error("visitTransparentCall: unexpected call ${stmt.method}")
         }
     }
@@ -220,8 +220,9 @@ class IlInterpreter(
         TODO()
     }
 
-    private fun resolveVirtualCall(callStmt: IlVirtualCallStmt, stepScope: IlStepScope) {
-
+    private fun resolveVirtualCall(callStmt: IlVirtualCallStmt, scope: IlStepScope) {
+        val typeSelector = IlFixedInheritorsNumberTypeSelector()
+        resolveVirtualInvoke(callStmt, ctx, scope, typeSelector, ilOptions.forkOnRemainingTypes)
     }
 
     private fun IlStmt.next() : IlStmt = location.method.instList[location.index + 1]

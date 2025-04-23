@@ -34,7 +34,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val uintPtrType by lazy { findTypeOrReportAbsence("UIntPtr") }
 
     val valueType by lazy { findTypeOrReportAbsence("ValueType") }
-
+    val voidType by lazy { findTypeOrReportAbsence("Void") }
     val objectType by lazy { findTypeOrReportAbsence("Object") }
     val systemType by lazy { findTypeOrReportAbsence("Type") }
 

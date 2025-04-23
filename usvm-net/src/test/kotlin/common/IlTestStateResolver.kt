@@ -4,13 +4,8 @@ import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
-import org.usvm.UConcreteHeapAddress
-import org.usvm.UExpr
-import org.usvm.UHeapRef
-import org.usvm.USort
-import org.usvm.UConcreteHeapRef
-import org.usvm.NULL_ADDRESS
-import org.usvm.INITIAL_STATIC_ADDRESS
+import org.usvm.*
+import org.usvm.api.typeStreamOf
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
@@ -28,6 +23,7 @@ import org.usvm.memory.ULValue
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.memory.URegisterStackLValue
 import org.usvm.model.UModelBase
+import org.usvm.types.single
 
 abstract class IlTestStateResolver<T>(
     val ctx: IlContext,
@@ -106,20 +102,20 @@ abstract class IlTestStateResolver<T>(
             return decoderApi.createNullConst(type)
         }
 
-//        val types = if (evaledRef.isStatic) {
-//            memory.types.getTypeStream(evaledRef)
-//        } else {
-//            assert(evaledRef.address <= INITIAL_INPUT_ADDRESS)
-//            model.types.getTypeStream(evaledRef)
-//        }.filterBySupertype(type)
+        // to find a type, we need to understand the source of the object
+        val typeStream = if (evaledRef.isStatic) {
+            memory.types.getTypeStream(evaledRef)
+        } else {
+            model.typeStreamOf(evaledRef)
+        }.filterBySupertype(type)
 
-        val runtimeType = type
+        val evaluatedType = typeStream.single()
 
-        return resolveCyclic(evaledRef, runtimeType) {
-            when (runtimeType) {
-                is IlArrayType -> resolveArray(heapRef, evaledRef, runtimeType)
+        return resolveCyclic(evaledRef, evaluatedType) {
+            when (evaluatedType) {
+                is IlArrayType -> resolveArray(heapRef, evaledRef, evaluatedType)
                 ctx.stringType -> resolveString(heapRef, evaledRef)
-                else -> resolveObject(heapRef, evaledRef, runtimeType)
+                else -> resolveObject(heapRef, evaledRef, evaluatedType)
             }
         }
     }
