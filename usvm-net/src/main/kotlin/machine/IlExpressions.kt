@@ -8,16 +8,12 @@ import io.ksmt.expr.*
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
 import io.ksmt.sort.KSortVisitor
-import io.ksmt.sort.KUninterpretedSort
 import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
-import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
-import org.usvm.collections.immutable.internal.MutabilityOwnership
-import org.usvm.collections.immutable.persistentHashMapOf
 import org.usvm.machine.state.IlRegisterStackLValue
 import org.usvm.memory.ULValue
 import org.usvm.memory.UMemoryRegion
@@ -32,14 +28,6 @@ class VoidSort(ctx: IlContext) : USort(ctx) {
     }
 }
 
-class StructSort(ctx: IlContext, val structType: IlType) : KUninterpretedSort ("struct", ctx) {
-    override fun <T> accept(visitor: KSortVisitor<T>): T {
-        return visitor.visit(this)
-    }
-    override fun print(builder: StringBuilder) {
-        builder.append("struct sort")
-    }
-}
 
 class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     override val sort: USort = ctx.voidSort
@@ -55,48 +43,9 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
     }
 }
 
-class IlStruct(
-    ctx: IlContext,
-    override val sort: StructSort,
-    val type: IlType,
-    val fields: UPersistentHashMap<IlField, UExpr<out USort>>
-) : UExpr<StructSort>(ctx) {
-    fun writeField(field: IlField, value: UExpr<out USort>, ownership: MutabilityOwnership) : IlStruct {
-        val updatedFields = fields.put(field, value, ownership)
-        return value.ilctx.mkStruct(type, updatedFields)
-    }
-
-    fun <Sort: USort> readField(field: IlField) : UExpr<Sort> = fields[field].cast()
-
-    override fun accept(transformer: KTransformerBase): KExpr<StructSort> {
-        val fields = fields.fold(persistentHashMapOf<IlField, UExpr<out USort>>()) { acc, (f, v) ->
-            val transformedValue = v.accept(transformer)
-            acc.put(f, transformedValue, sort.uctx.defaultOwnership)
-        }
-        return IlStruct(sort.ilctx, sort, type, fields)
-    }
-
-    override fun internEquals(other: Any): Boolean = structurallyEqual(other, { fields }, { type }, { sort })
-
-    override fun internHashCode(): Int = hash(fields, type)
-
-    override fun print(printer: ExpressionPrinter) {
-        printer.append("STRUCT[\n")
-        for (field in type.fields) {
-            val value = fields[field]!!
-            printer.append("${field.name} ->")
-            value.print(printer)
-            printer.append("\n")
-        }
-        printer.append("]")
-    }
-
-}
-
 class IlManagedRef<Sort : USort>(
     ctx: IlContext,
     val type: IlType,
-    val memoryRegion: UMemoryRegion<*, *>,
     val memoryKey: ULValue<*, Sort>
 ) : UExpr<UAddressSort>(ctx) {
     override val sort: UAddressSort
@@ -136,7 +85,7 @@ class IlManagedRef<Sort : USort>(
     override fun internHashCode(): Int = hash()
 
     override fun print(printer: ExpressionPrinter) {
-        TODO("Not yet implemented")
+        printer.append("&${memoryKey}")
     }
 }
 

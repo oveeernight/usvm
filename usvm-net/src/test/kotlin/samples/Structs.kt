@@ -1,11 +1,8 @@
 package samples
 
 import IlMethodTestRunner
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.TestInstance
 import kotlin.test.Test
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Structs : IlMethodTestRunner() {
     @Test
     fun writeStructConcrete() {
@@ -23,12 +20,27 @@ class Structs : IlMethodTestRunner() {
     }
 
     @Test
-    fun concreteArrayOfStructs() {
-        runner(::concreteArrayOfStructs, options)
+    fun structsArrayConcreteWrite() {
+        runner(::structsArrayConcreteWrite, options)
     }
 
     @Test
-    fun symbolicStructWrite() {
-        runner(::symbolicStructWrite, options)
+    fun structsArraySymbolicReading() {
+        runner(::structsArraySymbolicReading, options)
+    }
+
+    @Test
+    fun symbolicStructField() {
+        runner(::symbolicStructField, options)
+    }
+
+    @Test
+    fun structsAliasing() {
+        runner(::structsAliasing, options)
+    }
+
+    @Test
+    fun structsAsClassFieldsAliasing() {
+        runner(::structsAsClassFieldsAliasing, options)
     }
 }

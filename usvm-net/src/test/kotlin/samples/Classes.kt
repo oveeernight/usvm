@@ -21,4 +21,9 @@ class Classes : IlMethodTestRunner() {
     fun concreteObjectDefaultValue() {
         runner(::concreteObjectDefaultValue, options)
     }
+
+    @Test
+    fun fieldsInequalityImpliesObjectsInequality() {
+        runner(::fieldsInequalityImpliesObjectsInequality, options)
+    }
 }

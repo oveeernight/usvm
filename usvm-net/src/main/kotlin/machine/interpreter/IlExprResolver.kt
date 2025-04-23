@@ -4,22 +4,17 @@ import io.ksmt.utils.asExpr
 import io.ksmt.utils.cast
 import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
-import org.jacodb.api.net.ilinstances.impl.IlArrayType
-import org.jacodb.api.net.ilinstances.impl.IlPointerType
-import org.jacodb.api.net.ilinstances.impl.IlPrimitiveType
-import org.jacodb.api.net.ilinstances.impl.IlStructType
+import org.jacodb.api.net.ilinstances.impl.*
 import org.usvm.*
 import org.usvm.api.allocateArray
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.*
-import org.usvm.machine.state.IlRegisterStackLValue
-import org.usvm.machine.state.StructFieldLValue
-import org.usvm.machine.state.insertConcreteCallStmt
-import org.usvm.machine.state.throwException
+import org.usvm.machine.state.*
 import org.usvm.memory.ULValue
 import org.usvm.memory.UMemoryRegion
+import kotlin.math.exp
 
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
 class IlExprResolver(
@@ -31,6 +26,7 @@ class IlExprResolver(
     val mapMethodLocalToIdx: (IlMethod, IlLocal) -> Pair<Int, IlType>,
 ) : IlExprVisitor<UExpr<out USort>?> {
 
+    private val valueSampler by lazy { ctx.mkUValueSampler() }
     private val constResolver = IlConstResolver(ctx, scope, getOrMkStringConst, getOrMkTypeRef)
 
     fun resolve(expr: IlExpr, type: IlType = expr.type) : UExpr<out USort>? = expr.accept(this)
@@ -94,12 +90,12 @@ class IlExprResolver(
     private fun arrayAccessToLValue(expr: IlArrayAccess): UArrayIndexLValue<*, *, *>? = with(ctx) {
         val elementType = (expr.array.type as IlArrayType).elementType
         val arrayRef = resolve(expr.array)?.asExpr(addressSort) ?: return null
-        checkNullPointer(arrayRef)
+        checkNullPointer(arrayRef, expr.array.type)
 
         val index = resolve(expr.index)?.asExpr(sizeSort) ?: return null
 
-        val arrayType = ctx.arrayDescriptorOf(expr.array.type as IlArrayType)
-        val len = UArrayLengthLValue(arrayRef, arrayType, sizeSort).let {
+        val arrayDesc = ctx.arrayDescriptorOf(expr.array.type as IlArrayType)
+        val len = UArrayLengthLValue(arrayRef, arrayDesc, sizeSort).let {
             scope.calcOnState { memory.read(it) }
         }
 
@@ -109,38 +105,37 @@ class IlExprResolver(
         checkArrayIndexBounds(index, len)
 
 
-        val lvalue = UArrayIndexLValue(typeToSort(elementType), arrayRef, index, arrayType)
+        val lvalue = UArrayIndexLValue(typeToSort(elementType), arrayRef, index, arrayDesc)
         lvalue
     }
 
-    private fun fieldAccessToLValue(expr: IlFieldAccess): ULValue<*, *>? {
+    private fun fieldAccessToLValue(expr: IlFieldAccess): UFieldLValue<*, *>? = scope.calcOnState {
         val fieldIsStatic = expr.instance == null
         val field = expr.field
-        return if (field.declaringType is IlStructType) {
-            val structLocation = resolveLValue(expr.instance!!) ?: return null
-            scope.calcOnState {
-                val struct = memory.read(structLocation)
-                if (struct is IlManagedRef<*>) {
-                    val structRegion = struct.memoryRegion
-                    val structKey = struct.memoryKey
-                    StructFieldLValue(ctx.typeToSort(field.fieldType), structRegion.cast(), structKey, field)
-                } else {
-                    val structRegion = memory.getRegion(structLocation.memoryRegionId)
-                    StructFieldLValue(ctx.typeToSort(field.fieldType), structRegion.cast(), structLocation, field)
-                }
-            }
+        if (!fieldIsStatic) {
+            val instance = resolveInstance(expr.instance!!)
+            val key = UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
+            val extraCond = if (expr.field.fieldType is IlStructType && instance !is UConcreteHeapRef) {
+                val structLocation = instance
+                val structRef = memory.read(key).asExpr(ctx.addressSort)
+                setStructFieldsDefaultValues(structRef, expr.field.fieldType as IlStructType)
+                val syntheticStructLocation =
+                    UFieldLValue(ctx.addressSort, structRef, ctx.syntheticStructLocationField).let { memory.read(it) }
+                val aliasBanCondition = ctx.mkHeapRefEq(syntheticStructLocation, structLocation)
+//                val structRefNonNullCondition = ctx.mkNot(ctx.mkHeapRefEq(structRef, ctx.nullRef))
+                pathConstraints += aliasBanCondition
+                ctx.trueExpr
+            } else ctx.trueExpr
+            checkNullPointer(instance, expr.instance!!.type, extraCond)
+            key
         } else {
-            if (!fieldIsStatic) {
-                val instance = resolve(expr.instance!!)?.asExpr(ctx.addressSort) ?: return null
-                checkNullPointer(instance)
-                return UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
-            }
             TODO("static fields")
         }
     }
 
-    private fun checkNullPointer(ref: UHeapRef) = with(ctx) {
-        val constr = !ctx.mkHeapRefEq(ref, nullRef)
+    private fun checkNullPointer(ref: UHeapRef, type: IlType, extraCond : UBoolExpr = ctx.trueExpr) = with(ctx) {
+        if (type.baseType == ctx.valueType) return@with
+        val constr = ctx.mkAnd(!ctx.mkHeapRefEq(ref, nullRef), extraCond)
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 constr,
@@ -179,7 +174,7 @@ class IlExprResolver(
 
     override fun visitIlArrayLength(expr: IlArrayLengthExpr): UExpr<out USort>? {
         val arrayRef = resolve(expr.array)?.asExpr(ctx.addressSort) ?: return null
-        checkNullPointer(arrayRef)
+        checkNullPointer(arrayRef, expr.array.type)
         val arrayDesc = ctx.arrayDescriptorOf(expr.array.type as IlArrayType)
         val key = UArrayLengthLValue(arrayRef, arrayDesc, ctx.sizeSort)
         return scope.calcOnState { memory.read(key) }
@@ -232,10 +227,17 @@ class IlExprResolver(
     ) : UExpr<out USort>? {
         if (instance != null) {
             val resolvedInstance = resolve(instance)?.asExpr(ctx.addressSort) ?: return null
-            checkNullPointer(resolvedInstance)
+            checkNullPointer(resolvedInstance, instance.type)
         }
 
-        val resolvedArgs = args.zip(parameters).map { (arg, param) -> resolve(arg, param.type) ?: return null }
+        val resolvedArgs = args.zip(parameters).map { (arg, param) ->
+            val resolved = resolve(arg, param.type) ?: return null
+            val argType = arg.type
+            if (argType is IlStructType) {
+                val structRef = resolved.asExpr(ctx.addressSort)
+                scope.calcOnState { copyStruct(structRef, argType) }
+            } else resolved
+        }
 
         return resolveCall { onBeforeCall(resolvedArgs) }
     }
@@ -360,9 +362,8 @@ class IlExprResolver(
 
     override fun visitIlManagedRefExpr(expr: IlManagedRefExpr): IlManagedRef<out USort>? {
         val key = resolveLValue(expr.value) ?: return null
-        val mr : UMemoryRegion<*, *> = scope.calcOnState { memory.getRegion(key.memoryRegionId) }
         val type = expr.value.type
-        return IlManagedRef(ctx, type, mr, key)
+        return IlManagedRef(ctx, type, key)
     }
 
     override fun visitIlMethodRefConst(const: IlMethodRef): UExpr<out USort>? {
@@ -370,16 +371,35 @@ class IlExprResolver(
     }
 
     override fun visitIlNewArrayExpr(expr: IlNewArrayExpr): UExpr<out USort>? = scope.calcOnState {
-        val arrayType = expr.elementType
+        val ref = memory.allocConcrete(expr.type)
         val size = resolve(expr.size)?.asExpr(ctx.sizeSort) ?: return@calcOnState null
-        memory.allocateArray(arrayType, ctx.sizeSort, size)
+        val arrayDesc = ctx.arrayDescriptorOf(expr.type)
+        memory.write(UArrayLengthLValue(ref, arrayDesc, ctx.sizeSort), size)
+        memory.types.allocate(ref.address, expr.type)
+        ref
     }
 
     override fun visitIlNewExpr(expr: IlNewExpr): UExpr<out USort> = scope.calcOnState {
-        if (expr.type is IlStructType) {
-            ctx.mkStruct(expr.type)
-        } else {
-            memory.allocConcrete(expr.type)
+        val type = expr.type
+        val ref = memory.allocConcrete(type)
+        if (type is IlStructType) {
+            setStructFieldsDefaultValues(ref, type)
+        }
+        ref
+    }
+
+    private fun setStructFieldsDefaultValues(structRef: UHeapRef, type: IlStructType): Unit = scope.calcOnState {
+        val fields = type.fields
+        fields.forEach { field ->
+            val fieldType = field.fieldType
+            val fieldSort = ctx.typeToSort(fieldType)
+            val fieldKey = UFieldLValue(fieldSort, structRef, field)
+            val fieldValue = if (fieldType is IlStructType) {
+                val newRef = memory.allocConcrete(fieldType)
+                setStructFieldsDefaultValues(newRef, fieldType)
+                newRef
+            } else fieldSort.sampleUValue()
+            memory.write(fieldKey, fieldValue.cast(), ctx.trueExpr)
         }
     }
 
@@ -415,6 +435,12 @@ class IlExprResolver(
     override fun visitIlUnmanagedRefExpr(expr: IlUnmanagedRefExpr): UExpr<out USort>? {
         TODO("Not yet implemented")
     }
+
+    private fun resolveInstance(instance: IlExpr) : UHeapRef = resolve(instance).let {
+        if (it is IlManagedRef<*>) {
+            scope.calcOnState { memory.read(it.memoryKey) }
+        } else it
+    }!!.asExpr(ctx.addressSort)
 
     private inline fun <T> resolveAfterResolved(expr: IlExpr, block: (UExpr<out USort>) -> T): T? {
         val resolved = resolve(expr) ?: return null

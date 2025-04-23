@@ -1,16 +1,17 @@
 package org.usvm.machine.state
 
+import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlMethodImpl
-import org.usvm.UCallStack
-import org.usvm.UExpr
-import org.usvm.USort
-import org.usvm.UStackTraceFrame
+import org.jacodb.api.net.ilinstances.impl.IlStructType
+import org.usvm.*
 import org.usvm.api.allocateConcreteRef
+import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.interpreter.IlConcreteCallStmt
 import org.usvm.machine.interpreter.IlMethodResult
+import org.usvm.machine.write
 
 fun IlState.newStmt(stmt: IlStmt) {
     pathNode += stmt
@@ -60,4 +61,20 @@ fun IlState.callMethod(method: IlMethod, args: List<UExpr<out USort>>, returnSit
     callStack.push(method, returnSite)
     memory.stack.push(args.toTypedArray(), method.localsCount())
     newStmt(method.instList.first())
+}
+
+internal fun IlState.copyStruct(structRef: UHeapRef, type: IlStructType): UHeapRef {
+    val copyRef = memory.allocConcrete(type)
+    type.fields.forEach { f ->
+        val fieldType = f.fieldType
+        val fieldSort = ctx.typeToSort(fieldType)
+        val fieldValue = UFieldLValue(fieldSort, structRef, f).let {
+            val value = memory.read(it)
+            if (fieldType is IlStructType) {
+                copyStruct(value.asExpr(ctx.addressSort), fieldType)
+            } else value
+        }
+        UFieldLValue(fieldSort, copyRef, f).let { memory.write(it, fieldValue) }
+    }
+    return copyRef
 }

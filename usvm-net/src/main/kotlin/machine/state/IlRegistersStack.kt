@@ -54,6 +54,6 @@ class IlRegistersStack(frames: MutableList<Array<UExpr<out USort>?>> = mutableLi
 
     override fun clone(): URegistersStack {
         val newStack = ArrayDeque(frames.map { it.clone() })
-        return URegistersStack(newStack)
+        return IlRegistersStack(newStack)
     }
 }

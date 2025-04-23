@@ -28,7 +28,7 @@ interface MethodCall {
 
 data class IlMethodEntryPointStmt(
     override val method: IlMethod,
-    val refArgs: List<Pair<IlType, UHeapRef>>
+    val refArgs: List<Pair<IlType, UExpr<out USort>>>
 ) : TransparentMethodCallBaseStmt {
     override val originalStmt get() = error("MethodEntryPoint: location should not be called")
     override val location: IlStmtLocation

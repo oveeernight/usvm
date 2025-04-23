@@ -6,6 +6,7 @@ import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.jacodb.api.net.ilinstances.IlType
+import org.jacodb.api.net.ilinstances.impl.IlStructType
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
@@ -23,7 +24,6 @@ import org.usvm.expressions.mkCombine
 import org.usvm.expressions.mkSlice
 import org.usvm.machine.*
 import java.util.LinkedList
-import kotlin.math.exp
 import kotlin.math.max
 
 
@@ -43,23 +43,6 @@ class IlMemory(
         val (updatedRegions, region) = regions.getOrPut(regionId, ownership) { regionId.emptyRegion() }
         regions = updatedRegions
         return region as UMemoryRegion<Key, Sort>
-    }
-
-    override fun <Key, Sort : USort> setRegion(
-        regionId: UMemoryRegionId<Key, Sort>,
-        newRegion: UMemoryRegion<Key, Sort>
-    ) {
-        if (regionId is StructsRegionId<*, *> && newRegion is StructsMemoryRegion<*, *>) {
-            val structRegion = newRegion.structRegion
-            val structRegionId = (regionId.structKey as ULValue<*, *>).memoryRegionId
-            if (structRegionId is IlRegisterStackId) {
-                check(structRegion === stack) { "Stack is mutable" }
-                return
-            }
-            regions = regions.put(structRegionId, structRegion, ownership)
-
-        }
-        super.setRegion(regionId, newRegion)
     }
 
     override fun readUnsafe(lvalue: UnsafeLValue<out USort, IlType>): UExpr<out USort> {
@@ -159,11 +142,22 @@ class IlMemory(
         }
     }
 
-    private fun writeStructUnsafe(struct: IlStruct, offset: UExpr<UBvSort>, valueType: IlType, value: UExpr<out USort>) : UExpr<out USort> {
-        val affectedFields = commonWriteFields(struct.type, offset, valueType, value) { f -> struct.fields[f]!! }
-        return affectedFields.fold(struct) { acc, (f, value) ->
-            acc.writeField(f, value, ownership)
+    private fun writeClassOrStructUnsafe(
+        ref: UHeapRef,
+        refType: IlType,
+        value: UExpr<out USort>,
+        valueType: IlType,
+        offset: UExpr<UBvSort>
+    ): UHeapRef {
+        val updatedFields = commonWriteFields(refType, offset, valueType, value) { f ->
+            val fieldKey = UFieldLValue(ref.ilctx.typeToSort(f.fieldType), ref, f)
+            read(fieldKey)
         }
+        updatedFields.forEach { (f, v) ->
+            val fieldKey = UFieldLValue(ref.ilctx.typeToSort(f.fieldType), ref, f)
+            write(fieldKey, v.cast(), ctx.trueExpr)
+        }
+        return ref
     }
 
     private fun commonWriteFields(
@@ -272,12 +266,6 @@ class IlMemory(
         posIsStable: Boolean
     ): List<UExpr<out USort>> {
         return when (expr) {
-            is IlStruct -> {
-                commonReadFields(exprType, start, pos, sightType) { f ->
-                    expr.fields[f]!!
-                }
-            }
-
             is Slice<Sort> -> {
                 val cut = Cut(start, end, pos, posIsStable)
                 val newExpr = expr.ilctx.addCut(expr, cut)
@@ -308,8 +296,14 @@ class IlMemory(
     ): UExpr<out USort> = with(expr.ilctx) {
         when {
             start == mkBv(0, bv32Sort) && valueType.size == exprType.size -> value
+            expr.sort == addressSort && exprType is IlStructType -> writeClassOrStructUnsafe(
+                expr.cast(),
+                exprType,
+                value,
+                valueType,
+                start
+            )
             expr.sort == addressSort -> TODO()
-            expr.sort is StructSort -> writeStructUnsafe(expr.toStruct(), start, valueType, value)
             else -> {
                 val exprSize: UExpr<UBvSort> = mkBv(exprType.size, bv32Sort)
                 val valueSize: UExpr<UBvSort> = mkBv(valueType.size, bv32Sort)

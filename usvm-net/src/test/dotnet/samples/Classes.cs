@@ -2,6 +2,19 @@ namespace samples;
 
 public class Classes
 {
+    [SvmTest(83)]
+    public int FieldsInequalityImpliesObjectsInequality(User a, User b)
+    {
+        if (a.Id != b.Id)
+        {
+            if (a == b)
+            {
+                return -1;
+            }
+        }
+        return 0;
+    }
+    
     [SvmTest(81)]
     public int SymbolicClassSet(User u)
     {

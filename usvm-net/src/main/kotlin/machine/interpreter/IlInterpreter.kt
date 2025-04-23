@@ -3,6 +3,7 @@ package org.usvm.machine.interpreter
 import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.IlMethodImpl
+import org.jacodb.api.net.ilinstances.impl.IlStructType
 import org.usvm.*
 import org.usvm.api.allocateStaticRef
 import org.usvm.collections.immutable.internal.MutabilityOwnership
@@ -56,17 +57,18 @@ class IlInterpreter(
                 val ref = state.memory.read(thisLValue).asExpr(addressSort)
                 state.pathConstraints += !mkHeapRefEq(ref, nullRef)
             }
-            val entrypointArgs = mutableListOf<Pair<IlType, UHeapRef>>()
+            val entrypointArgs = mutableListOf<Pair<IlType, UExpr<out USort>>>()
 
             method.parameters.forEachIndexed { idx, param ->
                 val type = param.type
+                val paramLValue = IlRegisterStackLValue(typeToSort(type), 0, idx)
+                val paramRValue = state.memory.read(paramLValue)
                 if (!isPrimitiveType(type)) {
-                    val paramLValue = IlRegisterStackLValue(typeToSort(type), 0, idx)
-                    val paramRValue = state.memory.read(paramLValue).asExpr(addressSort)
-//                    val constr = ctx.mkIsSubtypeExpr(paramRValue, param.type)
-//                    state.pathConstraints += constr
-                    entrypointArgs += type to paramRValue
-                }
+                    val refinedRValue = if (type is IlStructType) {
+                        state.copyStruct(paramRValue.asExpr(ctx.addressSort), type)
+                    } else paramRValue
+                    entrypointArgs += type to refinedRValue
+                } else entrypointArgs += type to paramRValue
             }
 
             val solver = solver<IlType>()
@@ -76,7 +78,8 @@ class IlInterpreter(
             state.callStack.push(method, returnSite = null)
             method as? IlMethodImpl ?: error("Unexpected method type for now")
             val localsSize = method.locals.size + method.temps.size + method.errs.size
-            state.memory.stack.push(method.parameters.size, localsSize)
+            val params = entrypointArgs.map { (_, a) -> a}.toTypedArray()
+            state.memory.stack.push(params, localsSize)
             state.newStmt(IlMethodEntryPointStmt(method, entrypointArgs))
         }
 
@@ -127,33 +130,30 @@ class IlInterpreter(
         }
     }
 
+    // TODO handle calls in rhs when cfg will be available
     private fun visitAssignStmt(scope: IlStepScope, stmt: IlAssignStmt) {
         val resolver = mkExprResolver(scope)
         val lhv = stmt.lhv
-        if (lhv is IlUnmanagedDerefExpr) {
-            val rvalue = resolver.resolve(stmt.rhv) ?: return
-            val ptr = resolver.resolve(lhv.value)
-            require(ptr is IlPtr<*>)
-            scope.doWithState {
-                memory.writeUnsafe(ptr, rvalue, stmt.rhv.type)
-                newStmt(stmt.next())
-            }
-        }
-        else {
-            val lvalue = resolver.resolveLValue(stmt.lhv) ?: return
-            val rvalue = resolver.resolve(stmt.rhv) ?: return
-//            val rvalue = if (stmt.lhv.type != stmt.rhv.type) {
-//                val convCast = IlConvCastExpr(stmt.lhv.type, stmt.rhv)
-//                resolver.resolve(convCast) ?: return
-//            } else {
-//                resolver.resolve(stmt.rhv) ?: return
-//            }
-            // TODO check array store exception (inappropriate subtype, sort, etc)
-            scope.doWithState {
+        scope.doWithState {
+            val rhvType = stmt.rhv.type
+            val rvalue = resolver.resolve(stmt.rhv)?.let { if (stmt.rhv !is IlNewExpr && rhvType is IlStructType) {
+                copyStruct(it.asExpr(ctx.addressSort), rhvType)
+            }  else it } ?: return@doWithState
+            if (lhv is IlUnmanagedDerefExpr) {
+                val ptr = resolver.resolve(lhv.value)
+                require(ptr is IlPtr<*>)
+                memory.writeUnsafe(ptr, rvalue, rhvType)
+            } else {
+                val lvalue = resolver.resolveLValue(stmt.lhv) ?: return@doWithState
+//              val rvalue = if (stmt.lhv.type != stmt.rhv.type) {
+//                  val convCast = IlConvCastExpr(stmt.lhv.type, stmt.rhv)
+//                  resolver.resolve(convCast) ?: return
+//              } else {
+//                  resolver.resolve(stmt.rhv) ?: return
+//              }
                 memory.write(lvalue, rvalue)
-                newStmt(stmt.next())
             }
-            // TODO handle calls in rhs when cfg will be available
+            newStmt(stmt.next())
         }
     }
 

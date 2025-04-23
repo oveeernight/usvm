@@ -57,7 +57,7 @@ public class Structs
     }
 
     [SvmTest(95)]
-    public int ConcreteArrayOfStructs()
+    public int StructsArrayConcreteWrite()
     {
         var array = new MyStruct[2];
         array[0] = new MyStruct { age = 10, name = null };
@@ -70,18 +70,64 @@ public class Structs
         return 0;
     }
     
-    [SvmTest(90)]
-    public unsafe int SymbolicStructWrite(int i)
+    [SvmTest(93)]
+    public int StructsArraySymbolicReading(int i)
     {
         var array = new SomeStruct[2];
-        array[0] =  new SomeStruct() { x = 5 };
-        array[1] = new SomeStruct() { y = 1 };
+        array[0] =  new SomeStruct { x = 5 };
+        array[1] = new SomeStruct { y = 1 };
         var reading = array[i];
-        if (reading.y == 1 && i != 0)
+        if (reading.y == 1 && i != 1)
         {
             return -1;
         }
-
+        // a.s.location == a, a != b
         return 0;
     }
+
+    public class ClassWithStruct
+    {
+        public MyStruct s;
+        public int x;
+    }
+
+    [SvmTest(100)]
+    public int SymbolicStructField(MyStruct s)
+    {
+        if (s.age == 500)
+        {
+            return 1;
+        }
+        return 2;
+    }
+    
+    
+    [SvmTest(85)]
+    public int StructsAliasing(MyStruct a, MyStruct b)
+    {
+        a.age = 10;
+        b.age = 20;
+        if (a.age == 20)
+        {
+            return -1;
+        }
+        return 0;
+    }
+
+    [SvmTest(90)]
+    public int StructsAsClassFieldsAliasing(ClassWithStruct a, ClassWithStruct b)
+    {
+        if (a != b)
+        {
+            a.s.age = 10;
+            b.s.age = 20;
+            if (a.s.age == 20)
+            {
+                return -1;
+            }
+            return 0;
+        }
+        return 1;
+    }
 }
+
