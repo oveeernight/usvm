@@ -6,7 +6,6 @@ import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.*
 import org.usvm.*
-import org.usvm.api.allocateArray
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
@@ -14,6 +13,7 @@ import org.usvm.machine.*
 import org.usvm.machine.state.*
 import org.usvm.memory.ULValue
 import org.usvm.memory.UMemoryRegion
+import org.usvm.utils.logAssertFailure
 import kotlin.math.exp
 
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
@@ -164,7 +164,19 @@ class IlExprResolver(
 
     override fun visitIlArrayAccess(expr: IlArrayAccess): UExpr<out USort>? = scope.calcOnState {
         val key = arrayAccessToLValue(expr) ?: return@calcOnState null
-        memory.read(key)
+        val reading = memory.read(key)
+        if (assertIsSubtype(reading, expr.type)) reading else null
+    }
+
+    private fun assertIsSubtype(expr: UExpr<out USort>, type: IlType): Boolean {
+        if (!ctx.isPrimitiveType(type)) {
+            val ref = expr.asExpr(ctx.addressSort)
+            val isExpr = scope.calcOnState { memory.types.evalIsSubtype(ref, type) }
+            scope.assert(isExpr)
+                .logAssertFailure {  "IlExprResolver: subtype constrain on $expr with $type is unsatisfiable" }
+                ?: return false
+        }
+        return true
     }
 
     override fun visitIlFieldAccess(expr: IlFieldAccess): UExpr<out USort>? = scope.calcOnState {

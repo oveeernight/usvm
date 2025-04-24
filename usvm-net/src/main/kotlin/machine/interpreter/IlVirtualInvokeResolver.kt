@@ -108,6 +108,7 @@ private fun resolveVirtualInvokeWithModel(
     if (isAllocatedConcreteHeapRef(evaledInstance) || isStaticHeapRef(evaledInstance)) {
         val concreteInvoke = callStmt.prepareInvokeOnConcreteRef(scope, evaledInstance, ctx.trueExpr)
         scope.forkMulti(concreteInvoke)
+        return
     }
     // ref is symbolic
     val typeStream = scope.calcOnState { model.typeStreamOf(evaledInstance) }

@@ -76,9 +76,9 @@ sealed class IlBinaryOperator(
     )
 
     object CNe : IlBinaryOperator(
-        onBv = { a, b -> a.neq(b)},
-        onFp = { a, b -> mkFpEqualExpr(a, b).not()},
-        onBool = { a, b -> a.neq(b)}
+        onBv = { a, b -> a.neq(b) },
+        onFp = { a, b -> mkFpEqualExpr(a, b).not() },
+        onBool = { a, b -> a.neq(b) }
     )
 
     object CGe : IlBinaryOperator(
@@ -86,33 +86,19 @@ sealed class IlBinaryOperator(
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
-                mkBv(0, bv32Sort),
-                mkIte(
-                    mkFpGreaterOrEqualExpr(a, b),
-                    mkBv(1, bv32Sort),
-                    mkBv(0, bv32Sort),
-                )
+                falseExpr,
+                mkFpGreaterOrEqualExpr(a, b)
             )
         },
     )
 
     object CGt : IlBinaryOperator(
-        onBv = { a, b ->
-            mkIte(
-                mkBvSignedGreaterExpr(a, b),
-                mkBv(1, bv32Sort),
-                mkBv(0, bv32Sort)
-            )
-        },
+        onBv = UContext<USizeSort>::mkBvSignedGreaterExpr,
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
-                mkBv(0, bv32Sort),
-                mkIte(
-                    mkFpGreaterExpr(a, b),
-                    mkBv(1, bv32Sort),
-                    mkBv(0, bv32Sort),
-                )
+                falseExpr,
+                mkFpGreaterExpr(a, b),
             )
         }
     )
@@ -122,12 +108,8 @@ sealed class IlBinaryOperator(
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
-                mkBv(0, bv32Sort),
-                mkIte(
-                    mkFpLessOrEqualExpr(a, b),
-                    mkBv(1, bv32Sort),
-                    mkBv(0, bv32Sort),
-                )
+                falseExpr,
+                mkFpLessOrEqualExpr(a, b)
             )
         }
     )
@@ -136,12 +118,8 @@ sealed class IlBinaryOperator(
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),
-                mkBv(0, bv32Sort),
-                mkIte(
-                    mkFpLessExpr(a, b),
-                    mkBv(1, bv32Sort),
-                    mkBv(0, bv32Sort),
-                )
+                falseExpr,
+                mkFpLessExpr(a, b),
             )
         }
     )

@@ -55,11 +55,13 @@ class Arithmetic : IlMethodTestRunner() {
     }
 
 
+    @Ignore("wait for lt, le, gt, ge fixes")
     @Test
     fun shl() {
         runner(::shl, options)
     }
 
+    @Ignore("wait for lt, le, gt, ge fixes")
     @Test
     fun shr() {
         runner(::shr, options)

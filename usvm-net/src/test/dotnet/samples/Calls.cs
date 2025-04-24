@@ -53,7 +53,7 @@ public class Calls
         return 0;
     }
 
-    [SvmTest(90)]
+    [SvmTest(91)]
     public int VirtualCallOnSymbolicReading(A[] a, int i)
     {
         var elem = a[i];

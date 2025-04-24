@@ -130,7 +130,7 @@ abstract class IlTestStateResolver<T>(
         val descriptor = ctx.arrayDescriptorOf(type)
         val elemType = type.elementType
         val sort = ctx.typeToSort(elemType)
-        val lengthKey = UArrayLengthLValue(heapRef, descriptor, sort)
+        val lengthKey = UArrayLengthLValue(heapRef, descriptor, ctx.sizeSort)
         val length = memory.read(lengthKey).tryInt32() ?: error("array $evaledRef length is not integer")
         val array = decoderApi.createArray(elemType, length, evaledRef.address)
 
