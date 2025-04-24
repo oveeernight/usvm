@@ -8,6 +8,20 @@ public class Structs
         public string name;
     }
 
+    [SvmTest(85)]
+    public int SourceStructUnaffectedAfterWriteOnCopy()
+    {
+        var s = new MyStruct();
+        var copy = s;
+        copy.age = 42;
+        if (s.age != 0)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+
     [SvmTest(92)]
     public int WriteStructConcrete()
     {

@@ -205,11 +205,7 @@ class IlExprResolver(
         val args = expr.args
         val method = expr.method
         val params = method.parameters
-        val (instance, funArgs) = if (method.isStatic) {
-            null to args
-        } else {
-            args[0] to args.subList(1, args.size)
-        }
+        val instance = if (method.isStatic) null else args[0]
         if (method.isVirtual) {
             return checkCall(instance, method, args, params) { resolvedArgs ->
                 scope.doWithState { insertVirtualCallStmt(method, resolvedArgs) }
@@ -218,7 +214,7 @@ class IlExprResolver(
         return checkCall(
             instance,
             method,
-            funArgs,
+            args,
             params
         ) { resolvedArgs -> scope.doWithState { insertConcreteCallStmt(method, resolvedArgs) } }
     }

@@ -5,42 +5,46 @@ import kotlin.test.Test
 
 class Structs : IlMethodTestRunner() {
     @Test
+    fun sourceStructUnaffectedAfterWriteOnCopy() {
+        runnerWithDefaultOptions(::sourceStructUnaffectedAfterWriteOnCopy)
+    }
+    @Test
     fun writeStructConcrete() {
-        runner(::writeStructConcrete, options)
+        runnerWithDefaultOptions(::writeStructConcrete)
     }
 
     @Test
     fun structImmutabilityCheck() {
-        runner(::structImmutabilityCheck, options)
+        runnerWithDefaultOptions(::structImmutabilityCheck)
     }
 
     @Test
     fun structMutabilityCheck() {
-        runner(::structMutabilityCheck, options)
+        runnerWithDefaultOptions(::structMutabilityCheck)
     }
 
     @Test
     fun structsArrayConcreteWrite() {
-        runner(::structsArrayConcreteWrite, options)
+        runnerWithDefaultOptions(::structsArrayConcreteWrite)
     }
 
     @Test
     fun structsArraySymbolicReading() {
-        runner(::structsArraySymbolicReading, options)
+        runnerWithDefaultOptions(::structsArraySymbolicReading)
     }
 
     @Test
     fun symbolicStructField() {
-        runner(::symbolicStructField, options)
+        runnerWithDefaultOptions(::symbolicStructField)
     }
 
     @Test
     fun structsAliasing() {
-        runner(::structsAliasing, options)
+        runnerWithDefaultOptions(::structsAliasing)
     }
 
     @Test
     fun structsAsClassFieldsAliasing() {
-        runner(::structsAsClassFieldsAliasing, options)
+        runnerWithDefaultOptions(::structsAsClassFieldsAliasing)
     }
 }
