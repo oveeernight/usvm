@@ -1,6 +1,5 @@
 package org.usvm.machine
 
-import com.jetbrains.rd.util.string.print
 import io.ksmt.KAst
 import io.ksmt.cache.hash
 import io.ksmt.cache.structurallyEqual
@@ -16,7 +15,6 @@ import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.state.IlRegisterStackLValue
 import org.usvm.memory.ULValue
-import org.usvm.memory.UMemoryRegion
 import org.usvm.memory.UnsafeLValue
 
 class VoidSort(ctx: IlContext) : USort(ctx) {
@@ -45,7 +43,7 @@ class VoidValue(ctx: IlContext) : UExpr<USort>(ctx) {
 
 class IlManagedRef<Sort : USort>(
     ctx: IlContext,
-    val type: IlType,
+    val targetType: IlType,
     val memoryKey: ULValue<*, Sort>
 ) : UExpr<UAddressSort>(ctx) {
     override val sort: UAddressSort
@@ -55,7 +53,7 @@ class IlManagedRef<Sort : USort>(
         return transformer.transform(this)
     }
     @Suppress("UNCHECKED_CAST")
-    fun toBaseAndOffset() : Pair<ULValue<*, Sort>, UExpr<USizeSort>> =
+    fun toPtrInfo() : PtrInfo<Sort> =
         with(sort.ilctx) {
             when (memoryKey) {
                 is UArrayIndexLValue<*, *, *> -> {
@@ -63,17 +61,18 @@ class IlManagedRef<Sort : USort>(
                     val elemSize = mkSizeExpr(elemType.size)
                     val idx = memoryKey.index as UExpr<USizeSort>
                     val offset : UExpr<USizeSort> = mkBvMulExpr(idx, elemSize)
-                    memoryKey to offset
+                    PtrInfo(memoryKey, offset, arrayTypeOf(elemType))
                 }
                 is UFieldLValue<*, *> -> {
                     val field = memoryKey.field as IlField
                     val offset : UExpr<USizeSort> = mkSizeExpr(field.offset)
-                    memoryKey to offset
+                    val locationType = field.declaringType
+                    PtrInfo(memoryKey, offset, locationType)
                 }
 
                 is IlRegisterStackLValue<*> -> {
                     val offset : UExpr<USizeSort> = mkSizeExpr((0))
-                    memoryKey to offset
+                    PtrInfo(memoryKey, offset, targetType)
                 }
 
                 else -> error("Unsupported memory key: $memoryKey")
@@ -89,9 +88,17 @@ class IlManagedRef<Sort : USort>(
     }
 }
 
+data class PtrInfo<Sort: USort>(
+    val base: ULValue<*, Sort>,
+    val offset: UExpr<USizeSort>,
+    val locationType: IlType // type of location of managed ref, for array element ref its array type, for field access its declaring type
+)
+
 class IlPtr<Sort: USort>(
     ctx: UContext<*>,
     override val base: ULValue<*, Sort>,
+    override val baseType: IlType,
+    val locationType: IlType, // type of top level location of [base]
     override val offset: UExpr<UBvSort>,
     override val sightType: IlType
 ): UExpr<UAddressSort>(ctx), UnsafeLValue<Sort, IlType> {

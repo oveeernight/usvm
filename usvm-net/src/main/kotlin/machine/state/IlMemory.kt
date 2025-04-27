@@ -23,6 +23,7 @@ import org.usvm.expressions.addCut
 import org.usvm.expressions.mkCombine
 import org.usvm.expressions.mkSlice
 import org.usvm.machine.*
+import org.usvm.machine.interpreter.typeOfRegister
 import java.util.LinkedList
 import kotlin.math.max
 
@@ -49,7 +50,9 @@ class IlMemory(
         lvalue as IlPtr<*>
         return when (val base = lvalue.base) {
             is UArrayIndexLValue<*, *, *> -> {
-                val elemType = base.arrayType as IlType
+                // for now, we consider that IlPtr instantiated only from IlManagedRef, for array case,
+                // we can reference only an array index
+                val elemType = lvalue.baseType
                 val elemSort = base.sort.ilctx.typeToSort(elemType)
                 val affectedValues = getAffectedIndices(base.ref, elemType, elemSort, lvalue.offset, lvalue.sightType )
                 val slices = affectedValues.flatMap { (v, vt, s, e) ->
@@ -91,7 +94,9 @@ class IlMemory(
     override fun writeUnsafe(lvalue: UnsafeLValue<out USort, IlType>, value: UExpr<out USort>, valueType: IlType) {
         when (val base = lvalue.base) {
             is UArrayIndexLValue<*, *, *> -> {
-                val elemType = base.arrayType as IlType
+                // for now, we consider that IlPtr instantiated only from IlManagedRef, for array case,
+                // we can reference only an array index
+                val elemType = lvalue.baseType
                 val affectedKeys = getAffectedIndices(
                     base.ref,
                     elemType,
@@ -296,7 +301,7 @@ class IlMemory(
     ): UExpr<out USort> = with(expr.ilctx) {
         when {
             start == mkBv(0, bv32Sort) && valueType.size == exprType.size -> value
-            expr.sort == addressSort && exprType is IlStructType -> writeClassOrStructUnsafe(
+            exprType is IlStructType -> writeClassOrStructUnsafe(
                 expr.cast(),
                 exprType,
                 value,

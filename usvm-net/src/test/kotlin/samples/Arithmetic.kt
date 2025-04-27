@@ -35,13 +35,11 @@ class Arithmetic : IlMethodTestRunner() {
         runner(::gt, options)
     }
 
-    @Ignore("Wait for binop types unification")
     @Test
     fun ge() {
         runner(::ge, options)
     }
 
-    @Ignore("Wait for binop types unification")
     @Test
     fun lt() {
         runner(::lt, options)
@@ -55,13 +53,11 @@ class Arithmetic : IlMethodTestRunner() {
     }
 
 
-    @Ignore("wait for lt, le, gt, ge fixes")
     @Test
     fun shl() {
         runner(::shl, options)
     }
 
-    @Ignore("wait for lt, le, gt, ge fixes")
     @Test
     fun shr() {
         runner(::shr, options)

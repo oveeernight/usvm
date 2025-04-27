@@ -1,13 +1,10 @@
 package org.usvm.expressions
 
-import com.jetbrains.rd.util.string.print
-import com.jetbrains.rd.util.string.printToString
 import io.ksmt.cache.hash
 import io.ksmt.cache.structurallyEqual
 import io.ksmt.expr.KExpr
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
-import org.jacodb.api.common.CommonType
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.UBvSort
 import org.usvm.UContext

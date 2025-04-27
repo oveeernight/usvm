@@ -24,6 +24,16 @@ public class Arrays
         return 2;
     }
 
+    [SvmTest(100)]
+    public int ClassesArray(MyClass[] array, int i)
+    {
+        if (array[i].x == 42)
+        {
+            return 1;
+        }
+        return 2;
+    }
+
     [SvmTest(90)]
     public int ConcreteArraySymbolicIndex(int i)
     {
@@ -79,3 +89,9 @@ public class Arrays
         throw new IndexOutOfRangeException();
     }
  }
+
+public class Point
+{
+    public int x;
+    public int y;
+}

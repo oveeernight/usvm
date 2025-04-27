@@ -12,9 +12,7 @@ import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.*
 import org.usvm.machine.state.*
 import org.usvm.memory.ULValue
-import org.usvm.memory.UMemoryRegion
 import org.usvm.utils.logAssertFailure
-import kotlin.math.exp
 
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
 class IlExprResolver(
@@ -206,8 +204,14 @@ class IlExprResolver(
         }
     }
 
-    override fun visitIlBoxExpr(expr: IlBoxExpr): UExpr<out USort>? {
-        val resolved = expr.operand.accept(this)
+    override fun visitIlBoxExpr(expr: IlBoxExpr): UExpr<out USort>? = scope.calcOnState {
+        val operandType = expr.operand.type
+        assert(ctx.isPrimitiveType(operandType) || operandType is IlStructType)
+        val operand = resolve(expr.operand) ?: return@calcOnState null
+        if (operandType is IlStructType) {
+            val ref = operand.asExpr(ctx.addressSort)
+            TODO()
+        }
 
         TODO("Not yet implemented")
     }
@@ -282,12 +286,12 @@ class IlExprResolver(
         resolveAfterResolved(expr.operand) { operand ->
             if (isPtrType(expectedType)) {
                 when (operand) {
-                    is IlPtr<*> -> ctx.mkPtr(operand.base, operand.offset, expectedType)
+                    is IlPtr<*> -> ctx.mkPtr(operand.base, operand.baseType, operand.locationType, operand.offset, expectedType)
                     is IlManagedRef<*> -> {
-                        val (base, offset) = operand.toBaseAndOffset()
+                        val (base, offset, locationType) = operand.toPtrInfo()
                         offset as UExpr<UBvSort>
                         val expectedPointedType = extractPointedType(expectedType)
-                        ctx.mkPtr(base, offset, expectedPointedType)
+                        ctx.mkPtr(base, operand.targetType, locationType, offset, expectedPointedType)
                     }
                     else -> error("Unexpected operand $operand of pointer cast")
                 }

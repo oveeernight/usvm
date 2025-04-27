@@ -43,7 +43,8 @@ class IlMachine(
     }
 
 
-    private fun isStateTerminated(state: IlState) = state.callStack.isEmpty() || state.methodResult is IlMethodResult.Exception
+    private fun isStateTerminated(state: IlState) =
+        state.callStack.isEmpty() || state.methodResult is IlMethodResult.Exception || state.criticalErrorOccurred
 
     override fun close() {
         TODO()

@@ -114,7 +114,7 @@ sealed class IlBinaryOperator(
         }
     )
     object CLt : IlBinaryOperator(
-        onBv = UContext<USizeSort>::mkBvSignedLessOrEqualExpr,
+        onBv = UContext<USizeSort>::mkBvSignedLessExpr,
         onFp = { a, b ->
             mkIte(
                 mkOr(mkFpIsNaNExpr(a), mkFpIsNaNExpr(b)),

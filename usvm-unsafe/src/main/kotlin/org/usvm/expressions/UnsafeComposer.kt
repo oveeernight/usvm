@@ -23,7 +23,7 @@ open class UnsafeComposer<Type, USizeSort : USort>(
             val s = compose(cut.start)
             val e = compose(cut.end)
             val p = compose(cut.pos)
-            if (cutIsValid(s, e)) {
+            if (cutIsValid(s, e, slice.exprType)) {
                 Cut(s, e, p, cut.posIsStable)
             } else null
         }.mapToLinkedList { it }
@@ -40,10 +40,12 @@ open class UnsafeComposer<Type, USizeSort : USort>(
         return combineAsBv.cast()
     }
 
-    private fun cutIsValid(s: UExpr<UBvSort>, e: UExpr<UBvSort>) = with(s.ctx) {
-        val lengthIsZero = mkBvSignedGreaterOrEqualExpr(s, e).isTrue
+    private fun cutIsValid(s: UExpr<UBvSort>, e: UExpr<UBvSort>, exprType: IlType) = with(s.ctx) {
+        val exprTypeSize = exprType.size
+        val startGeSize = mkBvSignedGreaterOrEqualExpr(s, mkBv(exprTypeSize, s.sort)).isTrue
+        val startGeEnd = mkBvSignedGreaterOrEqualExpr(s, e).isTrue
         val endIsNegative = mkBvUnsignedLessOrEqualExpr(e, mkBv(0, s.sort)).isTrue
-        !lengthIsZero && !endIsNegative
+        !startGeEnd && !endIsNegative && !startGeSize
     }
 
 }

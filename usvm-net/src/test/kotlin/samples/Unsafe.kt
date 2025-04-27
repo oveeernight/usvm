@@ -1,7 +1,6 @@
 package samples
 
 import IlMethodTestRunner
-import org.junit.jupiter.api.TestInstance
 import kotlin.test.Ignore
 import kotlin.test.Test
 
@@ -57,7 +56,12 @@ class Unsafe : IlMethodTestRunner() {
     }
 
     @Test
-    fun symbolicStructWrite() {
-        runnerWithDefaultOptions(::symbolicStructWrite)
+    fun symbolicWriteInStructsArray1() {
+        runnerWithDefaultOptions(::symbolicWriteInStructsArray1)
+    }
+
+    @Test
+    fun symbolicWriteInStructsArray2() {
+        runnerWithDefaultOptions(::symbolicWriteInStructsArray2)
     }
 }

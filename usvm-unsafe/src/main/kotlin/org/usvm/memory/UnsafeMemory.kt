@@ -21,6 +21,7 @@ interface AffectedValue<Type, Sort: USort> {
 
 interface UnsafeLValue<Sort: USort, Type> {
     val base: ULValue<*, *>
+    val baseType: Type
     val offset: UExpr<UBvSort>
     val sightType: Type
 }

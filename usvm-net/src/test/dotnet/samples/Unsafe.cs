@@ -54,7 +54,7 @@ public class Unsafe
         var initValue = a;
         var ptr = &a;
         var casted = (byte*)ptr;
-        *(int*)(casted + i) = 322;
+        *(short*)(casted + i) = 322;
         if (i == 2 && initValue == 5 && a != 21102597)
         {
             return -1;
@@ -168,12 +168,35 @@ public class Unsafe
         return 0;
     }
 
-    [SvmTest(90)]
-    public unsafe int SymbolicStructWrite(int i)
+    [SvmTest(95)]
+    public unsafe int SymbolicWriteInStructsArray1(int i)
     {
         var array = new SomeStruct[2];
         array[0] =  new SomeStruct() { x = 5 };
         array[1] = new SomeStruct() { y = 1 };
+        fixed (SomeStruct* ptr = &array[0])
+        {
+            var casted = (byte*)ptr;
+            *(int*)(casted + i) = 500;
+            if (array[0].y != 500 && i == 4)
+            {
+                return -1;
+            }
+
+            return 0;
+        }
+    }
+    
+    [SvmTest(96)]
+    public unsafe int SymbolicWriteInStructsArray2(int i)
+    {
+        var intArray = new int[5];
+        var byteArray = new byte[50];
+        var array = new SomeStruct[2];
+        array[0] =  new SomeStruct() { x = 5, y = 3 }; // 1.x = 5, 1.y = 3
+        array[1] = new SomeStruct() { y = 1 }; // 2.x = 0, 2.y = 1
+        // a[i / 8].x -> ite(i / 8 = 0, 5, 0)
+        // a[i / 8].y - >ite(i / 8 = 0, 3, 0)
         fixed (SomeStruct* ptr = &array[0])
         {
             var casted = (byte*)ptr;

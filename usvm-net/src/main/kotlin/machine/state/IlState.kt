@@ -40,6 +40,8 @@ class IlState(
         targets
     ) {
 
+    internal var criticalErrorOccurred : Boolean = false
+
     override fun clone(newConstraints: UPathConstraints<IlType>?): IlState {
         val newThisOwnership = MutabilityOwnership()
         val cloneOwnership = MutabilityOwnership()

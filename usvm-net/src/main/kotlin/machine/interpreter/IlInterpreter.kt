@@ -1,16 +1,19 @@
 package org.usvm.machine.interpreter
 
 import io.ksmt.utils.asExpr
+import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.*
+import org.jacodb.api.net.ilinstances.impl.IlArrayType
 import org.jacodb.api.net.ilinstances.impl.IlMethodImpl
 import org.jacodb.api.net.ilinstances.impl.IlStructType
 import org.usvm.*
 import org.usvm.api.allocateStaticRef
+import org.usvm.collection.array.UArrayIndexLValue
+import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.forkblacklists.UForkBlackList
 import org.usvm.machine.*
 import org.usvm.machine.state.*
-import org.usvm.memory.URegisterStackLValue
 import org.usvm.solver.USatResult
 
 typealias IlStepScope = StepScope<IlState, IlType, IlStmt, IlContext>
@@ -142,6 +145,7 @@ class IlInterpreter(
             if (lhv is IlUnmanagedDerefExpr) {
                 val ptr = resolver.resolve(lhv.value)
                 require(ptr is IlPtr<*>)
+                checkAccessViolation(scope, ptr)
                 memory.writeUnsafe(ptr, rvalue, rhvType)
             } else {
                 val lvalue = resolver.resolveLValue(stmt.lhv) ?: return@doWithState
@@ -155,6 +159,36 @@ class IlInterpreter(
             }
             newStmt(stmt.next())
         }
+    }
+
+    private fun checkAccessViolation(scope: IlStepScope, ptr: IlPtr<*>) = with(ctx) {
+        val locationSize: UExpr<UBvSort> = when (val locType = ptr.locationType) {
+            is IlArrayType -> {
+                val key = ptr.base
+                require(key is UArrayIndexLValue<*, *, *>)
+                val arrayRef = key.ref
+                val desc = arrayDescriptorOf(locType)
+                val length = scope.calcOnState { memory.read(UArrayLengthLValue(arrayRef, desc, sizeSort)) }
+                val elemSize = mkBv(locType.elementType.size, sizeSort)
+                mkBvMulExpr(length, elemSize).cast()
+            }
+            else -> mkBv(ptr.locationType.size, bv32Sort)
+        }
+        val viewTypeSize : UExpr<UBvSort> = mkBv(ptr.sightType.size, sizeSort)
+        val zero : UExpr<UBvSort> = mkBv(0, sizeSort)
+        val startByte = ptr.offset
+        val endByte = mkBvAddExpr(startByte, viewTypeSize)
+        val accessViolationCondition =
+            mkOr(
+                mkBvSignedLessExpr(startByte, zero),
+                mkBvSignedLessOrEqualExpr(endByte, zero),
+                mkBvSignedGreaterOrEqualExpr(startByte, locationSize),
+                mkBvSignedGreaterExpr(endByte, locationSize),
+            )
+        scope.fork(accessViolationCondition,
+            blockOnTrueState = { criticalErrorOccurred = true },
+            blockOnFalseState = { }
+        )
     }
 
     private fun visitGotoStmt(scope: IlStepScope, stmt: IlGotoStmt) {
