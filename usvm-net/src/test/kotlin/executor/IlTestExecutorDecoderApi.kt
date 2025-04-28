@@ -105,11 +105,10 @@ class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> 
 
 private fun IlType.toTypeRepr(): TestExpressions.TypeRepr {
     val mdlToken = moduleToken
-    val tpToken = typeToken
     val type = typeRepr {
-        asm = asmName
-        moduleToken = mdlToken
-        typeToken = tpToken
+        this.asm = asmName
+        this.moduleToken = mdlToken
+        this.fullName = fullname
     }
     type.genericArgsList.addAll(genericArgs.map { it.toTypeRepr() })
 
