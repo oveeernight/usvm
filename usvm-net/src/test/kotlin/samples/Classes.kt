@@ -9,21 +9,35 @@ import kotlin.test.Test
 class Classes : IlMethodTestRunner() {
     @Test
     fun symbolicClassSet() {
-        runner(::symbolicClassSet, options)
+        runnerWithDefaultOptions(::symbolicClassSet)
     }
 
     @Test
     fun symbolicCyclicListNode() {
-        runner(::symbolicCyclicListNode, options)
+        runnerWithDefaultOptions(::symbolicCyclicListNode)
     }
-    @Ignore("Wait for type solver")
     @Test
     fun concreteObjectDefaultValue() {
-        runner(::concreteObjectDefaultValue, options)
+        runnerWithDefaultOptions(::concreteObjectDefaultValue)
     }
 
     @Test
     fun fieldsInequalityImpliesObjectsInequality() {
-        runner(::fieldsInequalityImpliesObjectsInequality, options)
+        runnerWithDefaultOptions(::fieldsInequalityImpliesObjectsInequality)
+    }
+
+    @Test
+    fun staticCtorTest1() {
+        runnerWithDefaultOptions(::staticCtorTest1)
+    }
+
+    @Test
+    fun staticCtorTest2() {
+        runnerWithDefaultOptions(::staticCtorTest2)
+    }
+
+    @Test
+    fun staticCtorTest3() {
+        runnerWithDefaultOptions(::staticCtorTest3)
     }
 }

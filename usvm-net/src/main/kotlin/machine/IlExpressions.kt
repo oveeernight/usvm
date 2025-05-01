@@ -14,6 +14,7 @@ import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.state.IlRegisterStackLValue
+import org.usvm.machine.state.IlStaticFieldsRegionId
 import org.usvm.memory.ULValue
 import org.usvm.memory.UnsafeLValue
 
@@ -116,6 +117,33 @@ class IlPtr<Sort: USort>(
 
     override fun print(printer: ExpressionPrinter) {
         printer.append("(${sightType.name}*)")
+    }
+}
+
+class IlStaticFieldReading<Sort: USort> internal constructor(
+    ctx: UContext<*>,
+    override val sort: Sort,
+    val regionId: IlStaticFieldsRegionId<Sort>,
+    val field: IlField
+): USymbol<Sort>(ctx) {
+    override fun internEquals(other: Any): Boolean = structurallyEqual(other,
+        { sort },
+        { regionId },
+        { field }
+    )
+
+    override fun accept(transformer: KTransformerBase): KExpr<Sort> {
+        require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
+        return transformer.transform(this)
+    }
+
+    override fun internHashCode(): Int = hash(sort, regionId, field)
+
+    override fun print(printer: ExpressionPrinter) {
+        printer.append(regionId.toString())
+        printer.append("[")
+        printer.append(field.toString())
+        printer.append("]")
     }
 }
 

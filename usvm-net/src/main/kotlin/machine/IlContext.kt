@@ -11,6 +11,7 @@ import org.jacodb.api.net.ilinstances.impl.IlStructType
 import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
 import org.jacodb.api.net.publication.IlPredefinedAsmExt.mscorelib
 import org.usvm.*
+import org.usvm.machine.state.IlStaticFieldsRegionId
 import org.usvm.memory.ULValue
 
 typealias USizeSort = UBv32Sort
@@ -67,6 +68,13 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
         sightType: IlType
     ): IlPtr<Sort> = IlPtr(this, base, baseType, locationType, offset, sightType)
 
+    fun <Sort : USort> mkStaticFieldReading(
+        sort: Sort,
+        regionId: IlStaticFieldsRegionId<Sort>,
+        field: IlField
+    ): IlStaticFieldReading<Sort> =
+        IlStaticFieldReading(this, sort, regionId, field)
+
 //    fun mkDetachedPtr(offset: UExpr<UBvSort>, sightType: IlType): IlPtr<UAddressSort> {
 //        val location = IlHeapLocation(nullRef, addressSort, sightType, isArray = false)
 //        return IlPtr(this, location, offset, sightType)
@@ -95,6 +103,18 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
             offset = 0
         )
         IlFieldImpl(valueType, dto, publication)
+    }
+
+    val staticFieldsInitializedFlag: IlField by lazy {
+        val dto = IlFieldDto(
+            fieldType = TypeId(asmName = mscorelib, typeName = boolType.name, typeArgs = emptyList()),
+            isStatic = true,
+            name = "__staticFieldsInitialized__",
+            attrs = emptyList(),
+            isConstructed = false,
+            offset = 0
+        )
+        IlFieldImpl(boolType, dto, publication)
     }
 
     fun typeToSort(type: IlType): USort {

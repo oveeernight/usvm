@@ -35,6 +35,8 @@ public class Classes
         }
         return 0;
     }
+    
+    [SvmTest(71)]
     public int ConcreteObjectDefaultValue()
     {
         var user = new User();
@@ -44,6 +46,41 @@ public class Classes
             return -1;
         }
 
+        return 0;
+    }
+    
+    
+    [SvmTest(77)]
+    public int StaticCtorTest1()
+    {
+        var user = new User();
+        if (User.staticField != 42)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+    
+    [SvmTest(71)]
+    public int StaticCtorTest2()
+    {
+        if (User.staticField != 42)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+    
+    [SvmTest(81)]
+    public int StaticCtorTest3()
+    {
+        User.staticField++;
+        if (User.staticField != 43)
+        {
+            return -1;
+        }
         return 0;
     }
 }
@@ -57,4 +94,11 @@ public class ListNode
 public class User
 {
     public int Id;
+
+    static User()
+    {
+        staticField = 42;
+    }
+
+    public static int staticField;
 } 

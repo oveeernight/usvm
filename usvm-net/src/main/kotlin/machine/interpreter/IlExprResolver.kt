@@ -27,7 +27,47 @@ class IlExprResolver(
     private val valueSampler by lazy { ctx.mkUValueSampler() }
     private val constResolver = IlConstResolver(ctx, scope, getOrMkStringConst, getOrMkTypeRef)
 
-    fun resolve(expr: IlExpr, type: IlType = expr.type) : UExpr<out USort>? = expr.accept(this)
+    fun resolve(expr: IlExpr, type: IlType = expr.type) : UExpr<out USort>? {
+        val resolved = expr.accept(this) ?: return null
+        ensureExprCorrectness(resolved, type) ?: return null
+        return resolved
+    }
+
+    private fun ensureExprCorrectness(expr: UExpr<out USort>, type: IlType): Unit? {
+        if (ctx.isPrimitiveType(type))
+            return Unit
+
+        return ensureStaticFieldsInitialized(type) { }
+    }
+
+    private inline fun <T> ensureStaticFieldsInitialized(type: IlType, body : () -> T): T? {
+        val staticCtor = type.methods.find { it.name == ".cctor" }
+        if (staticCtor == null) {
+            return body()
+        }
+        val staticFieldsAreInitialized = scope.calcOnState { typeIsInitialized(type) }
+        if (staticFieldsAreInitialized) {
+//            scope.doWithState {
+//                val mr = methodResult
+//                if (mr is IlMethodResult.Success && mr.method == staticCtor) {
+//                    // need to mutate primitives to symbolicValues?
+//                }
+//            }
+            return body()
+        }
+
+        scope.doWithState {
+            markTypeInitialized(type)
+            insertConcreteCallStmt(staticCtor, args = emptyList())
+        }
+
+        return null
+    }
+
+    private fun IlState.markTypeInitialized(type: IlType) {
+        val lvalue = IlStaticFieldLValue(ctx.staticFieldsInitializedFlag, ctx.boolSort)
+        memory.write(lvalue, ctx.trueExpr, guard = ctx.trueExpr)
+    }
 
     override fun visitIlNullConst(const: IlNull): UExpr<out USort> = constResolver.visitIlNullConst(const)
     override fun visitIlStringConst(const: IlStringConstant): UExpr<out USort> = constResolver.visitIlStringConst(const)
@@ -107,11 +147,11 @@ class IlExprResolver(
         lvalue
     }
 
-    private fun fieldAccessToLValue(expr: IlFieldAccess): UFieldLValue<*, *>? = scope.calcOnState {
+    private fun fieldAccessToLValue(expr: IlFieldAccess): ULValue<*, *>? = scope.calcOnState {
         val fieldIsStatic = expr.instance == null
         val field = expr.field
         if (!fieldIsStatic) {
-            val instance = resolveInstance(expr.instance!!)
+            val instance = resolveInstance(expr.instance!!) ?: return@calcOnState null
             val key = UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
             val extraCond = if (expr.field.fieldType is IlStructType && instance !is UConcreteHeapRef) {
                 val structLocation = instance
@@ -127,7 +167,9 @@ class IlExprResolver(
             checkNullPointer(instance, expr.instance!!.type, extraCond)
             key
         } else {
-            TODO("static fields")
+            ensureStaticFieldsInitialized(field.declaringType) {
+                IlStaticFieldLValue(field, ctx.typeToSort(expr.type))
+            }
         }
     }
 
@@ -322,6 +364,7 @@ class IlExprResolver(
         when {
             type.name == "UIntPtr" -> ctx.uint32Type
             type.name == "IntPtr" -> ctx.int32Type
+            type is IlPointerType -> type.targetType
             else -> TODO()
         }
 
@@ -454,11 +497,11 @@ class IlExprResolver(
         TODO("Not yet implemented")
     }
 
-    private fun resolveInstance(instance: IlExpr) : UHeapRef = resolve(instance).let {
+    private fun resolveInstance(instance: IlExpr) : UHeapRef? = resolve(instance).let {
         if (it is IlManagedRef<*>) {
             scope.calcOnState { memory.read(it.memoryKey) }
         } else it
-    }!!.asExpr(ctx.addressSort)
+    }?.asExpr(ctx.addressSort)
 
     private inline fun <T> resolveAfterResolved(expr: IlExpr, block: (UExpr<out USort>) -> T): T? {
         val resolved = resolve(expr) ?: return null

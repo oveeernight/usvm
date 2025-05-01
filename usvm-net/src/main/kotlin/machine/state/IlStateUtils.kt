@@ -55,6 +55,11 @@ fun IlState.callMethod(method: IlMethod, args: List<UExpr<out USort>>, returnSit
     newStmt(method.instList.first())
 }
 
+fun IlState.typeIsInitialized(ilType: IlType): Boolean {
+    val staticFieldsAreInitialized = IlStaticFieldLValue(ctx.staticFieldsInitializedFlag, ctx.boolSort)
+    return memory.read(staticFieldsAreInitialized).isTrue
+}
+
 internal fun IlState.copyStruct(structRef: UHeapRef, type: IlStructType): UHeapRef {
     val copyRef = memory.allocConcrete(type)
     type.fields.forEach { f ->
