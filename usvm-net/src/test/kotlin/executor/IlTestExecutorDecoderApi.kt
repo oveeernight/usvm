@@ -18,13 +18,13 @@ class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> 
     override fun createCharConst(value: Char): Message =
         charConst { this.value = value.code; typeRepr = ctx.charType.toTypeRepr() }
     override fun createInt8Const(value: Byte): Message =
-        int8Const { this.value = value.toInt(); typeRepr = ctx.charType.toTypeRepr() }
+        int8Const { this.value = value.toInt(); typeRepr = ctx.int8Type.toTypeRepr() }
     override fun createInt16Const(value: Short): Message =
-        int16Const { this.value = value.toInt(); typeRepr = ctx.charType.toTypeRepr() }
+        int16Const { this.value = value.toInt(); typeRepr = ctx.int16Type.toTypeRepr() }
     override fun createInt32Const(value: Int): Message =
-        int32Const { this.value = value; typeRepr = ctx.charType.toTypeRepr() }
+        int32Const { this.value = value; typeRepr = ctx.int32Type.toTypeRepr() }
     override fun createInt64Const(value: Long): Message =
-        int64Const { this.value = value; typeRepr = ctx.charType.toTypeRepr() }
+        int64Const { this.value = value; typeRepr = ctx.int64Type.toTypeRepr() }
     override fun createUInt8Const(value: UByte): Message =
         uInt8Const { this.value = value.toInt(); typeRepr = ctx.uint8Type.toTypeRepr() }
     override fun createUInt16Const(value: UShort): Message =

@@ -26,7 +26,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val uint16Type by lazy { findTypeOrReportAbsence("UInt16", mscorelib) }
     val uint32Type by lazy { findTypeOrReportAbsence("UInt32", mscorelib) }
     val uint64Type by lazy { findTypeOrReportAbsence("UInt64", mscorelib) }
-    val floatType by lazy { findTypeOrReportAbsence("Float", mscorelib) }
+    val floatType by lazy { findTypeOrReportAbsence("Single", mscorelib) }
     val doubleType by lazy { findTypeOrReportAbsence("Double", mscorelib) }
     val stringType by lazy { findTypeOrReportAbsence("String", mscorelib) }
     val intPtrType by lazy { findTypeOrReportAbsence("IntPtr", mscorelib) }
@@ -127,7 +127,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     }
 
     fun typeToSort(type: IlType): USort {
-        if (type is IlEnumType) return bv32Sort
+        if (type is IlEnumType) return typeToSort(type.underlyingType)
         return when (type) {
             boolType -> boolSort
             charType -> charSort

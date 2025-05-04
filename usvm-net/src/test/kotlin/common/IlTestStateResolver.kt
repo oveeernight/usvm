@@ -4,6 +4,7 @@ import io.ksmt.utils.asExpr
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.IlArrayType
+import org.jacodb.api.net.ilinstances.impl.IlEnumType
 import org.usvm.*
 import org.usvm.api.typeStreamOf
 import org.usvm.collection.array.UArrayIndexLValue
@@ -73,6 +74,7 @@ abstract class IlTestStateResolver<T>(
         }
 
     private fun <Sort: USort> resolvePrimitive(expr: UExpr<Sort>, type: IlType): T = with(ctx) {
+        if (type is IlEnumType) return@with resolvePrimitive(expr, type.underlyingType)
         when (type) {
             boolType -> decoderApi.createBoolConst(resolveBool(expr))
             charType -> decoderApi.createCharConst(resolveChar(expr))
