@@ -1,7 +1,10 @@
 package org.usvm.machine.state
 
 import io.ksmt.expr.KBitVec32Value
+import io.ksmt.utils.asExpr
 import io.ksmt.utils.cast
+import io.ksmt.utils.uncheckedCast
+import org.jacodb.api.net.generated.models.IlFieldDto
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
@@ -235,6 +238,7 @@ class IlMemory(
         val end = with(offset.ctx) {
             mkBvAddExpr(offset, mkBv(viewType.size, bv32Sort))
         }
+        val ilctx = end.sort.ilctx
         val fieldTypeSize = type.size
         val fields = type.fields.sortedBy { it.offset }
         val fieldsWithZeros = LinkedList<IlField>()
@@ -242,21 +246,36 @@ class IlMemory(
             val fieldOffset = field.offset
             val size = field.fieldType.size
             val extraZerosCount = max(0, nextOffset - fieldOffset - size)
-            repeat((0..<extraZerosCount).count()) { fieldsWithZeros.addFirst(zeroField) }
+            repeat((0..<extraZerosCount).count()) { fieldsWithZeros.addFirst(ilctx.zeroField) }
             fieldsWithZeros.addFirst(field)
             fieldOffset
         }
         val extraStartZeros = fields[0].offset
         repeat((0..<extraStartZeros).count()) {
-            fieldsWithZeros.addFirst(zeroField)
+            fieldsWithZeros.addFirst(ilctx.zeroField)
         }
+        val zeroByte = ctx.mkBv(0, ctx.bv8Sort)
+        val concreteOffset = offset as? KBitVec32Value
+        val concreteEnd = end as? KBitVec32Value
         return with(offset.ilctx) {
-            fieldsWithZeros.map {
-                val value = readField(it)
-                val fieldOffset : UExpr<UBvSort> = mkBv(it.offset, bv32Sort)
-                val affectedStart = mkBvSubExpr(offset, fieldOffset)
-                val affectedEnd = mkBvSubExpr(end, fieldOffset)
-                IlAffectedField(value, it.fieldType, affectedStart, affectedEnd, fieldOffset, it)
+            fieldsWithZeros.mapNotNull {
+                val value = if (it == ilctx.zeroField) zeroByte else readField(it)
+                val fieldOffset = mkBv(it.offset, bv32Sort)
+                if (concreteOffset != null && concreteEnd != null && it != ilctx.zeroField) {
+                    if (concreteEnd.intValue <= it.offset || concreteOffset.intValue >= it.offset + it.fieldType.size)
+                        null
+                    else {
+                        fieldOffset as UExpr<UBvSort>
+                        val affectedStart: UExpr<UBvSort> = mkBv(concreteOffset.intValue - it.offset, bv32Sort)
+                        val affectedEnd: UExpr<UBvSort>  = mkBv(concreteEnd.intValue - it.offset, bv32Sort)
+                        IlAffectedField(value, it.fieldType, affectedStart, affectedEnd, fieldOffset, it)
+                    }
+                } else {
+                    fieldOffset as UExpr<UBvSort>
+                    val affectedStart = mkBvSubExpr(offset, fieldOffset)
+                    val affectedEnd = mkBvSubExpr(end, fieldOffset)
+                    IlAffectedField(value, it.fieldType, affectedStart, affectedEnd, fieldOffset, it)
+                }
             }
         }
     }
@@ -369,7 +388,3 @@ private data class IlAffectedField<Sort: USort>(
     val fieldOffset: UExpr<UBvSort>,
     val field: IlField
 ) : AffectedValue<IlType, Sort>
-
-
-private val zeroField : IlField
-    get() = TODO()

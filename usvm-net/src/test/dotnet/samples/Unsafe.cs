@@ -187,11 +187,9 @@ public class Unsafe
         }
     }
     
-    [SvmTest(96)]
+    [SvmTest(95)]
     public unsafe int SymbolicWriteInStructsArray2(int i)
     {
-        var intArray = new int[5];
-        var byteArray = new byte[50];
         var array = new SomeStruct[2];
         array[0] =  new SomeStruct() { x = 5, y = 3 }; // 1.x = 5, 1.y = 3
         array[1] = new SomeStruct() { y = 1 }; // 2.x = 0, 2.y = 1

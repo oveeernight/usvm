@@ -72,7 +72,7 @@ class IlManagedRef<Sort : USort>(
                 }
 
                 is IlRegisterStackLValue<*> -> {
-                    val offset : UExpr<USizeSort> = mkSizeExpr((0))
+                    val offset : UExpr<USizeSort> = mkSizeExpr(0)
                     PtrInfo(memoryKey, offset, targetType)
                 }
 

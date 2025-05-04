@@ -34,7 +34,7 @@ public class Arrays
         return 2;
     }
 
-    [SvmTest(90)]
+    [SvmTest(96)]
     public int ConcreteArraySymbolicIndex(int i)
     {
         var a = new int [10];

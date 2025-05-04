@@ -9,6 +9,7 @@ import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
+import org.usvm.collection.field.UInputFieldReading
 import org.usvm.machine.*
 import org.usvm.machine.state.*
 import org.usvm.memory.ULValue
@@ -153,18 +154,11 @@ class IlExprResolver(
         if (!fieldIsStatic) {
             val instance = resolveInstance(expr.instance!!) ?: return@calcOnState null
             val key = UFieldLValue(ctx.typeToSort(field.fieldType), instance, field)
-            val extraCond = if (expr.field.fieldType is IlStructType && instance !is UConcreteHeapRef) {
-                val structLocation = instance
-                val structRef = memory.read(key).asExpr(ctx.addressSort)
-                setStructFieldsDefaultValues(structRef, expr.field.fieldType as IlStructType)
-                val syntheticStructLocation =
-                    UFieldLValue(ctx.addressSort, structRef, ctx.syntheticStructLocationField).let { memory.read(it) }
-                val aliasBanCondition = ctx.mkHeapRefEq(syntheticStructLocation, structLocation)
-//                val structRefNonNullCondition = ctx.mkNot(ctx.mkHeapRefEq(structRef, ctx.nullRef))
-                pathConstraints += aliasBanCondition
-                ctx.trueExpr
-            } else ctx.trueExpr
-            checkNullPointer(instance, expr.instance!!.type, extraCond)
+            if (field.declaringType is IlStructType && instance is USymbol<UAddressSort>) {
+                setStructFieldsDefaultValues(ctx.nullRef, field.declaringType as IlStructType)
+                assertStructLocation(instance)
+            }
+            checkNullPointer(instance, expr.instance!!.type)
             key
         } else {
             ensureStaticFieldsInitialized(field.declaringType) {
@@ -173,9 +167,24 @@ class IlExprResolver(
         }
     }
 
-    private fun checkNullPointer(ref: UHeapRef, type: IlType, extraCond : UBoolExpr = ctx.trueExpr) = with(ctx) {
-        if (type.baseType == ctx.valueType) return@with
-        val constr = ctx.mkAnd(!ctx.mkHeapRefEq(ref, nullRef), extraCond)
+    private fun assertStructLocation(structSymbol: USymbol<UAddressSort>) {
+        when (structSymbol) {
+            is UInputFieldReading<*, *> -> {
+                val structLocation = structSymbol.address
+                val syntheticLocationKey = UFieldLValue(ctx.addressSort, structSymbol, ctx.syntheticStructLocationField)
+                val syntheticLocation = scope.calcOnState { memory.read(syntheticLocationKey) }
+                val aliasBanCondition = ctx.mkHeapRefEq(syntheticLocation, structLocation)
+                scope.fork(aliasBanCondition,
+                    blockOnTrueState = {},
+                    blockOnFalseState = { criticalErrorOccurred = true })
+            }
+            else -> TODO()
+        }
+    }
+
+    private fun checkNullPointer(ref: UHeapRef, type: IlType) = with(ctx) {
+        if (type.baseType == ctx.valueType || type is IlPointerType && type.targetType.baseType == ctx.valueType) return@with
+        val constr = !ctx.mkHeapRefEq(ref, nullRef)
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 constr,
@@ -328,7 +337,10 @@ class IlExprResolver(
         resolveAfterResolved(expr.operand) { operand ->
             if (isPtrType(expectedType)) {
                 when (operand) {
-                    is IlPtr<*> -> ctx.mkPtr(operand.base, operand.baseType, operand.locationType, operand.offset, expectedType)
+                    is IlPtr<*> -> {
+                        val pointedType = extractPointedType(expectedType)
+                        ctx.mkPtr(operand.base, operand.baseType, operand.locationType, operand.offset, pointedType)
+                    }
                     is IlManagedRef<*> -> {
                         val (base, offset, locationType) = operand.toPtrInfo()
                         offset as UExpr<UBvSort>

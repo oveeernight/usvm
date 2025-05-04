@@ -16,7 +16,8 @@ import java.io.Closeable
 import kotlin.math.log
 
 class IlTestExecutor : Closeable {
-    private val port = NetUtils.findFreePort(0)
+    private val port = 8980
+//        NetUtils.findFreePort(0)
     private val dotnetProc : Process = RunnerProcessBuilder.build(port).start()
     private val concreteRunner = ConcreteTestRunner(dotnetProc, port)
 

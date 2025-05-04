@@ -13,6 +13,6 @@ repositories {
 dependencies {
     implementation(project(":usvm-core"))
     implementation(Libs.ksmt_runner)
-    implementation("com.github.petrukhinandrew:jacodb:dbc1537aeeb29ffad38c0159251829fe7c98e603")
+    implementation("com.github.petrukhinandrew:jacodb:deec7a248a390c60d39d1671539afc4202b3f398")
     testImplementation(kotlin("test"))
 }

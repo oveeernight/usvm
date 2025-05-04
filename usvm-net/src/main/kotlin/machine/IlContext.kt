@@ -5,10 +5,7 @@ import org.jacodb.api.net.generated.models.IlFieldDto
 import org.jacodb.api.net.generated.models.TypeId
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
-import org.jacodb.api.net.ilinstances.impl.IlArrayType
-import org.jacodb.api.net.ilinstances.impl.IlFieldImpl
-import org.jacodb.api.net.ilinstances.impl.IlStructType
-import org.jacodb.api.net.ilinstances.impl.IlTypeImpl
+import org.jacodb.api.net.ilinstances.impl.*
 import org.jacodb.api.net.publication.IlPredefinedAsmExt.mscorelib
 import org.usvm.*
 import org.usvm.machine.state.IlStaticFieldsRegionId
@@ -80,6 +77,18 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 //        return IlPtr(this, location, offset, sightType)
 //    }
 
+    val zeroField: IlField by lazy {
+        val dto = IlFieldDto(
+            fieldType = TypeId(typeArgs = emptyList(), asmName = mscorelib, typeName = "System.Byte"),
+            isStatic = false,
+            name = "__zero__",
+            attrs = emptyList(),
+            isConstructed = false,
+            offset = 0
+        )
+        IlFieldImpl(declaringType = objectType, dto = dto, typeLoader = publication)
+    }
+
     val syntheticTypeField : IlField by lazy {
         val dto = IlFieldDto(
             fieldType = TypeId(asmName = mscorelib, typeName = "Type", typeArgs = emptyList()),
@@ -118,7 +127,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     }
 
     fun typeToSort(type: IlType): USort {
-        // TODO unsigned
+        if (type is IlEnumType) return bv32Sort
         return when (type) {
             boolType -> boolSort
             charType -> charSort
@@ -154,7 +163,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     }
     // TODO fix
     fun isPrimitiveType(type: IlType): Boolean =
-        type == uint8Type || type == int32Type || type == int64Type || type == charType || type == boolType
+        type is IlEnumType || type == uint8Type || type == int32Type || type == int64Type || type == charType || type == boolType
 
     fun UExpr<UAddressSort>.toNumeric() : UExpr<UBvSort> =
         when (this) {

@@ -27,7 +27,7 @@ dependencies {
     testImplementation("io.grpc:grpc-okhttp:1.70.0")
     testImplementation(Libs.logback)
 
-    implementation("com.github.petrukhinandrew:jacodb:dbc1537aeeb29ffad38c0159251829fe7c98e603")
+    implementation("com.github.petrukhinandrew:jacodb:deec7a248a390c60d39d1671539afc4202b3f398")
 }
 
 protobuf {
