@@ -1,11 +1,13 @@
 package org.usvm.machine.interpreter
 
+import io.ksmt.expr.KExpr
 import io.ksmt.utils.asExpr
 import io.ksmt.utils.cast
 import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.*
 import org.usvm.*
+import org.usvm.api.allocateConcreteRef
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
@@ -255,17 +257,45 @@ class IlExprResolver(
         }
     }
 
-    override fun visitIlBoxExpr(expr: IlBoxExpr): UExpr<out USort>? = scope.calcOnState {
-        val operandType = expr.operand.type
-        assert(ctx.isPrimitiveType(operandType) || operandType is IlStructType)
-        val operand = resolve(expr.operand) ?: return@calcOnState null
-        if (operandType is IlStructType) {
-            val ref = operand.asExpr(ctx.addressSort)
-            TODO()
-        }
-
-        TODO("Not yet implemented")
+    override fun visitIlBoxExpr(expr: IlBoxExpr): UExpr<out USort>? {
+        val operand = resolve (expr.operand) ?: return null
+        return boxExpr(operand, expr.operand.type)
     }
+
+    private fun boxExpr(expr: UExpr<out USort>, exprType: IlType): UHeapRef = scope.calcOnState {
+        // TODO handle someday
+        assert(!exprType.isGenericType)
+        if (exprType is IlReferenceType) return@calcOnState expr.asExpr(ctx.addressSort)
+        require(exprType is IlValueType)
+        when {
+            exprType.nullable -> {
+                val hasValueField = exprType.fields.first { f -> f.name == "hasValue" }
+                val valueField = exprType.fields.first { f -> f.name == "value" }
+                val hasValue =
+                    UFieldLValue(ctx.boolSort, expr.asExpr(ctx.addressSort), hasValueField).let { memory.read(it) }
+                val value = UFieldLValue(
+                    ctx.typeToSort(valueField.fieldType),
+                    expr.asExpr(ctx.addressSort),
+                    valueField
+                ).let { memory.read(it) }
+                val res = ctx.mkIte(hasValue, boxExpr(value, valueField.fieldType), ctx.nullRef)
+                res
+            }
+
+            exprType is IlStructType -> {
+                val structRef = expr.asExpr(ctx.addressSort)
+                copyStruct(structRef, exprType) as UExpr<out USort>
+            }
+
+            else -> {
+                val freshAddress = memory.allocConcrete(exprType)
+                val key = IlBoxedLocationLValue(ctx.typeToSort(exprType), freshAddress)
+                memory.write(key, expr)
+                freshAddress
+            }
+        } as KExpr<UAddressSort>
+    }
+
 
     // TODO check instance can execute the method
     override fun visitIlCall(expr: IlCall): UExpr<out USort>? {
@@ -492,8 +522,25 @@ class IlExprResolver(
         }
     }
 
-    override fun visitIlUnboxExpr(expr: IlUnboxExpr): UExpr<out USort>? {
-        TODO("Not yet implemented")
+    override fun visitIlUnboxExpr(expr: IlUnboxExpr): UExpr<out USort>? = with(ctx) {
+        val instance = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@with null
+        val expectedType = expr.expectedType
+        require(expectedType is IlValueType)
+        val instanceIsNull = mkHeapRefEq(instance, nullRef)
+        val forkCases = mutableListOf<Pair<UBoolExpr, IlState.() -> Unit>>()
+        if (!expectedType.nullable) {
+            val onNull: IlState.() -> Unit =
+                { throwException(nullReferenceException, callStack.stackTrace(currentStatement).last()) }
+            forkCases += instanceIsNull to onNull
+            val instanceIsNotNull = !instanceIsNull
+            val isSubtype = mkIsSubtypeExpr(instance, expectedType)
+            val castIsValid = mkAnd(instanceIsNotNull, isSubtype)
+            val reading = IlBoxedLocationLValue(typeToSort(expectedType), )
+            val castIsInvalid = mkAnd(instanceIsNotNull, !isSubtype)
+
+        }
+
+        TODO()
     }
 
     override fun visitIlUnmanagedDerefExpr(expr: IlUnmanagedDerefExpr): UExpr<out USort>? {

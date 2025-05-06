@@ -8,8 +8,10 @@ import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.*
 import org.jacodb.api.net.publication.IlPredefinedAsmExt.mscorelib
 import org.usvm.*
+import org.usvm.machine.state.IlInputBoxedValuesId
 import org.usvm.machine.state.IlStaticFieldsRegionId
 import org.usvm.memory.ULValue
+import org.usvm.memory.USymbolicCollection
 
 typealias USizeSort = UBv32Sort
 
@@ -33,6 +35,7 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val uintPtrType by lazy { findTypeOrReportAbsence("UIntPtr", mscorelib) }
 
     val valueType by lazy { findTypeOrReportAbsence("ValueType", mscorelib) }
+    val nullableType by lazy { findTypeOrReportAbsence("Nullable", mscorelib) }
     val voidType by lazy { findTypeOrReportAbsence("Void", mscorelib) }
     val objectType by lazy { findTypeOrReportAbsence("Object", mscorelib) }
     val systemType by lazy { findTypeOrReportAbsence("Type", mscorelib) }
@@ -71,6 +74,11 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
         field: IlField
     ): IlStaticFieldReading<Sort> =
         IlStaticFieldReading(this, sort, regionId, field)
+
+    fun <Sort: USort> mkBoxedValueReading(
+        ref: UHeapRef,
+        collection: USymbolicCollection<IlInputBoxedValuesId<Sort>, UHeapRef, Sort>,
+    ) = IlInputBoxedValueReading(this, ref, collection)
 
 //    fun mkDetachedPtr(offset: UExpr<UBvSort>, sightType: IlType): IlPtr<UAddressSort> {
 //        val location = IlHeapLocation(nullRef, addressSort, sightType, isArray = false)

@@ -208,9 +208,9 @@ inline fun <R> foldHeapRef2(
     },
 )
 
-private const val LEFT_CHILD = 0
-private const val RIGHT_CHILD = 1
-private const val DONE = 2
+const val LEFT_CHILD = 0
+const val RIGHT_CHILD = 1
+const val DONE = 2
 
 
 /**
@@ -222,7 +222,7 @@ private const val DONE = 2
  * considered unsatisfiable, so we assume their guards equal to false. If [ignoreNullRefs] is true and [this] is
  * [UNullRef], throws an [IllegalArgumentException].
  */
-internal inline fun <Sort : USort> UHeapRef.map(
+inline fun <Sort : USort> UHeapRef.map(
     concreteMapper: (UConcreteHeapRef) -> UExpr<Sort>,
     staticMapper: (UConcreteHeapRef) -> UExpr<Sort>,
     symbolicMapper: (USymbolicHeapRef) -> UExpr<Sort>,
@@ -313,7 +313,7 @@ internal inline fun <Sort : USort> UHeapRef.mapWithStaticAsConcrete(
 /**
  * Executes [foldHeapRef] with passed [symbolicMapper] as a staticMapper.
  */
-internal inline fun <Sort : USort> UHeapRef.mapWithStaticAsSymbolic(
+inline fun <Sort : USort> UHeapRef.mapWithStaticAsSymbolic(
     concreteMapper: (UConcreteHeapRef) -> UExpr<Sort>,
     symbolicMapper: (UHeapRef) -> UExpr<Sort>,
     ignoreNullRefs: Boolean = true,

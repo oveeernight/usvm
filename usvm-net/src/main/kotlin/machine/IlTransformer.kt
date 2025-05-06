@@ -20,7 +20,8 @@ import org.usvm.solver.URegionDecoder
 interface IlTransformer : UnsafeTransformer<IlType, USizeSort> {
     fun <Sort: USort> transform(ref: IlManagedRef<Sort>): UExpr<UAddressSort>
     fun <Sort: USort> transform(ptr: IlPtr<Sort>): UExpr<UAddressSort>
-    fun <Sort: USort> transform(sfreading: IlStaticFieldReading<Sort>): UExpr<Sort>
+    fun <Sort: USort> transform(expr: IlStaticFieldReading<Sort>): UExpr<Sort>
+    fun <Sort: USort> transform(expr: IlInputBoxedValueReading<Sort>): UExpr<Sort>
 }
 
 class IlComposer(ctx: UContext<USizeSort>, memory: UReadOnlyMemory<IlType>, ownership: MutabilityOwnership) :
@@ -33,8 +34,12 @@ class IlComposer(ctx: UContext<USizeSort>, memory: UReadOnlyMemory<IlType>, owne
         TODO("Not yet implemented")
     }
 
-    override fun <Sort : USort> transform(sfreading: IlStaticFieldReading<Sort>): UExpr<Sort> {
-        return memory.read(IlStaticFieldLValue(sfreading.field, sfreading.sort))
+    override fun <Sort : USort> transform(expr: IlStaticFieldReading<Sort>): UExpr<Sort> {
+        return memory.read(IlStaticFieldLValue(expr.field, expr.sort))
+    }
+
+    override fun <Sort : USort> transform(expr: IlInputBoxedValueReading<Sort>): UExpr<Sort> {
+        TODO("Not yet implemented")
     }
 }
 
@@ -47,10 +52,14 @@ class IlTranslator(ctx: UContext<USizeSort>) : IlTransformer, UnsafeTranslator<I
         TODO("Not yet implemented")
     }
 
-    override fun <Sort : USort> transform(sfreading: IlStaticFieldReading<Sort>): UExpr<Sort> =
-        getOrPutRegionDecoder(sfreading.regionId) {
-            IlStaticFieldDecoder(sfreading.regionId, this)
-        }.translate(sfreading)
+    override fun <Sort : USort> transform(expr: IlStaticFieldReading<Sort>): UExpr<Sort> =
+        getOrPutRegionDecoder(expr.regionId) {
+            IlStaticFieldDecoder(expr.regionId, this)
+        }.translate(expr)
+
+    override fun <Sort : USort> transform(expr: IlInputBoxedValueReading<Sort>): UExpr<Sort> {
+        TODO("Not yet implemented")
+    }
 }
 
 class IlStaticFieldDecoder<Sort: USort>(

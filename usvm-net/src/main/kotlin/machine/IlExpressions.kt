@@ -13,9 +13,11 @@ import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
+import org.usvm.machine.state.IlInputBoxedValuesId
 import org.usvm.machine.state.IlRegisterStackLValue
 import org.usvm.machine.state.IlStaticFieldsRegionId
 import org.usvm.memory.ULValue
+import org.usvm.memory.USymbolicCollection
 import org.usvm.memory.UnsafeLValue
 
 class VoidSort(ctx: IlContext) : USort(ctx) {
@@ -144,6 +146,25 @@ class IlStaticFieldReading<Sort: USort> internal constructor(
         printer.append("[")
         printer.append(field.toString())
         printer.append("]")
+    }
+}
+
+class IlInputBoxedValueReading<Sort : USort> internal constructor(
+    ctx: UContext<*>,
+    val ref: UHeapRef,
+    collection: USymbolicCollection<IlInputBoxedValuesId<Sort>, UHeapRef, Sort>
+): UCollectionReading<IlInputBoxedValuesId<Sort>, UHeapRef, Sort>(ctx, collection) {
+    override fun internEquals(other: Any): Boolean = structurallyEqual(other, { sort }, { ref }, { collection })
+
+    override fun accept(transformer: KTransformerBase): KExpr<Sort> {
+        require(transformer is IlTransformer)
+        TODO("Not yet implemented")
+    }
+
+    override fun internHashCode(): Int = hash(sort, ref, collection)
+
+    override fun print(printer: ExpressionPrinter) {
+        TODO("Not yet implemented")
     }
 }
 
