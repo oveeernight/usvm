@@ -7,6 +7,7 @@ import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.*
 import org.usvm.*
+import org.usvm.api.allocateConcreteRef
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
@@ -522,6 +523,7 @@ class IlExprResolver(
         }
     }
 
+    // actually, it is UnboxAny
     override fun visitIlUnboxExpr(expr: IlUnboxExpr): UExpr<out USort>? = with(ctx) {
         val instance = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@with null
         val expectedType = expr.expectedType
@@ -529,18 +531,50 @@ class IlExprResolver(
         val instanceIsNull = mkHeapRefEq(instance, nullRef)
         val forkCases = mutableListOf<Pair<UBoolExpr, IlState.() -> Unit>>()
         if (!expectedType.nullable) {
-            val onNull: IlState.() -> Unit =
-                { throwException(nullReferenceException, callStack.stackTrace(currentStatement).last()) }
-            forkCases += instanceIsNull to onNull
+            forkCases += instanceIsNull to {
+                throwException(
+                    nullReferenceException,
+                    callStack.stackTrace(currentStatement).last()
+                )
+            }
             val instanceIsNotNull = !instanceIsNull
             val isSubtype = mkIsSubtypeExpr(instance, expectedType)
             val castIsValid = mkAnd(instanceIsNotNull, isSubtype)
-            val reading = IlBoxedLocationLValue(typeToSort(expectedType), )
+            val reading = IlBoxedLocationLValue(typeToSort(expectedType), instance).let {
+                scope.calcOnState { memory.read(it)}
+            }
+            forkCases += castIsValid to { }
             val castIsInvalid = mkAnd(instanceIsNotNull, !isSubtype)
+            forkCases += castIsInvalid to {
+                throwException(
+                    invalidCastException,
+                    callStack.stackTrace(currentStatement).last()
+                )
+            }
+            reading
+        } else {
+            scope.calcOnState {
+                val hasValueField = expectedType.fields.first { it.name == "hasValue" }
+                val valueField = expectedType.fields.first { it.name == "value" }
+                val nullableExprNullCase = memory.allocConcrete(expectedType)
+                UFieldLValue(boolSort, nullableExprNullCase, hasValueField).let {
+                    memory.write(it, falseExpr)
+                }
 
+                val nullableExprNonNullCase = memory.allocConcrete(expectedType)
+                UFieldLValue(boolSort, nullableExprNonNullCase, hasValueField).let {
+                    memory.write(it, trueExpr)
+                }
+                // TODO check whether its struct
+                val underlyingTypeSort = typeToSort(valueField.fieldType)
+                val value = IlBoxedLocationLValue(underlyingTypeSort, instance).let { memory.read(it) }
+
+                UFieldLValue(underlyingTypeSort, nullableExprNonNullCase, valueField).let { memory.write(it, value) }
+
+                val result = mkIte(instanceIsNull, nullableExprNullCase, nullableExprNonNullCase)
+                result
+            }
         }
-
-        TODO()
     }
 
     override fun visitIlUnmanagedDerefExpr(expr: IlUnmanagedDerefExpr): UExpr<out USort>? {
