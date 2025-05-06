@@ -13,7 +13,7 @@ import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.field.UFieldLValue
-import org.usvm.machine.state.IlInputBoxedValuesId
+import org.usvm.machine.state.boxed.IlInputBoxedValuesId
 import org.usvm.machine.state.IlRegisterStackLValue
 import org.usvm.machine.state.IlStaticFieldsRegionId
 import org.usvm.memory.ULValue

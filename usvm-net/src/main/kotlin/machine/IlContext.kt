@@ -8,7 +8,7 @@ import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.*
 import org.jacodb.api.net.publication.IlPredefinedAsmExt.mscorelib
 import org.usvm.*
-import org.usvm.machine.state.IlInputBoxedValuesId
+import org.usvm.machine.state.boxed.IlInputBoxedValuesId
 import org.usvm.machine.state.IlStaticFieldsRegionId
 import org.usvm.memory.ULValue
 import org.usvm.memory.USymbolicCollection

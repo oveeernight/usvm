@@ -1,15 +1,12 @@
-package org.usvm.machine.state
+package org.usvm.machine.state.boxed
 
 import org.usvm.*
-import org.usvm.collection.field.UFieldLValue
-import org.usvm.collection.field.UInputFieldId
 import org.usvm.collections.immutable.implementations.immutableMap.UPersistentHashMap
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.collections.immutable.persistentHashMapOf
 import org.usvm.machine.ilctx
 import org.usvm.memory.*
 import org.usvm.memory.key.UHeapRefKeyInfo
-import sun.jvm.hotspot.oops.CellTypeState.ref
 
 class IlBoxedLocationLValue<Sort: USort>(
     override val sort: Sort,
@@ -23,11 +20,11 @@ class IlBoxedLocationLValue<Sort: USort>(
 class IlBoxedLocationRegionId<Sort: USort>(override val sort: Sort): UMemoryRegionId<IlBoxedLocationLValue<Sort>, Sort> {
 
     override fun emptyRegion(): UMemoryRegion<IlBoxedLocationLValue<Sort>, Sort> {
-        return IlBoxedLocationRegion(sort, persistentHashMapOf())
+        return IlBoxedValueRegion(sort, persistentHashMapOf())
     }
 }
 
-class IlInputBoxedValuesId<Sort: USort>(override val sort: Sort): USymbolicCollectionId<UHeapRef, Sort, IlInputBoxedValuesId<Sort> > {
+class IlInputBoxedValuesId<Sort: USort>(override val sort: Sort): USymbolicCollectionId<UHeapRef, Sort, IlInputBoxedValuesId<Sort>> {
     private fun mkLValue(sort: Sort, ref: UHeapRef) = IlBoxedLocationLValue(sort, ref)
 
     override fun instantiate(
@@ -57,7 +54,7 @@ class IlInputBoxedValuesId<Sort: USort>(override val sort: Sort): USymbolicColle
 
 typealias IlInputBoxedValues<Sort> = USymbolicCollection<IlInputBoxedValuesId<Sort>, UHeapRef, Sort>
 
-class IlBoxedLocationRegion<Sort: USort>(
+class IlBoxedValueRegion<Sort: USort>(
     private val sort: Sort,
     private val allocatedValues: UPersistentHashMap<UConcreteHeapAddress, UExpr<Sort>>,
     private var inputValues: IlInputBoxedValues<Sort>? = null,
@@ -69,10 +66,10 @@ class IlBoxedLocationRegion<Sort: USort>(
         )
 
     private fun updateAllocated(allocatedValues: UPersistentHashMap<UConcreteHeapAddress, UExpr<Sort>>) =
-        IlBoxedLocationRegion(sort, allocatedValues, inputValues)
+        IlBoxedValueRegion(sort, allocatedValues, inputValues)
 
     private fun updateInput(inputValues: IlInputBoxedValues<Sort>) =
-        IlBoxedLocationRegion(sort, allocatedValues, inputValues)
+        IlBoxedValueRegion(sort, allocatedValues, inputValues)
 
     private fun getInputValues(): IlInputBoxedValues<Sort> {
         if (inputValues == null)

@@ -7,8 +7,11 @@ import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
 import org.usvm.collections.immutable.internal.MutabilityOwnership
+import org.usvm.machine.state.boxed.IlBoxedLocationLValue
 import org.usvm.machine.state.IlStaticFieldLValue
 import org.usvm.machine.state.IlStaticFieldsRegionId
+import org.usvm.machine.state.boxed.IlBoxedLocationRegionId
+import org.usvm.machine.state.boxed.IlBoxedRegionDecoder
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.memory.UReadOnlyMemoryRegion
 import org.usvm.model.UModelEvaluator
@@ -16,6 +19,7 @@ import org.usvm.org.usvm.expressions.UnsafeComposer
 import org.usvm.org.usvm.expressions.UnsafeTransformer
 import org.usvm.org.usvm.expressions.UnsafeTranslator
 import org.usvm.solver.URegionDecoder
+import kotlin.concurrent.thread
 
 interface IlTransformer : UnsafeTransformer<IlType, USizeSort> {
     fun <Sort: USort> transform(ref: IlManagedRef<Sort>): UExpr<UAddressSort>
@@ -38,9 +42,8 @@ class IlComposer(ctx: UContext<USizeSort>, memory: UReadOnlyMemory<IlType>, owne
         return memory.read(IlStaticFieldLValue(expr.field, expr.sort))
     }
 
-    override fun <Sort : USort> transform(expr: IlInputBoxedValueReading<Sort>): UExpr<Sort> {
-        TODO("Not yet implemented")
-    }
+    override fun <Sort : USort> transform(expr: IlInputBoxedValueReading<Sort>): UExpr<Sort> =
+        transformCollectionReading(expr, expr.ref)
 }
 
 class IlTranslator(ctx: UContext<USizeSort>) : IlTransformer, UnsafeTranslator<IlType, USizeSort>(ctx) {
@@ -57,9 +60,14 @@ class IlTranslator(ctx: UContext<USizeSort>) : IlTransformer, UnsafeTranslator<I
             IlStaticFieldDecoder(expr.regionId, this)
         }.translate(expr)
 
-    override fun <Sort : USort> transform(expr: IlInputBoxedValueReading<Sort>): UExpr<Sort> {
-        TODO("Not yet implemented")
-    }
+    override fun <Sort : USort> transform(expr: IlInputBoxedValueReading<Sort>): UExpr<Sort> =
+        transformExprAfterTransformed(expr, expr.ref) { address ->
+            val regionId = IlBoxedLocationRegionId(expr.sort)
+            val translator = getOrPutRegionDecoder(regionId) {
+                IlBoxedRegionDecoder(regionId, this)
+            }.inputBoxedValuesTranslator(expr.collection.collectionId)
+            translator.translateReading(expr.collection, address)
+        }
 }
 
 class IlStaticFieldDecoder<Sort: USort>(
@@ -96,5 +104,4 @@ class IlStaticFieldModel<Sort: USort>(
             )
         return model.evalAndComplete(translated)
     }
-
 }

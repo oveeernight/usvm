@@ -7,13 +7,13 @@ import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.*
 import org.usvm.*
-import org.usvm.api.allocateConcreteRef
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.collection.field.UInputFieldReading
 import org.usvm.machine.*
 import org.usvm.machine.state.*
+import org.usvm.machine.state.boxed.IlBoxedLocationLValue
 import org.usvm.memory.ULValue
 import org.usvm.utils.logAssertFailure
 
