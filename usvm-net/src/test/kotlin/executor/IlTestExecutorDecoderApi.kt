@@ -95,7 +95,7 @@ class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> 
         array as TestExpressions.ArrayInstance
         val valueAsAny = value.pack()
         val set = setArrayIndex {
-            this.instance = array
+            instance = array
             this.index = index
             this.value = valueAsAny
         }
@@ -105,12 +105,13 @@ class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> 
 
 private fun IlType.toTypeRepr(): TestExpressions.TypeRepr {
     val mdlToken = moduleToken
+    val generics = genericArgs.map { it.toTypeRepr() }
     val type = typeRepr {
         this.asm = asmName
         this.moduleToken = mdlToken
         this.fullName = fullname
+        this.genericArgs.addAll(generics)
     }
-    type.genericArgsList.addAll(genericArgs.map { it.toTypeRepr() })
 
     return type
 }
