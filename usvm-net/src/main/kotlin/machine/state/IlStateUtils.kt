@@ -33,10 +33,22 @@ fun IlMethod.localsCount() : Int {
     return locals.size + temps.size + errs.size
 }
 
-fun IlState.throwException(type: IlType, frame: UStackTraceFrame<IlMethod, IlStmt>) {
+fun IlState.throwExceptionWithoutStackFrameDrop(type: IlType, frame: UStackTraceFrame<IlMethod, IlStmt>) {
     val ref = ctx.allocateConcreteRef()
     memory.types.allocate(ref.address, type)
     methodResult = IlMethodResult.Exception(ref, type, frame.method, frame.instruction)
+}
+
+fun IlState.throwExceptionWithStackFrameDrop(ref: UHeapRef) {
+    require(methodResult is IlMethodResult.Exception)
+    val retSite = callStack.pop()
+    if (callStack.isNotEmpty()) {
+        memory.stack.pop()
+    }
+
+    if (retSite != null) {
+        newStmt(retSite)
+    }
 }
 
 fun IlState.insertConcreteCallStmt(method: IlMethod, args: List<UExpr<out USort>>) =

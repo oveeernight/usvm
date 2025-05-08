@@ -3,7 +3,7 @@ package samples
 import IlMethodTestRunner
 import kotlin.test.Test
 
-class Boxing: IlMethodTestRunner() {
+class   Boxing: IlMethodTestRunner() {
     @Test
     fun boxInt() {
         runnerWithDefaultOptions(::boxInt)

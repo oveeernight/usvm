@@ -1,19 +1,16 @@
 package executor
 
 import com.google.protobuf.Message
-import com.jetbrains.rd.framework.util.NetUtils
 import common.IlTestStateResolver
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.machine.IlContext
 import org.usvm.machine.interpreter.IlMethodResult
-import org.usvm.machine.logger
 import org.usvm.machine.state.IlState
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.UModelBase
 import testrunner.expressions.*
 import java.io.Closeable
-import kotlin.math.log
 
 class IlTestExecutor : Closeable {
     private val port = 8980
@@ -53,7 +50,7 @@ class IlTestExecutor : Closeable {
             val methodCall = decoderApi.callMethod(method, args)
             val resultAsMessage = when (result) {
                 is IlMethodResult.Success -> resolve(result.result, method.returnType)
-                is IlMethodResult.Exception -> resolve(result.exception, result.type)
+                is IlMethodResult.Exception -> resolve(result.ref, result.type)
                 else -> TODO()
             }
             val test = ilTest {

@@ -7,7 +7,6 @@ import org.jacodb.api.net.core.IlExprVisitor
 import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.*
 import org.usvm.*
-import org.usvm.api.allocateConcreteRef
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
@@ -191,7 +190,7 @@ class IlExprResolver(
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 constr,
-                blockOnFalseState = { throwException(nullReferenceException, callStack.stackTrace(currentStatement).last())
+                blockOnFalseState = { throwExceptionWithoutStackFrameDrop(nullReferenceException, callStack.stackTrace(currentStatement).last())
             })
         }
         else {
@@ -205,7 +204,7 @@ class IlExprResolver(
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 inside,
-                blockOnFalseState = { throwException(indexOutOfRangeException, callStack.stackTrace(currentStatement).last()) }
+                blockOnFalseState = { throwExceptionWithoutStackFrameDrop(indexOutOfRangeException, callStack.stackTrace(currentStatement).last()) }
             )
         } else {
             // TODO handle exceptions, log ex
@@ -437,7 +436,7 @@ class IlExprResolver(
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 isSubtype,
-                blockOnFalseState = { throwException(ctx.invalidCastException, callStack.stackTrace(currentStatement).last()) }
+                blockOnFalseState = { throwExceptionWithoutStackFrameDrop(ctx.invalidCastException, callStack.stackTrace(currentStatement).last()) }
             )
         }
         else {
@@ -532,7 +531,7 @@ class IlExprResolver(
         val forkCases = mutableListOf<Pair<UBoolExpr, IlState.() -> Unit>>()
         if (!expectedType.nullable) {
             forkCases += instanceIsNull to {
-                throwException(
+                throwExceptionWithoutStackFrameDrop(
                     nullReferenceException,
                     callStack.stackTrace(currentStatement).last()
                 )
@@ -546,7 +545,7 @@ class IlExprResolver(
             forkCases += castIsValid to { }
             val castIsInvalid = mkAnd(instanceIsNotNull, !isSubtype)
             forkCases += castIsInvalid to {
-                throwException(
+                throwExceptionWithoutStackFrameDrop(
                     invalidCastException,
                     callStack.stackTrace(currentStatement).last()
                 )

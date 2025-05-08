@@ -3,9 +3,7 @@ package org.usvm.machine.interpreter
 import io.ksmt.utils.asExpr
 import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.*
-import org.jacodb.api.net.ilinstances.impl.IlArrayType
-import org.jacodb.api.net.ilinstances.impl.IlMethodImpl
-import org.jacodb.api.net.ilinstances.impl.IlStructType
+import org.jacodb.api.net.ilinstances.impl.*
 import org.usvm.*
 import org.usvm.api.allocateStaticRef
 import org.usvm.collection.array.UArrayIndexLValue
@@ -93,9 +91,11 @@ class IlInterpreter(
 
     override fun step(state: IlState): StepResult<IlState> {
         val stmt = state.currentStatement
+        org.usvm.logger.error { stmt }
         val scope = IlStepScope(state, forkBlackList)
-        //TODO  handle exceptions
-//        if (state.methodResult is IlMethodResult.Exception) return scope.stepResult()
+        if (state.methodResult is IlMethodResult.Exception) {
+            return scope.stepResult()
+        }
 
         when (stmt) {
             is TransparentMethodCallBaseStmt -> visitTransparentCall(scope, stmt)
@@ -115,6 +115,37 @@ class IlInterpreter(
         
         return scope.stepResult()
     }
+
+    private fun handleException(exception: IlMethodResult.Exception, stepScope: IlStepScope) {
+        val method = exception.method
+        val ref = exception.ref
+        val ehScopes = method.scopes
+        val state = stepScope.calcOnState { this }
+        val blocks = mutableListOf<Pair<UBoolExpr, (IlState) -> Unit>>()
+        val excludeConditions = mutableListOf<UBoolExpr>()
+        for (scope in ehScopes) {
+            when (scope) {
+                is IlCatchScope -> {
+                    val type = scope.exceptionType
+                    val fallThroughCondition =
+                        ctx.mkAnd(excludeConditions + state.memory.types.evalIsSubtype(ref, type))
+                    val block: IlState.() -> Unit = { newStmt(scope.hb) }
+                    blocks += fallThroughCondition to block
+                    excludeConditions += ctx.mkNot(fallThroughCondition)
+                }
+                is IlFilterScope -> {
+                    TODO("no guard in [IlFilterScope]")
+                }
+                is IlFaultScope -> {
+                    val condition = ctx.mkAnd(excludeConditions)
+                    val block: IlState.() -> Unit = { throwExceptionWithStackFrameDrop(ref) }
+                    blocks += condition to block
+                }
+
+            }
+        }
+    }
+
 
     private fun visitTransparentCall(scope: IlStepScope, stmt: TransparentMethodCallBaseStmt) {
 //        val resolver = mkExprResolver(scope)
@@ -233,7 +264,7 @@ class IlInterpreter(
 //        val resolver = mkExprResolver(scope)
 //        val exception = resolver.resolve(stmt.value)?.asExpr(ctx.addressSort) ?: return
         scope.doWithState {
-            throwException(stmt.value.type, callStack.stackTrace(currentStatement).last())
+            throwExceptionWithoutStackFrameDrop(stmt.value.type, callStack.stackTrace(currentStatement).last())
         }
 
     }

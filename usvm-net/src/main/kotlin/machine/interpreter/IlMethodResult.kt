@@ -15,7 +15,7 @@ sealed interface IlMethodResult {
     class Success(val result: UExpr<out USort>, val method: IlMethod) : IlMethodResult
 
     class Exception(
-        val exception: UConcreteHeapRef,
+        val ref: UConcreteHeapRef,
         val type: IlType,
         val method: IlMethod,
         val stmt: IlStmt
