@@ -1,5 +1,6 @@
 package org.usvm.machine.state
 
+import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.jacodb.api.net.ilinstances.IlType
@@ -7,10 +8,13 @@ import org.usvm.PathNode
 import org.usvm.UCallStack
 import org.usvm.UState
 import org.usvm.collections.immutable.internal.MutabilityOwnership
+import org.usvm.constraints.UEqualityConstraints
 import org.usvm.constraints.UPathConstraints
 import org.usvm.machine.IlContext
 import org.usvm.machine.interpreter.IlMethodResult
 import org.usvm.machine.IlTarget
+import org.usvm.machine.IlTypeConstraints
+import org.usvm.machine.IlTypeSystem
 import org.usvm.memory.UMemory
 import org.usvm.memory.UnsafeMemory
 import org.usvm.model.UModelBase
@@ -21,7 +25,15 @@ class IlState(
     ownership: MutabilityOwnership,
     override val entrypoint: IlMethod,
     callStack: UCallStack<IlMethod, IlStmt> = UCallStack(),
-    pathConstraints: UPathConstraints<IlType> = UPathConstraints(ctx, ownership),
+    pathConstraints: UPathConstraints<IlType> = UPathConstraints(
+        ctx,
+        ownership,
+        typeConstraints = IlTypeConstraints(
+            ownership,
+            ctx.typeSystem<IlType>().cast(),
+            equalityConstraints = UEqualityConstraints(ctx, ownership)
+        )
+    ),
     override val memory: IlMemory = IlMemory(ctx, ownership, pathConstraints.typeConstraints, callStack),
     models: List<UModelBase<IlType>> = listOf(),
     pathNode: PathNode<IlStmt> = PathNode.root(),

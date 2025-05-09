@@ -10,7 +10,8 @@ import org.usvm.solver.USolverBase
 import org.usvm.solver.UTypeSolver
 import org.usvm.types.UTypeSystem
 
-class IlComponents(private val typeSystem: IlTypeSystem, private val options: UMachineOptions) : UComponents<IlType, UBv32Sort> {
+class IlComponents(private val typeSystem: IlTypeSystem, private val options: UMachineOptions) :
+    UComponents<IlType, UBv32Sort> {
 
     private val closeableResources = mutableListOf<AutoCloseable>()
 

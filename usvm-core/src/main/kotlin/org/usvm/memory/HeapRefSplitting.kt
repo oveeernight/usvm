@@ -299,7 +299,7 @@ inline fun <Sort : USort> UHeapRef.map(
 /**
  * Executes [foldHeapRef] with passed [concreteMapper] as a staticMapper.
  */
-internal inline fun <Sort : USort> UHeapRef.mapWithStaticAsConcrete(
+inline fun <Sort : USort> UHeapRef.mapWithStaticAsConcrete(
     concreteMapper: (UConcreteHeapRef) -> UExpr<Sort>,
     symbolicMapper: (USymbolicHeapRef) -> UExpr<Sort>,
     ignoreNullRefs: Boolean = true,

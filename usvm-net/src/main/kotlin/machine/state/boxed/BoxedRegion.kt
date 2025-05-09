@@ -12,12 +12,12 @@ class IlBoxedLocationLValue<Sort: USort>(
     override val sort: Sort,
     val ref: UHeapRef): ULValue<IlBoxedLocationLValue<Sort>, Sort> {
     override val memoryRegionId: UMemoryRegionId<IlBoxedLocationLValue<Sort>, Sort>
-        get() = IlBoxedLocationRegionId(sort)
+        = IlBoxedLocationRegionId(sort)
     override val key: IlBoxedLocationLValue<Sort>
         get() = this
 }
 
-class IlBoxedLocationRegionId<Sort: USort>(override val sort: Sort): UMemoryRegionId<IlBoxedLocationLValue<Sort>, Sort> {
+data class IlBoxedLocationRegionId<Sort: USort>(override val sort: Sort): UMemoryRegionId<IlBoxedLocationLValue<Sort>, Sort> {
 
     override fun emptyRegion(): UMemoryRegion<IlBoxedLocationLValue<Sort>, Sort> {
         return IlBoxedValueRegion(sort, persistentHashMapOf())
@@ -61,6 +61,7 @@ class IlBoxedValueRegion<Sort: USort>(
 ): UMemoryRegion<IlBoxedLocationLValue<Sort>, Sort> {
     override fun read(key: IlBoxedLocationLValue<Sort>): UExpr<Sort> =
         key.ref.mapWithStaticAsSymbolic(
+            ignoreNullRefs = true,
             concreteMapper = { concreteRef -> allocatedValues[concreteRef.address]!!},
             symbolicMapper = { inputRef -> inputValues?.read(inputRef)!! }
         )

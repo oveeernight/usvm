@@ -54,12 +54,12 @@ interface UTypeEvaluator<Type> {
  * Manages allocated objects separately from input ones. Indeed, we know the type of an allocated object
  * precisely, thus we can evaluate the subtyping constraints for them concretely (modulo generic type variables).
  */
-class UTypeConstraints<Type>(
-    private var ownership: MutabilityOwnership,
-    private val typeSystem: UTypeSystem<Type>,
-    private val equalityConstraints: UEqualityConstraints,
-    private var concreteRefToType: UPersistentHashMap<UConcreteHeapAddress, Type> = persistentHashMapOf(),
-    private var symbolicRefToTypeRegion: UPersistentHashMap<USymbolicHeapRef, UTypeRegion<Type>> = persistentHashMapOf(),
+open class UTypeConstraints<Type>(
+    protected var ownership: MutabilityOwnership,
+    protected open val typeSystem: UTypeSystem<Type>,
+    protected val equalityConstraints: UEqualityConstraints,
+    protected var concreteRefToType: UPersistentHashMap<UConcreteHeapAddress, Type> = persistentHashMapOf(),
+    protected var symbolicRefToTypeRegion: UPersistentHashMap<USymbolicHeapRef, UTypeRegion<Type>> = persistentHashMapOf(),
 ) : UTypeEvaluator<Type>, UOwnedMergeable<UTypeConstraints<Type>, MutableMergeGuard> {
     private val ctx: UContext<*> get() = equalityConstraints.ctx
 
@@ -142,7 +142,7 @@ class UTypeConstraints<Type>(
      * value used, when we intersect regions on their refs union.
      * @see intersectRegions
      */
-    private fun getTypeRegion(symbolicRef: USymbolicHeapRef, useRepresentative: Boolean = true): UTypeRegion<Type> {
+    protected fun getTypeRegion(symbolicRef: USymbolicHeapRef, useRepresentative: Boolean = true): UTypeRegion<Type> {
         val representative = if (useRepresentative) {
             equalityConstraints.findRepresentative(symbolicRef)
         } else {
@@ -450,7 +450,7 @@ class UTypeConstraints<Type>(
     /**
      * Creates a mutable copy of these constraints connected to new instance of [equalityConstraints].
      */
-    fun clone(
+    open fun clone(
         equalityConstraints: UEqualityConstraints,
         thisOwnership: MutabilityOwnership,
         cloneOwnership: MutabilityOwnership

@@ -45,7 +45,7 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
 
     companion object {
         private val dir = System.getProperty("user.dir")
-        val samplesAsmPath = Paths.get(dir, "src/test/dotnet/samples/bin/Release/net7.0/samples.dll").pathString
+        val samplesAsmPath = Paths.get(dir, "src/test/dotnet/samples/bin/Release/net7.0/publish/samples.dll").pathString
         val samplesAsmName = "samples, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
         val tacBuilderPath: String = "../../dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/"
         val executorPath: String = "../../test-executor/TestExecutor.Application/bin/Release/net8.0"

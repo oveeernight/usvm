@@ -293,7 +293,7 @@ class IlExprResolver(
                 memory.write(key, expr)
                 freshAddress
             }
-        } as KExpr<UAddressSort>
+        } as UExpr<UAddressSort>
     }
 
 
@@ -451,8 +451,17 @@ class IlExprResolver(
 
     override fun visitIlIsInstExpr(expr: IlIsInstExpr): UExpr<out USort>? = scope.calcOnState {
         val inst = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@calcOnState null
-        val isInstCond = memory.types.evalIsSubtype(inst, expr.expectedType)
-        ctx.mkIte(isInstCond, inst, ctx.nullRef)
+        val expectedType = expr.expectedType
+        val isInstCond = memory.types.evalIsSubtype(inst, expectedType)
+        if (expectedType is IlValueType && expectedType !is IlStructType) {
+            val zero: UExpr<UBvSort> = ctx.mkBv(0, ctx.bv32Sort)
+            if (isInstCond.isFalse) return@calcOnState zero
+            val instanceAsValue = memory.read(IlBoxedLocationLValue(ctx.typeToSort(expectedType), inst)) as UExpr<UBvSort>
+            ctx.mkIte(isInstCond, instanceAsValue, zero)
+        }
+        else {
+            ctx.mkIte(isInstCond, inst, ctx.nullRef)
+        }
     }
 
     override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {

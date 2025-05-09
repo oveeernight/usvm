@@ -2,6 +2,14 @@ namespace samples;
 
 public class Boxing
 {
+    private void Xdd(int? i)
+    {
+        if (i == null)
+            Console.WriteLine(322);
+        else
+            Console.WriteLine(321);
+    }
+    
     [SvmTest(100)]
     public int BoxInt(int i)
     {
@@ -11,6 +19,15 @@ public class Boxing
         }
 
         return Foo(null);
+    }
+    
+    
+    [SvmTest(100)]
+    public int BoxNullable()
+    {
+        int? i = null;
+        Foo(i);
+        return 0;
     }
     
     private int Foo(object n)

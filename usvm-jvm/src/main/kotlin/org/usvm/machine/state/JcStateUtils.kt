@@ -43,7 +43,7 @@ fun JcState.throwExceptionWithoutStackFrameDrop(address: UHeapRef, type: JcType)
 
 fun JcState.throwExceptionAndDropStackFrame() {
     // Exception is allowed to be thrown only after
-    // it is created via `throwExceptionWithoutStackFrameDrop` function
+    // it is created- via `throwExceptionWithoutStackFrameDrop` function
     require(methodResult is JcMethodResult.JcException)
 
     // TODO: think about it later
