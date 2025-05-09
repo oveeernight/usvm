@@ -1,6 +1,7 @@
 package org.usvm.machine.state
 
 import io.ksmt.utils.asExpr
+import org.jacodb.api.net.ilinstances.IlLocal
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.jacodb.api.net.ilinstances.IlType
@@ -58,13 +59,29 @@ fun IlState.insertVirtualCallStmt(method: IlMethod, args: List<UExpr<out USort>>
     newStmt(IlVirtualCallStmt(method, args, currentStatement))
 
 fun IlState.callMethod(method: IlMethod, args: List<UExpr<out USort>>, returnSite: IlStmt) {
-    if (method.returnType == ctx.voidType && method.instList.size == 0) {
+    if (method.returnType == ctx.voidType && method.instList.isEmpty()) {
         returnValue(ctx.void)
         return
     }
     callStack.push(method, returnSite)
     memory.stack.push(args.toTypedArray(), method.localsCount())
+    // here we need to initialize local variables for structs to default values, because
+    // structs are initialized via ctor call, without new instruction
     newStmt(method.instList.first())
+}
+
+fun IlState.initializeStructLocals(method: IlMethod, localsMapper: (IlMethod, IlLocal) -> Int) {
+    method as IlMethodImpl
+    val locals = method.locals
+    val frameIdx = callStack.size - 1
+    for (local in locals) {
+        if (local.type is IlStructType) {
+            val regStackIdx = localsMapper(method, local)
+            val key = IlRegisterStackLValue(ctx.addressSort, frameIdx, regStackIdx)
+            val ref = memory.allocConcrete(local.type)
+            memory.write(key, ref)
+        }
+    }
 }
 
 fun IlState.typeIsInitialized(ilType: IlType): Boolean {

@@ -1,7 +1,6 @@
 package org.usvm.machine.interpreter
 
-import org.jacodb.api.net.ilinstances.IlMethod
-import org.jacodb.api.net.ilinstances.IlType
+import org.jacodb.api.net.ilinstances.*
 import org.jacodb.api.net.ilinstances.impl.IlMethodImpl
 
 fun IlType.findMethod(method: IlMethod) : IlMethod {
@@ -11,6 +10,16 @@ fun IlType.findMethod(method: IlMethod) : IlMethod {
     val declaringType = baseType!!
     return declaringType.findMethod(method)
 }
+
+fun IlMethod.mapLocalToRegisterStackIdx(local: IlLocal): Int =
+    when (local) {
+        is IlArgument -> local.index
+
+        is IlLocalVar -> parameters.size + local.index
+
+        is IlTempVar -> parameters.size + (this as IlMethodImpl).locals.size + local.index
+        else -> error("mapLocalToRegisterStackIdx: unexpected local $local")
+    }
 
 fun IlMethod.typeOfRegister(reg: Int) : IlType {
     this as IlMethodImpl

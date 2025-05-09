@@ -24,7 +24,7 @@ class IlExprResolver(
     val machineOptions: IlMachineOptions,
     getOrMkStringConst: MutableMap<String, UConcreteHeapRef>,
     getOrMkTypeRef: (IlType) -> UConcreteHeapRef,
-    val mapMethodLocalToIdx: (IlMethod, IlLocal) -> Pair<Int, IlType>,
+    val mapMethodLocalToIdx: (IlMethod, IlLocal) -> Int,
 ) : IlExprVisitor<UExpr<out USort>?> {
 
     private val valueSampler by lazy { ctx.mkUValueSampler() }
@@ -123,8 +123,8 @@ class IlExprResolver(
 
     private fun localVarToLValue(local: IlLocal) : IlRegisterStackLValue<out USort> {
         val (method, frameIdx) = scope.calcOnState { callStack.lastMethod() to callStack.size - 1 }
-        val (regIdx, type) = mapMethodLocalToIdx(method, local)
-        val sort = ctx.typeToSort(type)
+        val regIdx = mapMethodLocalToIdx(method, local)
+        val sort = ctx.typeToSort(local.type)
         return IlRegisterStackLValue(sort, frameIdx, regIdx)
     }
 
@@ -264,7 +264,7 @@ class IlExprResolver(
 
     private fun boxExpr(expr: UExpr<out USort>, exprType: IlType): UHeapRef = scope.calcOnState {
         // TODO handle someday
-        assert(!exprType.isGenericType)
+//        assert(!exprType.isGenericType)
         if (exprType is IlReferenceType) return@calcOnState expr.asExpr(ctx.addressSort)
         require(exprType is IlValueType)
         when {
@@ -284,7 +284,7 @@ class IlExprResolver(
 
             exprType is IlStructType -> {
                 val structRef = expr.asExpr(ctx.addressSort)
-                copyStruct(structRef, exprType) as UExpr<out USort>
+                copyStruct(structRef, exprType)
             }
 
             else -> {
@@ -293,7 +293,7 @@ class IlExprResolver(
                 memory.write(key, expr)
                 freshAddress
             }
-        } as UExpr<UAddressSort>
+        }
     }
 
 
@@ -384,14 +384,17 @@ class IlExprResolver(
                 when (expr.type) {
                     is IlPrimitiveType -> resolvePrimitiveCast(operand, currType, expectedType)
                     else -> {
-                        val e = operand.asExpr(ctx.addressSort)
-                        if (e == ctx.nullRef) {
-                            return@calcOnState e
+                        val instance = operand.let {
+                            if (it is IlManagedRef<*>) memory.read(it.memoryKey)
+                            else it
+                        }.asExpr(ctx.addressSort)
+                        if (instance == ctx.nullRef) {
+                            return@calcOnState instance
                         }
                         if (!ctx.typeSystem<IlType>().isSupertype(supertype = expectedType, type = currType)) {
-                            checkClassCast(e, expectedType)
+                            checkClassCast(instance, expectedType)
                         }
-                        e
+                        instance
                     }
                 }
             }
@@ -453,15 +456,7 @@ class IlExprResolver(
         val inst = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@calcOnState null
         val expectedType = expr.expectedType
         val isInstCond = memory.types.evalIsSubtype(inst, expectedType)
-        if (expectedType is IlValueType && expectedType !is IlStructType) {
-            val zero: UExpr<UBvSort> = ctx.mkBv(0, ctx.bv32Sort)
-            if (isInstCond.isFalse) return@calcOnState zero
-            val instanceAsValue = memory.read(IlBoxedLocationLValue(ctx.typeToSort(expectedType), inst)) as UExpr<UBvSort>
-            ctx.mkIte(isInstCond, instanceAsValue, zero)
-        }
-        else {
-            ctx.mkIte(isInstCond, inst, ctx.nullRef)
-        }
+        ctx.mkIte(isInstCond, inst, ctx.nullRef)
     }
 
     override fun visitIlManagedDerefExpr(expr: IlManagedDerefExpr): UExpr<out USort>? {

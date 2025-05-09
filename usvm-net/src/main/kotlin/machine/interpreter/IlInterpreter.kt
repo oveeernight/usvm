@@ -21,7 +21,7 @@ class IlInterpreter(
     private val ctx: IlContext,
     private val appGraph: IlApplicationGraph,
     private val ilOptions: IlMachineOptions,
-    val forkBlackList: UForkBlackList<IlState, IlStmt> = UForkBlackList.createDefault()
+    private val forkBlackList: UForkBlackList<IlState, IlStmt> = UForkBlackList.createDefault()
 ) : UInterpreter<IlState>() {
 
     private val strings = mutableMapOf<String, UConcreteHeapRef>()
@@ -30,21 +30,11 @@ class IlInterpreter(
     private fun typesAllocator(type: IlType): UConcreteHeapRef =
         typeInstances.getOrPut(type) { ctx.allocateStaticRef() }
 
-    private val methodLocals = mutableMapOf<IlMethod, MutableMap<String, Int>>()
-    private fun mapMethodLocals(method: IlMethod, local: IlLocal): Pair<Int, IlType> =
-        when (local) {
-            is IlArgument -> methodLocals.getOrPut(method) {
-                mutableMapOf()
-            }.getOrPut(local.name) { local.index } to local.type
-
-            is IlLocalVar -> (method.parameters.size + local.index) to local.type
-
-            is IlTempVar -> (method.parameters.size + (method as IlMethodImpl).locals.size + local.index) to local.type
-
-//            is IlErrVar -> (method.paramsWithThisCount() + method .size + local.index) to local.type
-
-            else -> error("mapMethodLocals: unexpected local ${local.type}")
-        }
+    private val methodLocals = mutableMapOf<IlMethod, MutableMap<IlLocal, Int>>()
+    private fun mapMethodLocals(method: IlMethod, local: IlLocal): Int =
+      methodLocals.getOrPut(method) { mutableMapOf() }.let { varsMapping ->
+          varsMapping.getOrPut(local) { method.mapLocalToRegisterStackIdx(local) }
+      }
 
 
     fun getInitialState(method: IlMethod): IlState {
@@ -83,6 +73,7 @@ class IlInterpreter(
             val localsSize = method.locals.size + method.temps.size + method.errs.size
             val params = entrypointArgs.map { (_, a) -> a}.toTypedArray()
             state.memory.stack.push(params, localsSize)
+            state.initializeStructLocals(method, ::mapMethodLocals)
             state.newStmt(IlMethodEntryPointStmt(method, entrypointArgs))
         }
 
