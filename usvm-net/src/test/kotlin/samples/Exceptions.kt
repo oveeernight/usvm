@@ -5,10 +5,38 @@ import kotlin.test.Ignore
 import kotlin.test.Test
 
 class Exceptions : IlMethodTestRunner() {
-//    @Ignore("Wait for eh statements")
     @Test
-    fun indexOutOfBounds() {
-        runner(::indexOutOfBounds, options)
+    fun arrayIndexReading() {
+        runnerWithDefaultOptions(::arrayIndexReading)
     }
 
+    @Test
+    fun filterScope() {
+        runnerWithDefaultOptions(::filterScope)
+    }
+
+    @Test
+    fun exceptionInFilterScope() {
+        runnerWithDefaultOptions(::exceptionInFilterScope)
+    }
+
+    @Test
+    fun exceptionFromCallee() {
+        runnerWithDefaultOptions(::exceptionFromCallee)
+    }
+
+    @Test
+    fun throwExceptionInCatch() {
+        runnerWithDefaultOptions(::throwExceptionInCatch)
+    }
+
+    @Test
+    fun nestedBlocks() {
+        runnerWithDefaultOptions(::nestedBlocks)
+    }
+
+    @Test
+    fun severalBlocks() {
+        runnerWithDefaultOptions(::severalBlocks)
+    }
 }

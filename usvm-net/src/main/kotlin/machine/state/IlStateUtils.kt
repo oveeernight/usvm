@@ -40,7 +40,7 @@ fun IlState.throwExceptionWithoutStackFrameDrop(type: IlType, frame: UStackTrace
     methodResult = IlMethodResult.Exception(ref, type, frame.method, frame.instruction)
 }
 
-fun IlState.throwExceptionWithStackFrameDrop(ref: UHeapRef) {
+fun IlState.throwExceptionWithStackFrameDrop() {
     require(methodResult is IlMethodResult.Exception)
     val retSite = callStack.pop()
     if (callStack.isNotEmpty()) {

@@ -81,10 +81,12 @@ class IlInterpreter(
     }
 
     override fun step(state: IlState): StepResult<IlState> {
+        val methodResult = state.methodResult
         val stmt = state.currentStatement
         org.usvm.logger.error { stmt }
         val scope = IlStepScope(state, forkBlackList)
-        if (state.methodResult is IlMethodResult.Exception) {
+        if (methodResult is IlMethodResult.Exception) {
+            handleException(methodResult, scope, stmt)
             return scope.stepResult()
         }
 
@@ -107,10 +109,9 @@ class IlInterpreter(
         return scope.stepResult()
     }
 
-    private fun handleException(exception: IlMethodResult.Exception, stepScope: IlStepScope) {
-        val method = exception.method
+    private fun handleException(exception: IlMethodResult.Exception, stepScope: IlStepScope, lastStmt: IlStmt) {
         val ref = exception.ref
-        val ehScopes = method.scopes
+        val ehScopes = lastStmt.exceptionHandlers()
         val state = stepScope.calcOnState { this }
         val blocks = mutableListOf<Pair<UBoolExpr, (IlState) -> Unit>>()
         val excludeConditions = mutableListOf<UBoolExpr>()
@@ -120,7 +121,10 @@ class IlInterpreter(
                     val type = scope.exceptionType
                     val fallThroughCondition =
                         ctx.mkAnd(excludeConditions + state.memory.types.evalIsSubtype(ref, type))
-                    val block: IlState.() -> Unit = { newStmt(scope.hb) }
+                    val block: IlState.() -> Unit = {
+                        methodResult = IlMethodResult.BeforeCall
+                        newStmt(scope.hb)
+                    }
                     blocks += fallThroughCondition to block
                     excludeConditions += ctx.mkNot(fallThroughCondition)
                 }
@@ -129,12 +133,22 @@ class IlInterpreter(
                 }
                 is IlFaultScope -> {
                     val condition = ctx.mkAnd(excludeConditions)
-                    val block: IlState.() -> Unit = { throwExceptionWithStackFrameDrop(ref) }
+                    val block: IlState.() -> Unit = { throwExceptionWithStackFrameDrop() }
                     blocks += condition to block
                 }
-
+                is IlFinallyScope -> {
+                    // do nothing, tac handles control flow
+                }
             }
         }
+
+        val catchMissCondition = ctx.mkAnd(excludeConditions)
+        val catchMissBlock: IlState.() -> Unit = {
+            throwExceptionWithStackFrameDrop()
+        }
+
+        blocks += catchMissCondition to catchMissBlock
+        stepScope.forkMulti(blocks)
     }
 
 
@@ -272,9 +286,8 @@ class IlInterpreter(
         TODO()
     }
 
-    private fun visitEndFinallyStmt(scope: IlStepScope, stmt: IlEndFinallyStmt) {
-        TODO()
-    }
+    private fun visitEndFinallyStmt(scope: IlStepScope, stmt: IlEndFinallyStmt) =
+        scope.doWithState { newStmt(stmt.next()) }
 
     private fun resolveVirtualCall(callStmt: IlVirtualCallStmt, scope: IlStepScope) {
         val typeSelector = IlFixedInheritorsNumberTypeSelector()

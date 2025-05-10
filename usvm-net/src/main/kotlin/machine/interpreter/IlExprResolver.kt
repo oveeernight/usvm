@@ -131,7 +131,7 @@ class IlExprResolver(
     private fun arrayAccessToLValue(expr: IlArrayAccess): UArrayIndexLValue<*, *, *>? = with(ctx) {
         val elementType = (expr.array.type as IlArrayType).elementType
         val arrayRef = resolve(expr.array)?.asExpr(addressSort) ?: return null
-        checkNullPointer(arrayRef, expr.array.type)
+        checkNullPointer(arrayRef, expr.array.type) ?: return null
 
         val index = resolve(expr.index)?.asExpr(sizeSort) ?: return null
 
@@ -143,7 +143,7 @@ class IlExprResolver(
         val maxArrayLengthConstr = mkBvUnsignedLessExpr(len, machineOptions.maxArraySize.toBv(sizeSort))
         scope.assert(maxArrayLengthConstr)
 
-        checkArrayIndexBounds(index, len)
+        checkArrayIndexBounds(index, len) ?: return@with null
 
 
         val lvalue = UArrayIndexLValue(typeToSort(elementType), arrayRef, index, arrayDesc)
@@ -160,7 +160,7 @@ class IlExprResolver(
                 setStructFieldsDefaultValues(ctx.nullRef, field.declaringType as IlStructType)
                 assertStructLocation(instance)
             }
-            checkNullPointer(instance, expr.instance!!.type)
+            checkNullPointer(instance, expr.instance!!.type) ?: return@calcOnState null
             key
         } else {
             ensureStaticFieldsInitialized(field.declaringType) {
@@ -184,10 +184,10 @@ class IlExprResolver(
         }
     }
 
-    private fun checkNullPointer(ref: UHeapRef, type: IlType) = with(ctx) {
+    private fun checkNullPointer(ref: UHeapRef, type: IlType): Unit? = with(ctx) {
         if (type.baseType == ctx.valueType || type is IlPointerType && type.targetType.baseType == ctx.valueType) return@with
         val constr = !ctx.mkHeapRefEq(ref, nullRef)
-        if (machineOptions.forkOnImplicitExceptions) {
+        return if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 constr,
                 blockOnFalseState = { throwExceptionWithoutStackFrameDrop(nullReferenceException, callStack.stackTrace(currentStatement).last())
@@ -237,7 +237,7 @@ class IlExprResolver(
 
     override fun visitIlArrayLength(expr: IlArrayLengthExpr): UExpr<out USort>? {
         val arrayRef = resolve(expr.array)?.asExpr(ctx.addressSort) ?: return null
-        checkNullPointer(arrayRef, expr.array.type)
+        checkNullPointer(arrayRef, expr.array.type) ?: return null
         val arrayDesc = ctx.arrayDescriptorOf(expr.array.type as IlArrayType)
         val key = UArrayLengthLValue(arrayRef, arrayDesc, ctx.sizeSort)
         return scope.calcOnState { memory.read(key) }
@@ -325,7 +325,7 @@ class IlExprResolver(
     ) : UExpr<out USort>? {
         if (instance != null) {
             val resolvedInstance = resolve(instance)?.asExpr(ctx.addressSort) ?: return null
-            checkNullPointer(resolvedInstance, instance.type)
+            checkNullPointer(resolvedInstance, instance.type) ?: return null
         }
 
         val resolvedArgs = args.zip(parameters).map { (arg, param) ->
@@ -392,7 +392,7 @@ class IlExprResolver(
                             return@calcOnState instance
                         }
                         if (!ctx.typeSystem<IlType>().isSupertype(supertype = expectedType, type = currType)) {
-                            checkClassCast(instance, expectedType)
+                            checkClassCast(instance, expectedType) ?: return@calcOnState null
                         }
                         instance
                     }
