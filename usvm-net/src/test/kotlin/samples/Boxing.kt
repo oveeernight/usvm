@@ -15,6 +15,11 @@ class   Boxing: IlMethodTestRunner() {
     }
 
     @Test
+    fun unboxNullable() {
+        runnerWithDefaultOptions(::unboxNullable)
+    }
+
+    @Test
     fun boxStruct() {
         runnerWithDefaultOptions(::boxStruct)
     }

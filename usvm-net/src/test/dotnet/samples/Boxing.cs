@@ -27,6 +27,18 @@ public class Boxing
         }
         return 0;
     }
+
+    [SvmTest(100)]
+    public int UnboxNullable()
+    {
+        object b = 5;
+        var unboxed = (int?)b;
+        if (unboxed != 5)
+        {
+            return -1;
+        }
+        return 0;
+    }
     
     private int Foo(object n)
     {
