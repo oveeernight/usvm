@@ -60,5 +60,7 @@ class JacoDBContainer(
                 JacoDBContainer(sourceAsmPath, tacBuilderPath, builder).also { instance = it }
             }
         }
+
+        fun getInstance(): JacoDBContainer = instance
     }
 }

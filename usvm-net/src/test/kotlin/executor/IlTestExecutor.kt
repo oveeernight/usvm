@@ -1,22 +1,31 @@
 package executor
 
+import JacoDBContainer
 import com.google.protobuf.Message
 import common.IlTestStateResolver
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.machine.IlContext
 import org.usvm.machine.interpreter.IlMethodResult
+import org.usvm.machine.logger
 import org.usvm.machine.state.IlState
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.model.UModelBase
 import testrunner.expressions.*
 import java.io.Closeable
 
-class IlTestExecutor : Closeable {
+class IlTestExecutor {
     private val port = 8980
 //        NetUtils.findFreePort(0)
-    private val dotnetProc : Process = RunnerProcessBuilder.build(port).start()
-    private val concreteRunner = ConcreteTestRunner(dotnetProc, port)
+    private val concreteRunner : ConcreteTestRunner
+        get() {
+            return if (ConcreteTestRunnerContainer.isInitialized) {
+                ConcreteTestRunnerContainer.runner
+            } else {
+                ConcreteTestRunnerContainer.init(port)
+                ConcreteTestRunnerContainer.runner
+            }
+        }
 
     fun execute(states: List<IlState>, method: IlMethod) : TestExpressions.ExecutionResult {
         val tests = states.mapNotNull { state ->
@@ -61,9 +70,5 @@ class IlTestExecutor : Closeable {
             }
             return test
         }
-    }
-
-    override fun close() {
-        dotnetProc.destroy()
     }
 }

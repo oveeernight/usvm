@@ -6,6 +6,7 @@ import org.usvm.*
 import org.usvm.api.evalTypeEquals
 import org.usvm.api.typeStreamOf
 import org.usvm.machine.IlContext
+import org.usvm.machine.IlManagedRef
 import org.usvm.machine.state.IlState
 import org.usvm.machine.state.newStmt
 import org.usvm.memory.foldHeapRef
@@ -103,7 +104,11 @@ private fun resolveVirtualInvokeWithModel(
     typeSelector: IlTypeSelector,
     forkOnRemainingTypes: Boolean
 ) {
-    val instance = callStmt.args[0].asExpr(ctx.addressSort)
+    val instance = callStmt.args[0].asExpr(ctx.addressSort).let {
+        if (it is IlManagedRef<*>) {
+            scope.calcOnState { memory.read(it.memoryKey) }
+        } else it
+    }
     val evaledInstance = model.eval(instance) as UConcreteHeapRef
     if (isAllocatedConcreteHeapRef(evaledInstance) || isStaticHeapRef(evaledInstance)) {
         val concreteInvoke = callStmt.prepareInvokeOnConcreteRef(scope, evaledInstance, ctx.trueExpr)
@@ -113,7 +118,7 @@ private fun resolveVirtualInvokeWithModel(
     // ref is symbolic
     val typeStream = scope.calcOnState { model.typeStreamOf(evaledInstance) }
     val symbolicInvokes =
-        callStmt.makeConcreteCallsForPossibleTypes(scope, ctx, instance, typeStream, typeSelector, forkOnRemainingTypes)
+        callStmt.makeConcreteCallsForPossibleTypes(scope, ctx, instance.asExpr(ctx.addressSort), typeStream, typeSelector, forkOnRemainingTypes)
     scope.forkMulti(symbolicInvokes)
 }
 

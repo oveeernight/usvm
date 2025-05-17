@@ -28,7 +28,7 @@ public class Boxing
         return 0;
     }
 
-    [SvmTest(100)]
+    [SvmTest(88)]
     public int UnboxNullable()
     {
         object b = 5;
@@ -68,7 +68,7 @@ public class Boxing
         o.Incr();
     }
     
-    [SvmTest(100)]
+    [SvmTest(84)]
     public int BoxStruct()
     {
         var s = new Impl();

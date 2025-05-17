@@ -1,25 +1,22 @@
 import executor.IlTestExecutor
-import org.junit.jupiter.api.AfterAll
+import executor.IlMethodTestRunnerController
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.extension.ExtendWith
 import org.usvm.UMachineOptions
 import org.usvm.machine.IlMachine
 import org.usvm.machine.IlMachineOptions
 import org.usvm.test.util.TestRunner
-import testrunner.expressions.TestExpressions
 import testrunner.expressions.TestExpressions.ExecutionResult
 import java.nio.file.Paths
-import kotlin.io.path.name
 import kotlin.io.path.pathString
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
+
+@ExtendWith(IlMethodTestRunnerController::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass<*>, IlTypeCoverage>() {
-    @AfterAll
-    fun tearDown() {
-        container.server.close()
-        executor.close()
-    }
+
     private val container by lazy { JacoDBContainer.getInstanceOrCreate(listOf(samplesAsmPath), tacBuilderPath) }
     protected val executor by lazy { IlTestExecutor() }
 
