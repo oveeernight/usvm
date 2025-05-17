@@ -137,9 +137,9 @@ class IlInterpreter(
                 val (catch, catchFrameIdx) = catchAndFrameIndex
                 val nextFinally = findNextFinallyOrFault(catch, exception.stmt, previousCheckedScope)
 
-                methodResult = IlMethodResult.BeforeCall
                 exceptionsStack.removeLast()
                 exceptionsStack.add(CaughtExceptionEntry(exception, catch, catchFrameIdx))
+                methodResult = IlMethodResult.BeforeCall
 
                 if (nextFinally == null) {
                     dropFramesAfterIndex(catchFrameIdx)
@@ -288,9 +288,13 @@ class IlInterpreter(
 
     private fun visitThrowStmt(scope: IlStepScope, stmt: IlThrowStmt) {
 //        val resolver = mkExprResolver(scope)
-//        val exception = resolver.resolve(stmt.value)?.asExpr(ctx.addressSort) ?: return
+//        val exception = resolver.resolve(stmt.value)?.asExpr(ctx.addressSort) ?: return }
         scope.doWithState {
-            throwException(stmt.value.type, callStack.stackTrace(currentStatement).last())
+            if (stmt.value is IlNull) {
+                throwException(ctx.nullReferenceException, callStack.stackTrace(currentStatement).last())
+            } else {
+                throwException(stmt.value.type, callStack.stackTrace(currentStatement).last())
+            }
         }
 
     }
@@ -305,7 +309,13 @@ class IlInterpreter(
 
     private fun visitEndFilterStmt(scope: IlStepScope, stmt: IlEndFilterStmt) {
         val exprResolver = mkExprResolver(scope)
-        val filterValue = exprResolver.resolve(stmt.value)?.asExpr(ctx.boolSort) ?: return
+        val filterExpr = stmt.value
+        val filterValue = if (filterExpr.type != ctx.boolType) {
+            exprResolver.resolve(IlConvCastExpr(ctx.boolType, filterExpr))
+        } else {
+            exprResolver.resolve(stmt.value)
+        }
+        filterValue ?: return
 //        val booleanFilterValue = ctx.mkEq(filterValue, ctx.mkBv(1, ctx.int32sort))
 
         val enclosingFilter = stmt.enclosingFilter()
@@ -318,6 +328,8 @@ class IlInterpreter(
             val nextFinallyOrFault = findNextFinallyOrFault(enclosingFilter, handledExEntry.exception.stmt)
             if (nextFinallyOrFault != null) {
                 val (handler, finallyFrameIdx) = nextFinallyOrFault
+                // both statements are necessary. even if we have no frames to drop, we may
+                // observe filter on another frame
                 dropFramesAfterIndex(finallyFrameIdx)
                 memory.stack.observingFrame = finallyFrameIdx
                 newStmt(handler.hb)
@@ -330,7 +342,7 @@ class IlInterpreter(
             methodResult = exception
             handleException(exception, enclosingFilter)
         }
-        scope.fork(filterValue, onTrue, onFalse)
+        scope.fork(filterValue.asExpr(ctx.boolSort), onTrue, onFalse)
     }
 
 

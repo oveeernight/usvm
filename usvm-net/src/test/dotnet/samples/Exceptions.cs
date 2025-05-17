@@ -258,5 +258,83 @@ public class Exceptions
     
     private bool TrueIfGlobalIsZero() => globalVar == 0;
     
+    [SvmTest(32)]
+    public static int ManyNestedTryBlocks()
+    {
+        var res = 1;
+        try
+        {
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        try
+                        {
+                            try
+                            {
+                                try
+                                {
+                                    using (var a = new Disposable())
+                                    {
+                                        throw null;
+                                    }
+                                }
+                                catch (DivideByZeroException)
+                                {
+                                    res += 1;
+                                }
+                            }
+                            catch (DivideByZeroException)
+                            {
+                                res += 2;
+                            }
+                        }
+                        catch (NullReferenceException) when (ThrowNullReference())
+                        {
+                            res += 2;
+                        }
+                    }
+                    catch (DivideByZeroException)
+                    {
+                        res += 3;
+                    }
+                }
+                catch (DivideByZeroException)
+                {
+                    res += 3;
+                }
+            }
+            catch (DivideByZeroException)
+            {
+                res += 4;
+            }
+        }
+        catch (NullReferenceException)
+        {
+            res *= 100;
+        }
+
+        if (res != 100)
+        {
+            return -1;
+        }
+        return res;
+    }
+    
+    private static bool ThrowNullReference()
+    {
+        throw new NullReferenceException();
+    }
+    
+    public class Disposable : IDisposable
+    {
+        public void Dispose()
+        {
+            // TODO release managed resources here
+        }
+    }
+    
     private bool AlwaysTrue(int x) => true;
 }
