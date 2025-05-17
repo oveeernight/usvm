@@ -1,6 +1,5 @@
 package org.usvm.machine.interpreter
 
-import io.ksmt.expr.KExpr
 import io.ksmt.utils.asExpr
 import io.ksmt.utils.cast
 import org.jacodb.api.net.core.IlExprVisitor
@@ -17,11 +16,11 @@ import org.usvm.machine.state.boxed.IlBoxedLocationLValue
 import org.usvm.memory.ULValue
 import org.usvm.utils.logAssertFailure
 
-@Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE")
+@Suppress("UNUSED_PARAMETER")
 class IlExprResolver(
-    val ctx: IlContext,
-    val scope: IlStepScope,
-    val machineOptions: IlMachineOptions,
+    private val ctx: IlContext,
+    private val scope: IlStepScope,
+    private val machineOptions: IlMachineOptions,
     getOrMkStringConst: MutableMap<String, UConcreteHeapRef>,
     getOrMkTypeRef: (IlType) -> UConcreteHeapRef,
     val mapMethodLocalToIdx: (IlMethod, IlLocal) -> Int,
@@ -92,7 +91,10 @@ class IlExprResolver(
 
     override fun visitErrVar(expr: IlErrVar): UExpr<out USort>? {
         val key = localVarToLValue(expr)
-        return scope.calcOnState { memory.read(key) }
+        return scope.calcOnState {
+            val exRef = exceptionsStack.last().exception.ref
+            memory.write(key, exRef)
+            memory.read(key) }
     }
 
     override fun visitIlArg(expr: IlArgument): UExpr<out USort>?  {
@@ -122,7 +124,7 @@ class IlExprResolver(
     }
 
     private fun localVarToLValue(local: IlLocal) : IlRegisterStackLValue<out USort> {
-        val (method, frameIdx) = scope.calcOnState { callStack.lastMethod() to callStack.size - 1 }
+        val (method, frameIdx) = scope.calcOnState { callStack.lastMethod() to memory.stack.observingFrame }
         val regIdx = mapMethodLocalToIdx(method, local)
         val sort = ctx.typeToSort(local.type)
         return IlRegisterStackLValue(sort, frameIdx, regIdx)
@@ -190,7 +192,7 @@ class IlExprResolver(
         return if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 constr,
-                blockOnFalseState = { throwExceptionWithoutStackFrameDrop(nullReferenceException, callStack.stackTrace(currentStatement).last())
+                blockOnFalseState = { throwException(nullReferenceException, callStack.stackTrace(currentStatement).last())
             })
         }
         else {
@@ -204,7 +206,7 @@ class IlExprResolver(
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 inside,
-                blockOnFalseState = { throwExceptionWithoutStackFrameDrop(indexOutOfRangeException, callStack.stackTrace(currentStatement).last()) }
+                blockOnFalseState = { throwException(indexOutOfRangeException, callStack.stackTrace(currentStatement).last()) }
             )
         } else {
             // TODO handle exceptions, log ex
@@ -439,7 +441,7 @@ class IlExprResolver(
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 isSubtype,
-                blockOnFalseState = { throwExceptionWithoutStackFrameDrop(ctx.invalidCastException, callStack.stackTrace(currentStatement).last()) }
+                blockOnFalseState = { throwException(ctx.invalidCastException, callStack.stackTrace(currentStatement).last()) }
             )
         }
         else {
@@ -535,7 +537,7 @@ class IlExprResolver(
         val forkCases = mutableListOf<Pair<UBoolExpr, IlState.() -> Unit>>()
         if (!expectedType.nullable) {
             forkCases += instanceIsNull to {
-                throwExceptionWithoutStackFrameDrop(
+                throwException(
                     nullReferenceException,
                     callStack.stackTrace(currentStatement).last()
                 )
@@ -549,7 +551,7 @@ class IlExprResolver(
             forkCases += castIsValid to { }
             val castIsInvalid = mkAnd(instanceIsNotNull, !isSubtype)
             forkCases += castIsInvalid to {
-                throwExceptionWithoutStackFrameDrop(
+                throwException(
                     invalidCastException,
                     callStack.stackTrace(currentStatement).last()
                 )

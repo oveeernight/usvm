@@ -11,8 +11,8 @@ class Exceptions : IlMethodTestRunner() {
     }
 
     @Test
-    fun filterScope() {
-        runnerWithDefaultOptions(::filterScope)
+    fun simpleFilterScope() {
+        runnerWithDefaultOptions(::simpleFilterScope)
     }
 
     @Test
@@ -38,5 +38,25 @@ class Exceptions : IlMethodTestRunner() {
     @Test
     fun severalBlocks() {
         runnerWithDefaultOptions(::severalBlocks)
+    }
+
+    @Test
+    fun finallyChain() {
+        runnerWithDefaultOptions(::finallyChain)
+    }
+
+    @Test
+    fun finallyInCalleeExecutedWhenCaughtInCaller() {
+        runnerWithDefaultOptions(::finallyInCalleeExecutedWhenCaughtInCaller)
+    }
+
+    @Test
+    fun filterInCallerExecutedBeforeFinallyInCallee() {
+        runnerWithDefaultOptions(::filterInCallerExecutedBeforeFinallyInCallee)
+    }
+
+    @Test
+    fun filterThrowingException() {
+        runnerWithDefaultOptions(::filterThrowingException)
     }
 }

@@ -18,6 +18,7 @@ fun IlMethod.mapLocalToRegisterStackIdx(local: IlLocal): Int =
         is IlLocalVar -> parameters.size + local.index
 
         is IlTempVar -> parameters.size + (this as IlMethodImpl).locals.size + local.index
+        is IlErrVar -> parameters.size + (this as IlMethodImpl).locals.size + temps.size + local.index
         else -> error("mapLocalToRegisterStackIdx: unexpected local $local")
     }
 

@@ -68,11 +68,12 @@ class IlInterpreter(
             val model = (solver.check(state.pathConstraints) as USatResult).model
             state.models = listOf(model)
 
-            state.callStack.push(method, returnSite = null)
+            state.callStack.push(method, returnSite = null, retSiteFrameIndex = -1)
             method as? IlMethodImpl ?: error("Unexpected method type for now")
             val localsSize = method.locals.size + method.temps.size + method.errs.size
             val params = entrypointArgs.map { (_, a) -> a}.toTypedArray()
             state.memory.stack.push(params, localsSize)
+//            state.callStack.push(method, returnSite = null, retSiteFrameIndex = -1)
             state.initializeStructLocals(method, ::mapMethodLocals)
             state.newStmt(IlMethodEntryPointStmt(method, entrypointArgs))
         }
@@ -86,7 +87,7 @@ class IlInterpreter(
         org.usvm.logger.error { stmt }
         val scope = IlStepScope(state, forkBlackList)
         if (methodResult is IlMethodResult.Exception) {
-            handleException(methodResult, scope, stmt)
+            handleException(methodResult, scope)
             return scope.stepResult()
         }
 
@@ -100,55 +101,74 @@ class IlInterpreter(
             is IlReturnStmt -> visitReturnStmt(scope, stmt)
             is IlThrowStmt -> visitThrowStmt(scope, stmt)
             is IlRethrowStmt -> visitRethrowStmt(scope, stmt)
-            is IlEndFaultStmt -> visitEndFaultStmt(scope, stmt)
+            is IlEndFaultStmt -> visitEndFinallyOrFaultStmt(scope, stmt)
+            is IlEndFinallyStmt -> visitEndFinallyOrFaultStmt(scope, stmt)
             is IlEndFilterStmt -> visitEndFilterStmt(scope, stmt)
-            is IlEndFinallyStmt -> visitEndFinallyStmt(scope, stmt)
             else -> error("Unknown statement: $stmt")
         }
         
         return scope.stepResult()
     }
 
-    private fun handleException(exception: IlMethodResult.Exception, stepScope: IlStepScope, lastStmt: IlStmt) {
-        val ref = exception.ref
-        val ehScopes = lastStmt.exceptionHandlers()
-        val state = stepScope.calcOnState { this }
-        val blocks = mutableListOf<Pair<UBoolExpr, (IlState) -> Unit>>()
-        val excludeConditions = mutableListOf<UBoolExpr>()
-        for (scope in ehScopes) {
-            when (scope) {
-                is IlCatchScope -> {
-                    val type = scope.exceptionType
-                    val fallThroughCondition =
-                        ctx.mkAnd(excludeConditions + state.memory.types.evalIsSubtype(ref, type))
-                    val block: IlState.() -> Unit = {
-                        methodResult = IlMethodResult.BeforeCall
-                        newStmt(scope.hb)
-                    }
-                    blocks += fallThroughCondition to block
-                    excludeConditions += ctx.mkNot(fallThroughCondition)
-                }
-                is IlFilterScope -> {
-                    TODO("no guard in [IlFilterScope]")
-                }
-                is IlFaultScope -> {
-                    val condition = ctx.mkAnd(excludeConditions)
-                    val block: IlState.() -> Unit = { throwExceptionWithStackFrameDrop() }
-                    blocks += condition to block
-                }
-                is IlFinallyScope -> {
-                    // do nothing, tac handles control flow
+
+    private fun IlState.handleException(exception: IlMethodResult.Exception, previousCheckedScope: IlEhScope? = null) {
+        val ilTypeSystem = ctx.typeSystem<IlType>() as IlTypeSystem
+        val throwStmt = exception.stmt
+        val catchAndFrameIndex = exception.findCatchOrFilter(callStack, throwStmt, ilTypeSystem, previousCheckedScope)
+        when  {
+            catchAndFrameIndex == null -> {
+                // if an exception occurred in a filter scope and no handler was found, we drop
+                // current exception and continue search for handler of previous exception
+                // otherwise we terminate state
+                val lastFilter = callStack.findLastFilter(exception.stmt)
+                if (lastFilter != null) {
+                    val (filter, filterFrameIdx) = lastFilter
+                    exceptionsStack.removeLast()
+                    dropFramesAfterIndex(filterFrameIdx)
+                    val previousException = exceptionsStack.last().exception
+                    methodResult = previousException
+                    handleException(previousException, filter)
+                } else {
+                    terminate()
                 }
             }
-        }
 
-        val catchMissCondition = ctx.mkAnd(excludeConditions)
-        val catchMissBlock: IlState.() -> Unit = {
-            throwExceptionWithStackFrameDrop()
-        }
+            catchAndFrameIndex.first is IlCatchScope -> {
+                val (catch, catchFrameIdx) = catchAndFrameIndex
+                val nextFinally = findNextFinallyOrFault(catch, exception.stmt, previousCheckedScope)
 
-        blocks += catchMissCondition to catchMissBlock
-        stepScope.forkMulti(blocks)
+                methodResult = IlMethodResult.BeforeCall
+                exceptionsStack.removeLast()
+                exceptionsStack.add(CaughtExceptionEntry(exception, catch, catchFrameIdx))
+
+                if (nextFinally == null) {
+                    dropFramesAfterIndex(catchFrameIdx)
+                    newStmt(catch.hb)
+                } else {
+                    val (finally, finallyFrameIdx) = nextFinally
+                    // both statements are necessary. even if we have no frames to drop, we may
+                    // observe filter on another frame
+                    dropFramesAfterIndex(finallyFrameIdx)
+                    memory.stack.observingFrame = finallyFrameIdx
+                    newStmt(finally.hb)
+                }
+            }
+
+            catchAndFrameIndex.first is IlFilterScope -> {
+                val (filter, frameIdx) = catchAndFrameIndex
+                filter as IlFilterScope
+                methodResult = IlMethodResult.BeforeCall
+                memory.stack.observingFrame = frameIdx
+                newStmt(filter.fb)
+            }
+        }
+    }
+
+    private fun handleException(
+        exception: IlMethodResult.Exception, stepScope: IlStepScope
+    ) {
+        val state = stepScope.calcOnState { this }
+        state.handleException(exception)
     }
 
 
@@ -175,9 +195,16 @@ class IlInterpreter(
         val lhv = stmt.lhv
         scope.doWithState {
             val rhvType = stmt.rhv.type
-            val rvalue = resolver.resolve(stmt.rhv)?.let { if (stmt.rhv !is IlNewExpr && rhvType is IlStructType) {
-                copyStruct(it.asExpr(ctx.addressSort), rhvType)
-            }  else it } ?: return@doWithState
+            var rvalue =
+                if (rhvType != lhv.type) {
+                    val convCast = IlConvCastExpr(stmt.lhv.type, stmt.rhv)
+                  resolver.resolve(convCast) ?: return@doWithState
+                } else {
+                  resolver.resolve(stmt.rhv) ?: return@doWithState
+                }
+            if (stmt.rhv !is IlNewExpr && rhvType is IlStructType) {
+                rvalue = copyStruct(rvalue.asExpr(ctx.addressSort), rhvType)
+            }
             if (lhv is IlUnmanagedDerefExpr) {
                 val ptr = resolver.resolve(lhv.value)
                 require(ptr is IlPtr<*>)
@@ -185,12 +212,6 @@ class IlInterpreter(
                 memory.writeUnsafe(ptr, rvalue, rhvType)
             } else {
                 val lvalue = resolver.resolveLValue(stmt.lhv) ?: return@doWithState
-//              val rvalue = if (stmt.lhv.type != stmt.rhv.type) {
-//                  val convCast = IlConvCastExpr(stmt.lhv.type, stmt.rhv)
-//                  resolver.resolve(convCast) ?: return
-//              } else {
-//                  resolver.resolve(stmt.rhv) ?: return
-//              }
                 memory.write(lvalue, rvalue)
             }
             newStmt(stmt.next())
@@ -269,25 +290,70 @@ class IlInterpreter(
 //        val resolver = mkExprResolver(scope)
 //        val exception = resolver.resolve(stmt.value)?.asExpr(ctx.addressSort) ?: return
         scope.doWithState {
-            throwExceptionWithoutStackFrameDrop(stmt.value.type, callStack.stackTrace(currentStatement).last())
+            throwException(stmt.value.type, callStack.stackTrace(currentStatement).last())
         }
 
     }
 
-    private fun visitRethrowStmt(scope: IlStepScope, stmt: IlRethrowStmt) {
-        TODO()
-    }
-
-    private fun visitEndFaultStmt(scope: IlStepScope, stmt: IlEndFaultStmt) {
-        TODO()
+    private fun visitRethrowStmt(scope: IlStepScope, stmt: IlRethrowStmt) = scope.doWithState {
+        val lastEntry = exceptionsStack.removeLast()
+        val ex = lastEntry.exception
+        val updatedEx = IlMethodResult.Exception(ex.ref, ex.type, stmt.method, stmt)
+        methodResult = updatedEx
+        exceptionsStack.add(UnhandledExceptionEntry(updatedEx))
     }
 
     private fun visitEndFilterStmt(scope: IlStepScope, stmt: IlEndFilterStmt) {
-        TODO()
+        val exprResolver = mkExprResolver(scope)
+        val filterValue = exprResolver.resolve(stmt.value)?.asExpr(ctx.boolSort) ?: return
+//        val booleanFilterValue = ctx.mkEq(filterValue, ctx.mkBv(1, ctx.int32sort))
+
+        val enclosingFilter = stmt.enclosingFilter()
+        val onTrue: IlState.() -> Unit = {
+            val entry = exceptionsStack.removeLast()
+            require(entry is UnhandledExceptionEntry)
+            val observingFrame = memory.stack.observingFrame
+            val handledExEntry = CaughtExceptionEntry(entry.exception, enclosingFilter, observingFrame)
+            exceptionsStack.add(handledExEntry)
+            val nextFinallyOrFault = findNextFinallyOrFault(enclosingFilter, handledExEntry.exception.stmt)
+            if (nextFinallyOrFault != null) {
+                val (handler, finallyFrameIdx) = nextFinallyOrFault
+                dropFramesAfterIndex(finallyFrameIdx)
+                memory.stack.observingFrame = finallyFrameIdx
+                newStmt(handler.hb)
+            } else {
+                newStmt(enclosingFilter.hb)
+            }
+        }
+        val onFalse: IlState.() -> Unit = {
+            val exception = exceptionsStack.last().exception
+            methodResult = exception
+            handleException(exception, enclosingFilter)
+        }
+        scope.fork(filterValue, onTrue, onFalse)
     }
 
-    private fun visitEndFinallyStmt(scope: IlStepScope, stmt: IlEndFinallyStmt) =
-        scope.doWithState { newStmt(stmt.next()) }
+
+    private fun visitEndFinallyOrFaultStmt(scope: IlStepScope, stmt: IlEhStmt) = scope.doWithState {
+        assert(stmt is IlEndFaultStmt || stmt is IlEndFinallyStmt)
+        // by building of TAC, we visit endFinallyStmt only if we execute finally block with
+        // exception thrown, so we must execute all finally blocks before found catch
+        val correspondingScope = stmt.method.scopes.find { it.he == stmt }
+        // find rest scopes to execute
+        val entry = exceptionsStack.last()
+        val throwStmt = entry.exception.stmt
+        require(entry is CaughtExceptionEntry) { "Exception is expected to be caught when executing finally" }
+        val catch = entry.handler
+        val finallyOrFault = findNextFinallyOrFault(catch, throwStmt, correspondingScope)
+        if (finallyOrFault != null) {
+            val (handler, handlerIdx) = finallyOrFault
+            dropFramesAfterIndex(handlerIdx)
+            newStmt(handler.hb)
+        } else {
+            dropFramesAfterIndex(entry.handlerFrameIdx)
+            newStmt(catch.hb)
+        }
+    }
 
     private fun resolveVirtualCall(callStmt: IlVirtualCallStmt, scope: IlStepScope) {
         val typeSelector = IlFixedInheritorsNumberTypeSelector()

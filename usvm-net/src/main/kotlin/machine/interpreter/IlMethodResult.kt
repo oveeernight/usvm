@@ -3,6 +3,7 @@ package org.usvm.machine.interpreter
 import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.jacodb.api.net.ilinstances.IlType
+import org.jacodb.api.net.ilinstances.impl.IlEhScope
 import org.usvm.UConcreteHeapRef
 import org.usvm.UExpr
 import org.usvm.USort
@@ -21,3 +22,11 @@ sealed interface IlMethodResult {
         val stmt: IlStmt
     ) : IlMethodResult
 }
+
+interface ExceptionRegisterStackEntry {
+    val exception: IlMethodResult.Exception
+}
+
+class UnhandledExceptionEntry(override val exception: IlMethodResult.Exception): ExceptionRegisterStackEntry
+class CaughtExceptionEntry(override val exception: IlMethodResult.Exception, val handler: IlEhScope, val handlerFrameIdx: Int) :
+    ExceptionRegisterStackEntry

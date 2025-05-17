@@ -36,8 +36,8 @@ class IlMemory(
     ctx: UContext<*>,
     ownership: MutabilityOwnership,
     types: UTypeConstraints<IlType>,
-    private val callStack: UCallStack<IlMethod, IlStmt>,
-    stack: URegistersStack = IlRegistersStack(),
+    private val callStack: IlCallStack,
+    override val stack: IlRegistersStack = IlRegistersStack(-1),
     mocks: UIndexedMocker<IlMethod> = UIndexedMocker(),
     regions: UPersistentHashMap<UMemoryRegionId<*, *>, UMemoryRegion<*, *>> = persistentHashMapOf()
 ) : UnsafeMemory<IlType, IlMethod>(ctx, ownership, types, stack, mocks, regions) {
@@ -67,9 +67,10 @@ class IlMemory(
                 val combineSort = elemSort.ilctx.typeToSort(lvalue.sightType)
                 elemSort.ilctx.mkCombine(filtered, combineSort, lvalue.sightType)
             }
-            is URegisterStackLValue<*> -> {
-                val currMethod = callStack.lastMethod()
-                val regType = currMethod.typeOfRegister(base.idx)
+            is IlRegisterStackLValue<*> -> {
+                val regMethod = callStack.frameByIndex(base.frameIdx).method
+                val regType = regMethod.typeOfRegister(base.idx)
+
                 val value = read(base)
                 with(ctx) {
                     val pos : UExpr<UBvSort> = mkBv(0, bv32Sort)
@@ -114,8 +115,9 @@ class IlMemory(
                 }
             }
 
-            is URegisterStackLValue<*> -> {
-                val regType = callStack.lastMethod().typeOfRegister(base.idx)
+            is IlRegisterStackLValue<*> -> {
+                val regMethod = callStack.frameByIndex(base.frameIdx).method
+                val regType = regMethod.typeOfRegister(base.idx)
                 val oldValue = read(base)
                 val newValue = writeExprUnsafe(oldValue, regType, value, valueType, lvalue.offset)
                 write(base, newValue)

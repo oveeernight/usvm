@@ -172,15 +172,13 @@ sealed class IlBinaryOperator(
         }
     }
 
-    protected fun UExpr<UBoolSort>.toBvIte() : UExpr<UBvSort> =
-        ctx.mkIte(this,
-            ctx.mkBv(1, ctx.bv32Sort),
-            ctx.mkBv(0, ctx.bv32Sort)
-        )
-
-
-
     companion object {
+        fun UExpr<UBoolSort>.toBvIte() : UExpr<UBvSort> =
+            ctx.mkIte(this,
+                ctx.mkBv(1, ctx.bv32Sort),
+                ctx.mkBv(0, ctx.bv32Sort)
+            )
+
         fun resolve(op: IlBinaryOp): IlBinaryOperator {
             return when (op) {
                 is IlAddOp -> Add

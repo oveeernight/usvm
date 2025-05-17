@@ -37,12 +37,12 @@ interface UReadOnlyRegistersStack : UReadOnlyMemoryRegion<URegisterStackLValue<*
 open class URegistersStack(
     protected val frames: MutableList<Array<UExpr<out USort>?>> = mutableListOf(),
 ) : UReadOnlyRegistersStack, UMemoryRegion<URegisterStackLValue<*>, USort>, UMergeable<URegistersStack, MergeGuard> {
-    fun push(registersCount: Int) = frames.add(Array(registersCount) { null })
+    open fun push(registersCount: Int) = frames.add(Array(registersCount) { null })
 
-    fun push(argumentsCount: Int, localsCount: Int) =
+    open fun push(argumentsCount: Int, localsCount: Int) =
         push(argumentsCount + localsCount)
 
-    fun push(arguments: Array<UExpr<out USort>>, localsCount: Int) =
+    open fun push(arguments: Array<UExpr<out USort>>, localsCount: Int) =
         frames.add(arguments.copyOf(arguments.size + localsCount))
 
     protected fun <Sort : USort> Array<UExpr<out USort>?>?.read(index: Int, sort: Sort): UExpr<Sort> =
@@ -66,7 +66,7 @@ open class URegistersStack(
         frames.last()[index] = value
     }
 
-    fun pop() = frames.removeLast()
+    open fun pop() = frames.removeLast()
 
     open fun clone(): URegistersStack {
         val newStack = ArrayDeque(frames.map { it.clone() })

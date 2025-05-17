@@ -5,7 +5,6 @@ import org.jacodb.api.net.ilinstances.IlMethod
 import org.jacodb.api.net.ilinstances.IlStmt
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.PathNode
-import org.usvm.UCallStack
 import org.usvm.UState
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.constraints.UEqualityConstraints
@@ -14,9 +13,7 @@ import org.usvm.machine.IlContext
 import org.usvm.machine.interpreter.IlMethodResult
 import org.usvm.machine.IlTarget
 import org.usvm.machine.IlTypeConstraints
-import org.usvm.machine.IlTypeSystem
-import org.usvm.memory.UMemory
-import org.usvm.memory.UnsafeMemory
+import org.usvm.machine.interpreter.ExceptionRegisterStackEntry
 import org.usvm.model.UModelBase
 import org.usvm.targets.UTargetsSet
 
@@ -24,7 +21,7 @@ class IlState(
     ctx: IlContext,
     ownership: MutabilityOwnership,
     override val entrypoint: IlMethod,
-    callStack: UCallStack<IlMethod, IlStmt> = UCallStack(),
+    override val callStack: IlCallStack = IlCallStack(),
     pathConstraints: UPathConstraints<IlType> = UPathConstraints(
         ctx,
         ownership,
@@ -35,6 +32,7 @@ class IlState(
         )
     ),
     override val memory: IlMemory = IlMemory(ctx, ownership, pathConstraints.typeConstraints, callStack),
+    internal val exceptionsStack: ArrayList<ExceptionRegisterStackEntry> = ArrayList(),
     models: List<UModelBase<IlType>> = listOf(),
     pathNode: PathNode<IlStmt> = PathNode.root(),
     forkPoints: PathNode<PathNode<IlStmt>> = PathNode.root(),
@@ -69,6 +67,7 @@ class IlState(
             callStack.clone(),
             clonedConstraints,
             memory.clone(clonedConstraints.typeConstraints, newThisOwnership, cloneOwnership),
+            ArrayList<ExceptionRegisterStackEntry>().also { it.addAll(this.exceptionsStack)  },
             models,
             pathNode,
             forkPoints,

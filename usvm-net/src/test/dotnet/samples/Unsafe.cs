@@ -2,6 +2,24 @@ namespace samples;
 
 public class Unsafe
 {
+    [SvmTest(83)]
+    public int ByrefVar()
+    {
+        var v = 5;
+        Increment(ref v);
+        if (v != 6)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+
+    private void Increment(ref int x)
+    {
+        x++;
+    }
+    
     [SvmTest(88)]
     public int ConcreteUnsafe1()
     {

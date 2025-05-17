@@ -10,9 +10,7 @@ import org.jacodb.api.net.ilinstances.impl.IlStructType
 import org.usvm.*
 import org.usvm.api.allocateConcreteRef
 import org.usvm.collection.field.UFieldLValue
-import org.usvm.machine.interpreter.IlConcreteCallStmt
-import org.usvm.machine.interpreter.IlMethodResult
-import org.usvm.machine.interpreter.IlVirtualCallStmt
+import org.usvm.machine.interpreter.*
 import org.usvm.machine.write
 
 fun IlState.newStmt(stmt: IlStmt) {
@@ -23,8 +21,12 @@ fun IlState.returnValue(value: UExpr<out USort>) {
     val method = callStack.lastMethod()
     val res = IlMethodResult.Success(value, method)
     methodResult = res
-    val returnSite = callStack.pop()
-    returnSite?.let { memory.stack.pop(); newStmt(it) }
+    val (returnSite, retSiteFrameIdx) = callStack.popWithRetSiteFrameIdx()
+    returnSite?.let {
+        memory.stack.pop()
+        memory.stack.observingFrame = retSiteFrameIdx
+        newStmt(it)
+    }
 }
 
 //fun IlMethod.toLocalIdx(idx: Int): Int = if (this.isStatic) idx else idx + 1
@@ -34,22 +36,39 @@ fun IlMethod.localsCount() : Int {
     return locals.size + temps.size + errs.size
 }
 
-fun IlState.throwExceptionWithoutStackFrameDrop(type: IlType, frame: UStackTraceFrame<IlMethod, IlStmt>) {
+fun IlState.throwException(type: IlType, frame: UStackTraceFrame<IlMethod, IlStmt>) {
     val ref = ctx.allocateConcreteRef()
     memory.types.allocate(ref.address, type)
-    methodResult = IlMethodResult.Exception(ref, type, frame.method, frame.instruction)
+    val exception = IlMethodResult.Exception(ref, type, frame.method, frame.instruction)
+    methodResult = exception
+    exceptionsStack.add(UnhandledExceptionEntry(exception))
 }
 
-fun IlState.throwExceptionWithStackFrameDrop() {
-    require(methodResult is IlMethodResult.Exception)
-    val retSite = callStack.pop()
-    if (callStack.isNotEmpty()) {
-        memory.stack.pop()
+fun IlState.terminate() {
+    while (callStack.isNotEmpty()) {
+        callStack.pop()
+        if (callStack.isNotEmpty()) {
+            memory.stack.pop()
+        }
     }
+}
 
-    if (retSite != null) {
-        newStmt(retSite)
+
+
+// it is expected to not kill application
+fun IlState.dropFrames(count: Int) {
+    var i = count
+    while (i > 0) {
+        val (_, retSiteFrameIdx) = callStack.popWithRetSiteFrameIdx()
+        memory.stack.observingFrame = retSiteFrameIdx
+        memory.stack.pop()
+        i--;
     }
+}
+
+fun IlState.dropFramesAfterIndex(lastIdx: Int) {
+    val count = callStack.lastIndex - lastIdx
+    dropFrames(count)
 }
 
 fun IlState.insertConcreteCallStmt(method: IlMethod, args: List<UExpr<out USort>>) =
@@ -60,10 +79,12 @@ fun IlState.insertVirtualCallStmt(method: IlMethod, args: List<UExpr<out USort>>
 
 fun IlState.callMethod(method: IlMethod, args: List<UExpr<out USort>>, returnSite: IlStmt) {
     if (method.returnType == ctx.voidType && method.instList.isEmpty()) {
-        returnValue(ctx.void)
+        methodResult = IlMethodResult.Success(ctx.void, method)
+        newStmt(returnSite)
         return
     }
-    callStack.push(method, returnSite)
+    val observingFrameIdx = memory.stack.observingFrame
+    callStack.push(method, returnSite, observingFrameIdx)
     memory.stack.push(args.toTypedArray(), method.localsCount())
     // here we need to initialize local variables for structs to default values, because
     // structs are initialized via ctor call, without new instruction

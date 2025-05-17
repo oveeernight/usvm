@@ -7,7 +7,7 @@ import org.usvm.memory.*
 object IlRegisterStackId : UMemoryRegionId<URegisterStackLValue<*>, USort> {
     override val sort: USort
         get() = error("Register stack has no sort")
-    override fun emptyRegion(): UMemoryRegion<URegisterStackLValue<*>, USort> = IlRegistersStack()
+    override fun emptyRegion(): UMemoryRegion<URegisterStackLValue<*>, USort> = IlRegistersStack(-1)
 }
 
 class IlRegisterStackLValue<Sort: USort>(
@@ -22,7 +22,7 @@ class IlRegisterStackLValue<Sort: USort>(
 
 }
 
-class IlRegistersStack(frames: MutableList<Array<UExpr<out USort>?>> = mutableListOf()) : URegistersStack(frames) {
+class IlRegistersStack(var observingFrame: Int, frames: MutableList<Array<UExpr<out USort>?>> = mutableListOf()) : URegistersStack(frames) {
     private fun writeFrame(frameIndex: Int, regIndex: Int, value: UExpr<out USort>) {
         frames[frameIndex][regIndex] = value
     }
@@ -33,6 +33,21 @@ class IlRegistersStack(frames: MutableList<Array<UExpr<out USort>?>> = mutableLi
         } else { // getInitialStateCase
             sort.uctx.mkRegisterReading(regIndex, sort)
         }
+    }
+
+    override fun push(registersCount: Int): Boolean {
+        observingFrame = frames.size
+        return super.push(registersCount)
+    }
+
+    override fun push(arguments: Array<UExpr<out USort>>, localsCount: Int): Boolean {
+        observingFrame = frames.size
+        return super.push(arguments, localsCount)
+    }
+
+    override fun push(argumentsCount: Int, localsCount: Int): Boolean {
+        observingFrame = frames.size
+        return super.push(argumentsCount, localsCount)
     }
 
     override fun read(key: URegisterStackLValue<*>): UExpr<USort> {
@@ -52,8 +67,8 @@ class IlRegistersStack(frames: MutableList<Array<UExpr<out USort>?>> = mutableLi
         return this
     }
 
-    override fun clone(): URegistersStack {
+    override fun clone(): IlRegistersStack {
         val newStack = ArrayDeque(frames.map { it.clone() })
-        return IlRegistersStack(newStack)
+        return IlRegistersStack(observingFrame, newStack)
     }
 }

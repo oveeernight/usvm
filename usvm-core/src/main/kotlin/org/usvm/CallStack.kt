@@ -12,8 +12,8 @@ data class UStackTraceFrame<Method, Statement>(
     val instruction: Statement,
 )
 
-class UCallStack<Method, Statement> private constructor(
-    private val stack: ArrayDeque<UCallStackFrame<Method, Statement>>,
+open class UCallStack<Method, Statement> protected constructor(
+    protected open val stack: ArrayDeque<UCallStackFrame<Method, Statement>>,
 ) : List<UCallStackFrame<Method, Statement>> by stack, UMergeable<UCallStack<Method, Statement>, Unit> {
     constructor() : this(ArrayDeque())
     constructor(method: Method) : this(
@@ -25,13 +25,15 @@ class UCallStack<Method, Statement> private constructor(
 
     fun pop(): Statement? = stack.removeLast().returnSite
 
+    fun frameByIndex(idx: Int) = stack[idx]
+
     fun lastMethod(): Method = stack.last().method
 
     fun push(method: Method, returnSite: Statement?) {
         stack.add(UCallStackFrame(method, returnSite))
     }
 
-    fun clone(): UCallStack<Method, Statement> {
+    open fun clone(): UCallStack<Method, Statement> {
         val newStack = ArrayDeque<UCallStackFrame<Method, Statement>>()
         newStack.addAll(stack)
         return UCallStack(newStack)

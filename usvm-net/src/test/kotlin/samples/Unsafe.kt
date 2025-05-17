@@ -1,10 +1,15 @@
 package samples
 
 import IlMethodTestRunner
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Ignore
 import kotlin.test.Test
 
 class Unsafe : IlMethodTestRunner() {
+    @Test
+    fun byrefVar() {
+        runnerWithDefaultOptions(::byrefVar)
+    }
 
     @Test
     fun argumentWrite() {
