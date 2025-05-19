@@ -245,17 +245,47 @@ class IlExprResolver(
         return scope.calcOnState { memory.read(key) }
     }
 
-    override fun visitIlBinaryOp(expr: IlBinaryOp): UExpr<out USort>? {
+    @Suppress("UNCHECKED_CAST")
+    override fun visitIlBinaryOp(expr: IlBinaryOp): UExpr<out USort>? = with(ctx) {
         val operator = IlBinaryOperator.resolve(expr)
         return resolveAfterResolved(expr.lhs, expr.rhs) { lhs, rhs ->
-            if (lhs.sort == ctx.addressSort && rhs.sort == ctx.addressSort) {
+            if (lhs.sort == addressSort && rhs.sort == addressSort) {
                 when (operator) {
-                    is IlBinaryOperator.CEq -> ctx.mkHeapRefEq(lhs.cast(), rhs.cast())
-                    is IlBinaryOperator.CNe -> ctx.mkNot(ctx.mkHeapRefEq(lhs.cast(), rhs.cast()))
+                    is IlBinaryOperator.CEq -> mkHeapRefEq(lhs.cast(), rhs.cast())
+                    is IlBinaryOperator.CNe -> mkNot(mkHeapRefEq(lhs.cast(), rhs.cast()))
                     else -> error("Unexpected address sort binary operator $operator")
                 }
-            } else
-                operator(lhs, rhs)
+            } else {
+                val result = operator(lhs, rhs)
+                val lhsSort = lhs.sort
+                if ((operator is IlBinaryOperator.Div || operator is IlBinaryOperator.Rem) && lhsSort is UBvSort) {
+                    val rhsIsNotZero = mkNot(mkEq(ctx.mkBv(0, lhsSort), rhs.asExpr(lhsSort)))
+                    scope.fork(rhsIsNotZero,
+                        blockOnFalseState = {
+                            throwException(
+                                divideByZeroException,
+                                callStack.stackTrace(currentStatement).last()
+                            )
+                        }) ?: return@with null
+                }
+                if (lhs.sort is UBvSort && expr.isChecked && IlBinaryOperator.overflowIsPossible(operator)) {
+                    val noOverflow = operator.bvNoOverflowCondition(
+                        ctx,
+                        lhs as UExpr<UBvSort>,
+                        rhs as UExpr<UBvSort>,
+                        !expr.isUnsigned
+                    )
+                    scope.fork(
+                        noOverflow,
+                        blockOnFalseState = {
+                            throwException(
+                                ctx.overflowException,
+                                callStack.stackTrace(currentStatement).last()
+                            )
+                        }) ?: return null
+                }
+                result
+            }
         }
     }
 

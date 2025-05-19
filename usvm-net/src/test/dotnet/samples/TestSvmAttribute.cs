@@ -6,7 +6,7 @@ public class SvmTestAttribute : Attribute
 
     public SvmTestAttribute() { }
 
-    public SvmTestAttribute(int expectedCoverage)
+    public SvmTestAttribute(int expectedCoverage = 100)
     {
         ExpectedCoverage = expectedCoverage;
     }

@@ -139,11 +139,16 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
         return when (type) {
             boolType -> boolSort
             charType -> charSort
-//            int8Type -> byteSort
+            int8Type -> int8sort
+            uint8Type -> int8sort
             int16Type -> int16sort
-            int32Type -> sizeSort
-            int64Type -> int64sort
+            uint16Type -> int16sort
+            int32Type -> int32sort
             uint32Type -> int32sort
+            int64Type -> int64sort
+            uint64Type -> int64sort
+            floatType -> floatSort
+            doubleType -> doubleSort
             else -> addressSort
         }
     }
@@ -163,6 +168,8 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val indexOutOfRangeException: IlType by lazy { findTypeOrReportAbsence(indexOutOfRangeExceptionName, mscorelib) }
     val nullReferenceException: IlType by lazy { findTypeOrReportAbsence(nullReferenceExceptionName, mscorelib) }
     val invalidCastException: IlType by lazy { findTypeOrReportAbsence(invalidCastExceptionName, mscorelib) }
+    val overflowException: IlType by lazy { findTypeOrReportAbsence(overflowExceptionName, mscorelib) }
+    val divideByZeroException: IlType by lazy { findTypeOrReportAbsence(divideByZeroExceptionName, mscorelib) }
 
     private fun findTypeOrReportAbsence(typeName: String, asmName: String, useSystemPrefix: Boolean = true): IlType {
         val name = if (useSystemPrefix) "${SYSTEM_PREFIX}${typeName}" else typeName
@@ -171,7 +178,21 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     }
     // TODO fix
     fun isPrimitiveType(type: IlType): Boolean =
-        type is IlEnumType || type == uint8Type || type == int32Type || type == int64Type || type == charType || type == boolType
+        when (type) {
+            is IlEnumType -> true
+            boolType -> true
+            uint8Type -> true
+            int8Type -> true
+            int16Type -> true
+            uint32Type -> true
+            int32Type -> true
+            uint32Type -> true
+            int64Type -> true
+            uint64Type -> true
+            floatType -> true
+            doubleType -> true
+            else -> false
+        }
 
     fun UExpr<UAddressSort>.toNumeric() : UExpr<UBvSort> =
         when (this) {
@@ -181,6 +202,8 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 }
 
 private val SYSTEM_PREFIX = "System."
-const val indexOutOfRangeExceptionName = "IndexOutOfRangeException"
-const val nullReferenceExceptionName = "NullReferenceException"
-const val invalidCastExceptionName = "InvalidCastException"
+private const val indexOutOfRangeExceptionName = "IndexOutOfRangeException"
+private const val nullReferenceExceptionName = "NullReferenceException"
+private const val invalidCastExceptionName = "InvalidCastException"
+private const val overflowExceptionName = "OverflowException"
+private const val divideByZeroExceptionName = "DivideByZeroException"

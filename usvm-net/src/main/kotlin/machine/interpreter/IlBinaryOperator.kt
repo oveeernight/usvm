@@ -1,6 +1,8 @@
 package org.usvm.machine.interpreter
 
 import io.ksmt.sort.KFpSort
+import io.ksmt.utils.BvUtils.bvMaxValueSigned
+import io.ksmt.utils.BvUtils.bvMaxValueUnsigned
 import io.ksmt.utils.asExpr
 import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.*
@@ -16,7 +18,10 @@ sealed class IlBinaryOperator(
     val onBv: IlContext.(UExpr<UBvSort>, UExpr<UBvSort>) -> UExpr<out USort> = shouldNotBeCalled,
     val onFp: IlContext.(UExpr<KFpSort>, UExpr<KFpSort>) -> UExpr<out USort> = shouldNotBeCalled,
     val onBool: IlContext.(UExpr<UBoolSort>, UExpr<UBoolSort>) -> UExpr<out USort> = shouldNotBeCalled,
-    val onAddressSort: IlContext.(UExpr<out USort>, UExpr<out USort>) -> UExpr<out USort> = shouldNotBeCalled
+    val onAddressSort: IlContext.(UExpr<out USort>, UExpr<out USort>) -> UExpr<out USort> = shouldNotBeCalled,
+    val bvNoOverflowCondition: IlContext.(UExpr<UBvSort>, UExpr<UBvSort>, Boolean) -> UBoolExpr = { _, _, _ ->
+        error("should not be called")
+    }
 ) {
 
     object Add : IlBinaryOperator(
@@ -26,7 +31,12 @@ sealed class IlBinaryOperator(
             val (l, r) = normalizePtrOp(a, b)
             l as IlPtr<*>
             shiftPointer(l, r.cast())
-        }
+        },
+        bvNoOverflowCondition = { a, b, isSigned ->
+            val overflow = mkBvAddNoOverflowExpr(a, b, isSigned)
+            val underflow = mkBvAddNoUnderflowExpr(a, b)
+            mkAnd(overflow, underflow)
+        },
     )
 
     object Sub : IlBinaryOperator(
@@ -37,21 +47,34 @@ sealed class IlBinaryOperator(
             l as IlPtr<*>
             r as UExpr<UBvSort>
             shiftPointer(l, mkBvNegationExpr(r))
+        },
+        bvNoOverflowCondition = { a, b, isSigned ->
+            val noOverflow = mkBvSubNoOverflowExpr(a, b)
+            val noUnderflow = mkBvSubNoUnderflowExpr(a, b, isSigned)
+            mkAnd(noOverflow, noUnderflow)
         }
     )
 
     object Mul : IlBinaryOperator(
         onBv = UContext<USizeSort>::mkBvMulExpr,
-        onFp = {a, b -> mkFpMulExpr(fpRoundingModeSortDefaultValue(), a, b)}
+        onFp = {a, b -> mkFpMulExpr(fpRoundingModeSortDefaultValue(), a, b)},
+        bvNoOverflowCondition = { a, b, isSigned ->
+            val noOverflow = mkBvMulNoOverflowExpr(a, b, isSigned)
+            val noUnderflow = mkBvMulNoUnderflowExpr(a, b)
+            mkAnd(noOverflow, noUnderflow)
+        }
     )
 
     object Div : IlBinaryOperator(
         onBv = UContext<USizeSort>::mkBvSignedDivExpr,
-        onFp = { a, b -> mkFpDivExpr(fpRoundingModeSortDefaultValue(), a, b) }
+        onFp = { a, b -> mkFpDivExpr(fpRoundingModeSortDefaultValue(), a, b) },
+        bvNoOverflowCondition = { a, b, _ -> mkBvDivNoOverflowExpr(a, b)
+        }
     )
 
     object Rem : IlBinaryOperator(
         onBv = UContext<USizeSort>::mkBvSignedRemExpr,
+        onFp = UContext<USizeSort>::mkFpRemExpr
     )
 
     object And : IlBinaryOperator(
@@ -133,7 +156,7 @@ sealed class IlBinaryOperator(
     )
 
     object UShr : IlBinaryOperator(
-        onBv = { arg, shift -> mkBvLogicalShiftRightExpr(arg, shift)}
+        onBv = { arg, shift -> mkBvLogicalShiftRightExpr(arg, shift)},
     )
 
     internal operator fun invoke(lhs: UExpr<out USort>, rhs: UExpr<out USort>): UExpr<out USort> {
@@ -214,6 +237,15 @@ sealed class IlBinaryOperator(
                 is Div -> true
                 is CEq -> true
                 is CNe -> true
+                else -> false
+            }
+
+        fun overflowIsPossible(op: IlBinaryOperator): Boolean =
+            when (op) {
+                is Add -> true
+                is Sub -> true
+                is Mul -> true
+                is Div -> true
                 else -> false
             }
 

@@ -7,7 +7,11 @@ import io.ksmt.expr.*
 import io.ksmt.expr.printer.ExpressionPrinter
 import io.ksmt.expr.transformer.KTransformerBase
 import io.ksmt.sort.KSortVisitor
+import io.ksmt.utils.BvUtils.bvMaxValueSigned
+import io.ksmt.utils.BvUtils.bvMaxValueUnsigned
+import io.ksmt.utils.FpUtils.mkFpMaxValue
 import io.ksmt.utils.cast
+import io.ksmt.utils.toULongValue
 import org.jacodb.api.net.ilinstances.IlField
 import org.jacodb.api.net.ilinstances.IlType
 import org.usvm.*
@@ -174,10 +178,19 @@ val KAst.ilctx get() = ctx as IlContext
 @Suppress("UNCHECKED_CAST")
 fun <Sort: USort> UExpr<Sort>.tryBool(): Boolean? = (this as? UBoolExpr)?.isTrue
 fun <Sort: USort> UExpr<Sort>.tryInt8(): Byte? = (this as? KBitVec8Value)?.byteValue
+fun <Sort: USort> UExpr<Sort>.tryUInt8(): UByte? = (this as? KBitVec8Value)?.byteValue?.toUByte()
 fun <Sort: USort> UExpr<Sort>.tryInt16(): Short? = (this as? KBitVec16Value)?.shortValue
+fun <Sort: USort> UExpr<Sort>.tryUInt16(): UShort? = (this as? KBitVec16Value)?.shortValue?.toUShort()
 fun <Sort: USort> UExpr<Sort>.tryInt32(): Int? = (this as? KBitVec32Value)?.intValue
+fun <Sort: USort> UExpr<Sort>.tryUInt32(): UInt? = (this as? KBitVec32Value)?.intValue?.toUInt()
 fun <Sort: USort> UExpr<Sort>.tryInt64(): Long? = (this as? KBitVec64Value)?.longValue
+fun <Sort: USort> UExpr<Sort>.tryUInt64(): ULong? = (this as? KBitVec64Value)?.longValue?.toULongValue()
 fun <Sort: USort> UExpr<Sort>.tryChar(): Char? = (this as? KBitVec16Value)?.shortValue?.toInt()?.toChar()
 fun <Sort: USort> UExpr<Sort>.tryFloat(): Float? = (this as? KFp32Value)?.value
 fun <Sort: USort> UExpr<Sort>.tryDouble(): Double? = (this as? KFp64Value)?.value
 // TODO signed
+
+fun UBvSort.maxValueSigned(): UExpr<UBvSort> = ctx.bvMaxValueSigned(sizeBits)
+fun UBvSort.maxValueUnsigned(): UExpr<UBvSort> = ctx.bvMaxValueUnsigned(sizeBits)
+fun UFpSort.maxValue(): UExpr<UFpSort> = ctx.mkFpMaxValue(this, false)
+fun UFpSort.minValue() : UExpr<UFpSort> = ctx.mkFpMaxValue(this, true)

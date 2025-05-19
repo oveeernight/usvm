@@ -10,16 +10,8 @@ import org.usvm.api.typeStreamOf
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
-import org.usvm.machine.IlContext
+import org.usvm.machine.*
 import org.usvm.machine.interpreter.IlMethodResult
-import org.usvm.machine.tryBool
-import org.usvm.machine.tryInt16
-import org.usvm.machine.tryInt32
-import org.usvm.machine.tryInt64
-import org.usvm.machine.tryInt8
-import org.usvm.machine.tryChar
-import org.usvm.machine.tryDouble
-import org.usvm.machine.tryFloat
 import org.usvm.memory.ULValue
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.memory.URegisterStackLValue
@@ -78,10 +70,14 @@ abstract class IlTestStateResolver<T>(
         when (type) {
             boolType -> decoderApi.createBoolConst(resolveBool(expr))
             charType -> decoderApi.createCharConst(resolveChar(expr))
-//            int8Type -> decoderApi.createInt8Const(resolveInt8(expr))
+            int8Type -> decoderApi.createInt8Const(resolveInt8(expr))
+            uint8Type -> decoderApi.createUInt8Const(resolveUInt8(expr))
             int16Type -> decoderApi.createInt16Const(resolveInt16(expr))
+            uint16Type -> decoderApi.createUInt16Const(resolveUInt16(expr))
             int32Type -> decoderApi.createInt32Const(resolveInt32(expr))
+            uint32Type -> decoderApi.createUInt32Const(resolveUInt32(expr))
             int64Type -> decoderApi.createInt64Const(resolveInt64(expr))
+            uint64Type -> decoderApi.createUInt64Const(resolveUInt64(expr))
             floatType -> decoderApi.createFloatConst(resolveFloat(expr))
             doubleType -> decoderApi.createDoubleConst(resolveDouble(expr))
             else -> error("Unexpected primitive ${type.name}")
@@ -90,9 +86,13 @@ abstract class IlTestStateResolver<T>(
 
     private fun <Sort: USort> resolveBool(expr: UExpr<Sort>) = evalExpr(expr).tryBool() ?: false
     private fun <Sort: USort> resolveInt8(expr: UExpr<Sort>) = evalExpr(expr).tryInt8() ?: 0
+    private fun <Sort: USort> resolveUInt8(expr: UExpr<Sort>) = evalExpr(expr).tryUInt8() ?: 0u
     private fun <Sort: USort> resolveInt16(expr: UExpr<Sort>) = evalExpr(expr).tryInt16() ?: 0
+    private fun <Sort: USort> resolveUInt16(expr: UExpr<Sort>) = evalExpr(expr).tryUInt16() ?: 0u
     private fun <Sort: USort> resolveInt32(expr: UExpr<Sort>) = evalExpr(expr).tryInt32() ?: 0
+    private fun <Sort: USort> resolveUInt32(expr: UExpr<Sort>) = evalExpr(expr).tryUInt32() ?: 0u
     private fun <Sort: USort> resolveInt64(expr: UExpr<Sort>) = evalExpr(expr).tryInt64() ?: 0
+    private fun <Sort: USort> resolveUInt64(expr: UExpr<Sort>) = evalExpr(expr).tryUInt64() ?: 0u
     private fun <Sort: USort> resolveChar(expr: UExpr<Sort>) = evalExpr(expr).tryChar() ?: '\u0000'
     private fun <Sort: USort> resolveFloat(expr: UExpr<Sort>) = evalExpr(expr).tryFloat() ?: 0f
     private fun <Sort: USort> resolveDouble(expr: UExpr<Sort>) = evalExpr(expr).tryDouble() ?: 0.0
@@ -105,10 +105,12 @@ abstract class IlTestStateResolver<T>(
         }
 
         // to find a type, we need to understand the source of the object
-        val typeStream = if (evaledRef.isStatic) {
-            memory.types.getTypeStream(evaledRef)
-        } else {
+        val typeStream = if (evaledRef.address <= INITIAL_INPUT_ADDRESS) {
             model.typeStreamOf(evaledRef)
+        } else {
+            withMode(ResolveMode.STATE_MEMORY) {
+                memory.typeStreamOf(evaledRef)
+            }
         }.filterBySupertype(type)
 
         val evaluatedType = typeStream.single()
@@ -187,4 +189,15 @@ abstract class IlTestStateResolver<T>(
         if (evaledRef.address <= INITIAL_STATIC_ADDRESS) memory else model
 
     private enum class ResolveMode { MODEL, STATE_MEMORY }
+
+    private fun <V> withMode(mode: ResolveMode, resolve: () -> V): V {
+        val prevMode = resolveMode
+        resolveMode = mode
+        try {
+            return resolve()
+        }
+        finally {
+            resolveMode = prevMode
+        }
+    }
 }
