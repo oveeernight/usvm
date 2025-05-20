@@ -4,6 +4,89 @@ public class Exceptions
 {
 
     private int globalVar;
+    
+    [SvmTest(92)]
+    public static int SymbolicDivision(int x, int y)
+    {
+        int addition = 1;
+        try
+        {
+            return x / y;
+        }
+        catch (OverflowException)
+        {
+            return addition + 100500;
+        }
+        catch (DivideByZeroException) when (x == 100)
+        {
+            return addition + 90;
+        }
+        finally
+        {
+            addition++;
+        }
+
+        return checked(x + y);
+    }
+    
+    [SvmTest(58)]
+    public static int ThrowNpe()
+    {
+        var res = 1;
+        try
+        {
+            throw null;
+        }
+        catch (DivideByZeroException)
+        {
+            res += 11;
+        }
+        catch (ArgumentException)
+        {
+            res += 12;
+        }
+        catch (NullReferenceException)
+        {
+            res += 10;
+        }
+        finally
+        {
+            res++;
+        }
+
+        return res;
+    }
+    
+    [SvmTest(100)]
+    public static int CatchRuntimeException(int x, int y)
+    {
+        try
+        {
+            return x / y;
+        }
+        catch (DivideByZeroException)
+        {
+            return -42;
+        }
+    }
+    
+    [SvmTest(100)]
+    public static int TryWith2Leaves(bool f)
+    {
+        int res = 0;
+        try
+        {
+            if (f)
+                return 100;
+        }
+        finally
+        {
+            res = 42;
+        }
+
+        res++;
+        return res;
+    }
 
     [SvmTest(100)]
     public int ArrayIndexReading(int[] a, int i)
@@ -59,6 +142,36 @@ public class Exceptions
         {
             return 0;
         }
+    }
+    private static int Always42() => 42;
+    private static int Always84() => Always42() * 2;
+
+
+    [SvmTest(94)]
+    public static int FilterInsideFinally(bool f)
+    {
+        int globalMemory = 0;
+        try
+        {
+            globalMemory++;
+        }
+        finally
+        {
+            try
+            {
+                globalMemory += 10;
+                throw new Exception();
+            }
+            catch (Exception) when ((globalMemory += 100) > 50 && f && Always42() == 42)
+            {
+                globalMemory += 1000;
+            }
+
+            globalMemory += 10000;
+        }
+
+        globalMemory += 100000;
+        return globalMemory;
     }
 
     private bool NotImplementedFunction() => throw new MyException();
@@ -320,6 +433,32 @@ public class Exceptions
         {
             return -1;
         }
+        return res;
+    }
+    
+    [SvmTest(100)]
+    public static int CallInsideFinally(bool f)
+    {
+        int res = 0;
+        try
+        {
+            res += Always42();
+        }
+        finally
+        {
+            if (f)
+            {
+                try
+                {
+                    res += Always42();
+                }
+                finally
+                {
+                    res += Always84();
+                }
+            }
+        }
+
         return res;
     }
     

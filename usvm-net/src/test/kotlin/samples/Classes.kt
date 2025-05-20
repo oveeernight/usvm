@@ -40,4 +40,9 @@ class Classes : IlMethodTestRunner() {
     fun staticCtorTest3() {
         runnerWithDefaultOptions(::staticCtorTest3)
     }
+
+    @Test
+    fun recObject() {
+        runnerWithDefaultOptions(::recObject)
+    }
 }

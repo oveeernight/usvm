@@ -28,7 +28,6 @@ interface DecoderApi<T> {
 
     fun setArrayIndex(array: T, index: Int, value: T)
     fun setObjectField(obj: T, field: IlField, value: T)
-    fun createCyclicReference(type: IlType, address: Int): T
 
     fun callMethod(method: IlMethod, args: List<T>): T
 

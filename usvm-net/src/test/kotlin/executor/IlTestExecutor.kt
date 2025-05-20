@@ -55,13 +55,13 @@ class IlTestExecutor {
 
         fun createTest(): TestExpressions.IlTest {
             val args = resolveArgs()
-            val arrange = decoderApi.arrangeStmts().map { com.google.protobuf.Any.pack(it) }
             val methodCall = decoderApi.callMethod(method, args)
             val resultAsMessage = when (result) {
                 is IlMethodResult.Success -> resolve(result.result, method.returnType)
                 is IlMethodResult.Exception -> resolve(result.ref, result.type)
                 else -> TODO()
             }
+            val arrange = decoderApi.arrangeStmts().map { com.google.protobuf.Any.pack(it) }
             val test = ilTest {
                 arrangeStmts.addAll(arrange)
                 call = com.google.protobuf.Any.pack(methodCall)

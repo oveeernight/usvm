@@ -97,7 +97,7 @@ open class UnsafeTranslator<Type, USizeSort : USort>(override val ctx: UContext<
             val cutLeft = extendOrExtract(mkBvAddExpr(cutRight, sBit), exprSizeBits)
             res = mkBvLogicalShiftRightExpr(res, cutLeft)
             res = extendOrExtract(res, sightTypeBitSize.toUInt())
-            val shifted = mkBvShiftLeftExpr(res, pBit)
+            val shifted = mkBvShiftLeftExpr(res, extendOrExtract(pBit, sightTypeBitSize.toUInt()))
             mkIte(intersects, mkBvOrExpr(acc, shifted), acc)
         }
         return result as KExpr<Sort>

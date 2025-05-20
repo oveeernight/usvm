@@ -15,7 +15,9 @@ fun <T, R> Collection<T>.mapToLinkedList(transform: (T) -> R): LinkedList<R> {
     return list
 }
 
-fun <Sort: USort> UContext<*>.mkSlice(expr: UExpr<Sort>, exprType: IlType, cuts: LinkedList<Cut>) = Slice(this, expr, exprType, cuts).simplify()
+fun <Sort : USort> UContext<*>.mkSlice(expr: UExpr<Sort>, exprType: IlType, cuts: LinkedList<Cut>) =
+        Slice(this, expr, exprType, cuts).simplify()
+
 fun <Sort: USort> UContext<*>.addCut(slice: Slice<Sort>, cut: Cut) : Slice<Sort> {
     val list = slice.cuts.mapToLinkedList { it }
     list.addLast(cut)
@@ -26,6 +28,7 @@ fun <Sort: USort> UContext<*>.mkCombine(slices: List<Slice<out USort>>, sort: So
 
 
 private fun <Sort: USort> Slice<Sort>.simplify() : Slice<Sort> {
+    if (cuts.size == 0) return this
     var sliceIsValid = true
     val exprSize = exprType.size
     var start = 0

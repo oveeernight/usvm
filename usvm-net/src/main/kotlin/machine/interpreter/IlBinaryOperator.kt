@@ -1,8 +1,6 @@
 package org.usvm.machine.interpreter
 
 import io.ksmt.sort.KFpSort
-import io.ksmt.utils.BvUtils.bvMaxValueSigned
-import io.ksmt.utils.BvUtils.bvMaxValueUnsigned
 import io.ksmt.utils.asExpr
 import io.ksmt.utils.cast
 import org.jacodb.api.net.ilinstances.*
@@ -29,8 +27,12 @@ sealed class IlBinaryOperator(
         onFp = { a, b -> mkFpAddExpr(fpRoundingModeSortDefaultValue(), a, b) },
         onAddressSort = { a, b ->
             val (l, r) = normalizePtrOp(a, b)
-            l as IlPtr<*>
-            shiftPointer(l, r.cast())
+            l as IlPtr
+            when {
+                r.sort is UBvSort -> shiftPointer(l, r.cast())
+                r is IlPtr -> addPointers(l, r)
+                else -> error("pointers add: unexpected operands $a $b")
+            }
         },
         bvNoOverflowCondition = { a, b, isSigned ->
             val overflow = mkBvAddNoOverflowExpr(a, b, isSigned)
@@ -44,9 +46,17 @@ sealed class IlBinaryOperator(
         onFp = { a, b -> mkFpSubExpr(fpRoundingModeSortDefaultValue(), a, b) },
         onAddressSort = { a, b ->
             val (l, r) = normalizePtrOp(a, b)
-            l as IlPtr<*>
-            r as UExpr<UBvSort>
-            shiftPointer(l, mkBvNegationExpr(r))
+            l as IlPtr
+            when {
+                r.sort is UBvSort -> {
+                    r as UExpr<UBvSort>
+                    shiftPointer(l, mkBvNegationExpr(r))}
+                r is IlPtr -> {
+                    val negated = mkPtr(r.base, r.baseType, mkBvNegationExpr(r.offset), r.sightType)
+                    addPointers(l, negated)
+                }
+                else -> error("pointers add: unexpected operands $a $b")
+            }
         },
         bvNoOverflowCondition = { a, b, isSigned ->
             val noOverflow = mkBvSubNoOverflowExpr(a, b)
@@ -58,6 +68,11 @@ sealed class IlBinaryOperator(
     object Mul : IlBinaryOperator(
         onBv = UContext<USizeSort>::mkBvMulExpr,
         onFp = {a, b -> mkFpMulExpr(fpRoundingModeSortDefaultValue(), a, b)},
+        onAddressSort = { a, b ->
+            a as IlPtr
+            b as UExpr<UBvSort>
+            mulOffset(a, b)
+        },
         bvNoOverflowCondition = { a, b, isSigned ->
             val noOverflow = mkBvMulNoOverflowExpr(a, b, isSigned)
             val noUnderflow = mkBvMulNoUnderflowExpr(a, b)
@@ -225,9 +240,20 @@ sealed class IlBinaryOperator(
         }
 
         private fun normalizePtrOp(lhs: UExpr<out USort>, rhs: UExpr<out USort>) =
-            if (lhs.sort is UAddressSort && rhs.sort is UBvSort) {
-                lhs to rhs
-            } else rhs to lhs
+            when {
+                lhs.sort is UAddressSort && rhs.sort is UBvSort -> lhs to rhs
+                rhs.sort is UAddressSort && lhs.sort is UBvSort -> rhs to lhs
+                lhs.sort is UAddressSort && rhs.sort is UAddressSort -> {
+                    lhs as IlPtr
+                    rhs as IlPtr
+                    if (lhs.base == null) rhs to lhs
+                    else {
+                        assert(rhs.base == null)
+                        lhs to rhs
+                    }
+                }
+                else -> lhs to rhs
+            }
 
         fun isPointerOp(op: IlBinaryOperator): Boolean =
             when (op) {

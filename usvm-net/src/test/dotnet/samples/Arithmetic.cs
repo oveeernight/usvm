@@ -306,6 +306,20 @@ public class Arithmetic
         return (n + n + n + n + n + n - 2312) + m * m * m / (2 * n - n + 3 * n - 4 * n + m * m * m) - 124515;
     }
 
+    // private unsafe int Asd()
+    // {
+    //     var a = new int[5];
+    //     SomeFunction(ref a[3]);
+    // }
+    private unsafe int SomeFunction(ref int a)
+    {
+        fixed (int* p = &a)
+        {
+            
+        }
+        return 0;
+    }
+
     // Expecting true
     [SvmTest(100)]
     public static bool IncrementsWorkCorrect(int x)

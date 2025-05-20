@@ -105,13 +105,7 @@ abstract class IlTestStateResolver<T>(
         }
 
         // to find a type, we need to understand the source of the object
-        val typeStream = if (evaledRef.address <= INITIAL_INPUT_ADDRESS) {
-            model.typeStreamOf(evaledRef)
-        } else {
-            withMode(ResolveMode.STATE_MEMORY) {
-                memory.typeStreamOf(evaledRef)
-            }
-        }.filterBySupertype(type)
+        val typeStream = memoryToRead(evaledRef).typeStreamOf(evaledRef).filterBySupertype(type)
 
         val evaluatedType = typeStream.single()
 
@@ -125,7 +119,10 @@ abstract class IlTestStateResolver<T>(
     }
 
     private fun resolveCyclic(ref: UConcreteHeapRef, type: IlType, resolve: () -> T): T {
-        if (cache.containsKey(ref.address)) return decoderApi.createCyclicReference(type, ref.address)
+        val cacheValue = cache[ref.address]
+        if (cacheValue != null) {
+            return cacheValue
+        }
         return resolve()
     }
 
@@ -186,7 +183,7 @@ abstract class IlTestStateResolver<T>(
     }
 
     private fun memoryToRead(evaledRef: UConcreteHeapRef) =
-        if (evaledRef.address <= INITIAL_STATIC_ADDRESS) memory else model
+        if (evaledRef.address <= INITIAL_INPUT_ADDRESS) model else stateMemory
 
     private enum class ResolveMode { MODEL, STATE_MEMORY }
 

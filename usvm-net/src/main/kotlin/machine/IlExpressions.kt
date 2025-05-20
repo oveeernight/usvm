@@ -101,14 +101,13 @@ data class PtrInfo<Sort: USort>(
     val locationType: IlType // type of location of managed ref, for array element ref its array type, for field access its declaring type
 )
 
-class IlPtr<Sort: USort>(
+class IlPtr(
     ctx: UContext<*>,
-    override val base: ULValue<*, Sort>,
+    override val base: ULValue<*, *>?, // null if detached ptr
     override val baseType: IlType,
-    val locationType: IlType, // type of top level location of [base]
     override val offset: UExpr<UBvSort>,
     override val sightType: IlType
-): UExpr<UAddressSort>(ctx), UnsafeLValue<Sort, IlType> {
+): UExpr<UAddressSort>(ctx), UnsafeLValue<IlType> {
     override fun internEquals(other: Any): Boolean = structurallyEqual(other)
 
     override val sort: UAddressSort

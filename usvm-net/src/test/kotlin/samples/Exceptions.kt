@@ -6,6 +6,26 @@ import kotlin.test.Test
 
 class Exceptions : IlMethodTestRunner() {
     @Test
+    fun symbolicDivision() {
+        runnerWithDefaultOptions(::symbolicDivision)
+    }
+
+    @Test
+    fun throwNpe() {
+        runnerWithDefaultOptions(::throwNpe)
+    }
+
+    @Test
+    fun catchRuntimeException() {
+        runnerWithDefaultOptions(::catchRuntimeException)
+    }
+
+    @Test
+    fun tryWith2Leaves() {
+        runnerWithDefaultOptions(::tryWith2Leaves)
+    }
+
+    @Test
     fun arrayIndexReading() {
         runnerWithDefaultOptions(::arrayIndexReading)
     }
@@ -14,6 +34,12 @@ class Exceptions : IlMethodTestRunner() {
     @Test
     fun simpleFilterScope() {
         runnerWithDefaultOptions(::simpleFilterScope)
+    }
+
+    // TODO endfilter tac errors
+    @Test
+    fun filterInsideFinally() {
+        runnerWithDefaultOptions(::filterInsideFinally)
     }
 
     @Ignore("fix tac")
@@ -65,5 +91,10 @@ class Exceptions : IlMethodTestRunner() {
     @Test
     fun manyNestedTryBlocks() {
         runnerWithDefaultOptions(::manyNestedTryBlocks)
+    }
+
+    @Test
+    fun callInsideFinally() {
+        runnerWithDefaultOptions(::callInsideFinally)
     }
 }

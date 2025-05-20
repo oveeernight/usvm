@@ -35,6 +35,7 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
             }
             listOf(res)
         }
+    // |    |      |
     protected val runnerWithDefaultOptions: (KFunction<*>) -> Unit = { f -> runner(f, options)}
     override val coverageRunner: (List<ExecutionResult>) -> IlTypeCoverage
         get() = TODO("Not yet implemented")

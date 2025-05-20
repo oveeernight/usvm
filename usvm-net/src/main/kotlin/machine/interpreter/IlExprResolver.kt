@@ -253,7 +253,7 @@ class IlExprResolver(
                 when (operator) {
                     is IlBinaryOperator.CEq -> mkHeapRefEq(lhs.cast(), rhs.cast())
                     is IlBinaryOperator.CNe -> mkNot(mkHeapRefEq(lhs.cast(), rhs.cast()))
-                    else -> error("Unexpected address sort binary operator $operator")
+                    else -> operator(lhs, rhs)
                 }
             } else {
                 val result = operator(lhs, rhs)
@@ -398,17 +398,29 @@ class IlExprResolver(
         val expectedType = expr.expectedType
         resolveAfterResolved(expr.operand) { operand ->
             if (isPtrType(expectedType)) {
-                when (operand) {
-                    is IlPtr<*> -> {
-                        val pointedType = extractPointedType(expectedType)
-                        ctx.mkPtr(operand.base, operand.baseType, operand.locationType, operand.offset, pointedType)
+                val pointedType = extractPointedType(expectedType)
+                when  {
+                    operand is IlPtr -> {
+                        ctx.mkPtr(operand.base, operand.baseType, operand.offset, pointedType)
                     }
-                    is IlManagedRef<*> -> {
+                    operand is IlManagedRef<*> -> {
                         val (base, offset, locationType) = operand.toPtrInfo()
                         offset as UExpr<UBvSort>
-                        val expectedPointedType = extractPointedType(expectedType)
-                        ctx.mkPtr(base, operand.targetType, locationType, offset, expectedPointedType)
+                        ctx.mkPtr(base, operand.targetType, offset, pointedType)
                     }
+
+                    operand.sort == ctx.addressSort -> {
+                        require(pointedType is IlStructType)
+                        val ulValue = resolveLValue(expr.operand) ?: return@calcOnState null
+                        val offset: UExpr<UBvSort> = ctx.mkBv(0, ctx.bv32Sort)
+                        ctx.mkPtr(ulValue, expr.operand.type, offset, pointedType)
+                    }
+
+                    operand.sort is UBvSort -> {
+                        operand as UExpr<UBvSort>
+                        ctx.mkDetachedPtr(operand, pointedType )
+                    }
+
                     else -> error("Unexpected operand $operand of pointer cast")
                 }
             }
@@ -524,6 +536,12 @@ class IlExprResolver(
         if (type is IlStructType) {
             setStructFieldsDefaultValues(ref, type)
         }
+//        for (sf in type.fields.filter { it.fieldType is IlStructType }) {
+//            val structRef = memory.allocConcrete(sf.fieldType)
+//            val structFieldKey = UFieldLValue(ctx.addressSort, ref, sf)
+//            memory.write(structFieldKey, structRef)
+//            setStructFieldsDefaultValues(structRef, sf.fieldType.cast())
+//        }
         ref
     }
 
@@ -615,7 +633,7 @@ class IlExprResolver(
     override fun visitIlUnmanagedDerefExpr(expr: IlUnmanagedDerefExpr): UExpr<out USort>? {
         // visitAssignStmt catches cases when managed deref is a key, here it is a value
         val ptr = resolve(expr.value)
-        ptr as IlPtr<*>
+        ptr as IlPtr
         return scope.calcOnState {
             memory.readUnsafe(ptr)
         }
@@ -626,9 +644,11 @@ class IlExprResolver(
     }
 
     private fun resolveInstance(instance: IlExpr) : UHeapRef? = resolve(instance).let {
-        if (it is IlManagedRef<*>) {
-            scope.calcOnState { memory.read(it.memoryKey) }
-        } else it
+        when (it) {
+            is IlManagedRef<*> -> scope.calcOnState { memory.read(it.memoryKey) }
+            is IlPtr -> scope.calcOnState { memory.read(it.base!!) }
+            else -> it
+        }
     }?.asExpr(ctx.addressSort)
 
     private inline fun <T> resolveAfterResolved(expr: IlExpr, block: (UExpr<out USort>) -> T): T? {

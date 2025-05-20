@@ -8,9 +8,12 @@ import org.jacodb.api.net.ilinstances.IlType
 import org.jacodb.api.net.ilinstances.impl.*
 import org.jacodb.api.net.publication.IlPredefinedAsmExt.mscorelib
 import org.usvm.*
+import org.usvm.collection.array.UArrayIndexLValue
+import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.state.boxed.IlInputBoxedValuesId
 import org.usvm.machine.state.IlStaticFieldsRegionId
 import org.usvm.memory.ULValue
+import org.usvm.memory.URegisterStackLValue
 import org.usvm.memory.USymbolicCollection
 
 typealias USizeSort = UBv32Sort
@@ -60,13 +63,12 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 //    fun <Key, Sort: USort> mkManagedRef(key: ULValue<Key, Sort>, type: IlType) : IlManagedHeapRef<Key, Sort> =
 //        IlManagedHeapRef(this, type, key)
 
-    fun <Sort : USort> mkPtr(
-        base: ULValue<*, Sort>,
+    fun mkPtr(
+        base: ULValue<*, *>?,
         baseType: IlType,
-        locationType: IlType,
         offset: UExpr<UBvSort>,
         sightType: IlType
-    ): IlPtr<Sort> = IlPtr(this, base, baseType, locationType, offset, sightType)
+    ): IlPtr = IlPtr(this, base, baseType, offset, sightType)
 
     fun <Sort : USort> mkStaticFieldReading(
         sort: Sort,
@@ -196,9 +198,25 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
 
     fun UExpr<UAddressSort>.toNumeric() : UExpr<UBvSort> =
         when (this) {
-            is IlPtr<*> -> this.toNumeric()
+            is IlPtr -> this.toNumeric()
             else -> error("can not convert $this to numeric")
         }
+
+    fun lValueLocation(lvalue: ULValue<*, *>, lvalueType: IlType): IlType =
+        when (lvalue) {
+            is UArrayIndexLValue<*, *, *> -> {
+                val elemType = lvalue.arrayType as IlType
+                arrayTypeOf(elemType)
+            }
+            is UFieldLValue<*, *> -> {
+                val field = lvalue.field as IlField
+                field.declaringType
+            }
+            is URegisterStackLValue<*> -> lvalueType
+
+            else -> error("Unexpected lvalue $lvalue")
+        }
+
 }
 
 private val SYSTEM_PREFIX = "System."

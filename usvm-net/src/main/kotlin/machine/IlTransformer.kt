@@ -23,7 +23,7 @@ import kotlin.concurrent.thread
 
 interface IlTransformer : UnsafeTransformer<IlType, USizeSort> {
     fun <Sort: USort> transform(ref: IlManagedRef<Sort>): UExpr<UAddressSort>
-    fun <Sort: USort> transform(ptr: IlPtr<Sort>): UExpr<UAddressSort>
+    fun transform(ptr: IlPtr): UExpr<UAddressSort>
     fun <Sort: USort> transform(expr: IlStaticFieldReading<Sort>): UExpr<Sort>
     fun <Sort: USort> transform(expr: IlInputBoxedValueReading<Sort>): UExpr<Sort>
 }
@@ -34,7 +34,7 @@ class IlComposer(ctx: UContext<USizeSort>, memory: UReadOnlyMemory<IlType>, owne
         TODO("Not yet implemented")
     }
 
-    override fun <Sort: USort> transform(ptr: IlPtr<Sort>): UExpr<UAddressSort> {
+    override fun transform(ptr: IlPtr): UExpr<UAddressSort> {
         TODO("Not yet implemented")
     }
 
@@ -51,7 +51,7 @@ class IlTranslator(ctx: UContext<USizeSort>) : IlTransformer, UnsafeTranslator<I
         TODO("Not yet implemented")
     }
 
-    override fun <Sort : USort> transform(ptr: IlPtr<Sort>): UExpr<UAddressSort> {
+    override fun transform(ptr: IlPtr): UExpr<UAddressSort> {
         TODO("Not yet implemented")
     }
 

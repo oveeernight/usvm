@@ -83,6 +83,21 @@ public class Classes
         }
         return 0;
     }
+    
+    [SvmTest(100)]
+    public static A RecObject(int n)
+    {
+        if (n > 0)
+        {
+            return null;
+        }
+
+        var a = new A();
+        var b = new B();
+        a.SetB(b);
+        b.SetA(a);
+        return a;
+    }
 }
 
 public class ListNode
@@ -102,3 +117,23 @@ public class User
 
     public static int staticField;
 } 
+
+public class A
+{
+    private B _b;
+
+    public void SetB(B b)
+    {
+        _b = b;
+    }
+}
+
+public class B
+{
+    private A _a;
+
+    public void SetA(A a)
+    {
+        _a = a;
+    }
+}

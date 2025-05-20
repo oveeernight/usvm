@@ -18,7 +18,7 @@ open class UnsafeComposer<Type, USizeSort : USort>(
     ownership: MutabilityOwnership
 ) : UComposer<Type, USizeSort>(ctx, memory, ownership), UnsafeTransformer<Type, USizeSort> {
     override fun <Sort : USort> transform(slice: Slice<Sort>): Slice<Sort> {
-        val expr = slice.expr.accept(this)
+        val expr = compose(slice.expr)
         val cuts = slice.cuts.mapNotNull { cut ->
             val s = compose(cut.start)
             val e = compose(cut.end)

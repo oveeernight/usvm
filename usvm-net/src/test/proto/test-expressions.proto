@@ -140,11 +140,6 @@ message IlTypeInstance {
   TypeRepr type = 1;
 }
 
-message CyclicReference {
-  TypeRepr typeRepr = 1;
-  int32 address = 2;
-}
-
 message IlTest {
   repeated google.protobuf.Any arrangeStmts = 1;
   google.protobuf.Any call = 2;

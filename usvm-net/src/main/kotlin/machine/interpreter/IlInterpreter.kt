@@ -8,6 +8,7 @@ import org.usvm.*
 import org.usvm.api.allocateStaticRef
 import org.usvm.collection.array.UArrayIndexLValue
 import org.usvm.collection.array.length.UArrayLengthLValue
+import org.usvm.collection.field.UFieldLValue
 import org.usvm.collections.immutable.internal.MutabilityOwnership
 import org.usvm.forkblacklists.UForkBlackList
 import org.usvm.machine.*
@@ -207,8 +208,8 @@ class IlInterpreter(
             }
             if (lhv is IlUnmanagedDerefExpr) {
                 val ptr = resolver.resolve(lhv.value)
-                require(ptr is IlPtr<*>)
-                checkAccessViolation(scope, ptr)
+                require(ptr is IlPtr)
+                checkAccessViolation(scope, ptr) ?: return@doWithState
                 memory.writeUnsafe(ptr, rvalue, rhvType)
             } else {
                 val lvalue = resolver.resolveLValue(stmt.lhv) ?: return@doWithState
@@ -218,18 +219,24 @@ class IlInterpreter(
         }
     }
 
-    private fun checkAccessViolation(scope: IlStepScope, ptr: IlPtr<*>) = with(ctx) {
-        val locationSize: UExpr<UBvSort> = when (val locType = ptr.locationType) {
-            is IlArrayType -> {
-                val key = ptr.base
-                require(key is UArrayIndexLValue<*, *, *>)
-                val arrayRef = key.ref
-                val desc = arrayDescriptorOf(locType)
+    private fun checkAccessViolation(scope: IlStepScope, ptr: IlPtr) = with(ctx) {
+        val locationSize: UExpr<UBvSort> = when (val base = ptr.base) {
+            is UArrayIndexLValue<*, *, *> -> {
+                val arrayRef = base.ref
+                val desc = base.arrayType as IlType
                 val length = scope.calcOnState { memory.read(UArrayLengthLValue(arrayRef, desc, sizeSort)) }
-                val elemSize = mkBv(locType.elementType.size, sizeSort)
+                val elemSize = mkBv(desc.size, sizeSort)
                 mkBvMulExpr(length, elemSize).cast()
             }
-            else -> mkBv(ptr.locationType.size, bv32Sort)
+            is UFieldLValue<*, *> -> {
+                val field = base.field as IlField
+                mkBv(field.declaringType.size, bv32Sort)
+            }
+
+            is IlRegisterStackLValue<*> -> {
+                mkBv(ptr.baseType.size, bv32Sort)
+            }
+            else -> error("Unexpected key $base")
         }
         val viewTypeSize : UExpr<UBvSort> = mkBv(ptr.sightType.size, sizeSort)
         val zero : UExpr<UBvSort> = mkBv(0, sizeSort)
@@ -242,10 +249,10 @@ class IlInterpreter(
                 mkBvSignedGreaterOrEqualExpr(startByte, locationSize),
                 mkBvSignedGreaterExpr(endByte, locationSize),
             )
-        scope.fork(accessViolationCondition,
-            blockOnTrueState = { criticalErrorOccurred = true },
-            blockOnFalseState = { }
-        )
+
+        val noAccessViolation = mkNot(accessViolationCondition)
+        scope.fork(noAccessViolation,
+            blockOnFalseState = { criticalErrorOccurred = true },)
     }
 
     private fun visitGotoStmt(scope: IlStepScope, stmt: IlGotoStmt) {

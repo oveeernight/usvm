@@ -91,6 +91,7 @@ fun IlState.callMethod(method: IlMethod, args: List<UExpr<out USort>>, returnSit
     newStmt(method.instList.first())
 }
 
+// TODO rec initialize
 fun IlState.initializeStructLocals(method: IlMethod, localsMapper: (IlMethod, IlLocal) -> Int) {
     method as IlMethodImpl
     val locals = method.locals

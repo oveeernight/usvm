@@ -50,8 +50,36 @@ class IlMemory(
         return region as UMemoryRegion<Key, Sort>
     }
 
-    override fun readUnsafe(lvalue: UnsafeLValue<out USort, IlType>): UExpr<out USort> {
-        lvalue as IlPtr<*>
+    override fun <Key, Sort : USort> write(lvalue: ULValue<Key, Sort>, rvalue: UExpr<Sort>, guard: UBoolExpr) {
+        if (lvalue is UFieldLValue<*, Sort>) {
+            val field = lvalue.field as IlField
+            if (field.intersectsWithOtherFields()) {
+                val offset: UExpr<UBvSort> = ctx.mkBv(field.offset, ctx.bv32Sort)
+                val ptr = rvalue.ilctx.mkPtr(lvalue, field.fieldType, offset, field.fieldType)
+                writeUnsafe(ptr, rvalue, field.fieldType)
+            } else {
+                super.write(lvalue, rvalue, guard)
+            }
+        } else {
+            super.write(lvalue, rvalue, guard)
+        }
+    }
+
+    private fun IlField.intersectsWithOtherFields(): Boolean {
+        val fieldOffset = offset
+        val fieldEnd = offset + fieldType.size
+        val fields = declaringType.fields
+        return fields.filter { f ->
+            val fEnd = f.offset + f.fieldType.size
+            val fStartInField = f.offset in fieldOffset..<fieldEnd
+            val fEndInField = fEnd in (fieldOffset + 1)..fieldEnd
+            fStartInField || fEndInField
+        }.size > 1
+
+    }
+
+    override fun readUnsafe(lvalue: UnsafeLValue<IlType>): UExpr<out USort> {
+        lvalue as IlPtr
         return when (val base = lvalue.base) {
             is UArrayIndexLValue<*, *, *> -> {
                 // for now, we consider that IlPtr instantiated only from IlManagedRef, for array case,
@@ -83,9 +111,9 @@ class IlMemory(
             }
 
             is UFieldLValue<*, *> -> with(lvalue.offset.ilctx) {
-                val type = base.field as IlType
+                val type = base.field as IlField
                 val pos : UExpr<UBvSort> = ctx.mkBv(0, ctx.bv32Sort)
-                val slices = commonReadFields(type.declaringType!!, lvalue.offset, pos, lvalue.sightType) { field ->
+                val slices = commonReadFields(type.declaringType, lvalue.offset, pos, lvalue.sightType) { field ->
                     read(UFieldLValue(lvalue.sort.ilctx.typeToSort(field.fieldType), base.ref, field))
                 }
                 val filtered = slices.filterIsInstance<Slice<out USort>>()
@@ -96,7 +124,7 @@ class IlMemory(
         }
     }
 
-    override fun writeUnsafe(lvalue: UnsafeLValue<out USort, IlType>, value: UExpr<out USort>, valueType: IlType) {
+    override fun writeUnsafe(lvalue: UnsafeLValue<IlType>, value: UExpr<out USort>, valueType: IlType) {
         when (val base = lvalue.base) {
             is UArrayIndexLValue<*, *, *> -> {
                 // for now, we consider that IlPtr instantiated only from IlManagedRef, for array case,
@@ -131,7 +159,7 @@ class IlMemory(
                 affectedFields.forEach { (fv, ft, s, _, _, f) ->
                     val newValue = writeExprUnsafe(fv, ft, value, valueType, s)
                     val key = UFieldLValue(lvalue.offset.ilctx.typeToSort(f.fieldType), base.ref, f)
-                    write(key, newValue)
+                    super.write(key, newValue.cast(), ctx.trueExpr)
                 }
             }
 
@@ -166,7 +194,7 @@ class IlMemory(
         }
         updatedFields.forEach { (f, v) ->
             val fieldKey = UFieldLValue(ref.ilctx.typeToSort(f.fieldType), ref, f)
-            write(fieldKey, v.cast(), ctx.trueExpr)
+            super.write(fieldKey, v.cast(), ctx.trueExpr)
         }
         return ref
     }
@@ -223,7 +251,7 @@ class IlMemory(
                 val idx = mkBvAddExpr(fstAffectedIdx, mkBv(it, fstAffectedIdx.sort))
                 val key = UArrayIndexLValue(elemSort, arrayRef, idx, elementType)
                 val value = read(key)
-                val start = mkBvSubExpr(offset, currentOffset)
+                 val start = mkBvSubExpr(offset, currentOffset)
                 val end = mkBvAddExpr(start, viewSizeBv)
                 currentOffset = mkBvAddExpr(currentOffset, elemSizeBv)
                 IlAffectedIndex(value, elementType, start, end, key.cast())
@@ -292,19 +320,32 @@ class IlMemory(
         pos: UExpr<UBvSort>,
         posIsStable: Boolean
     ): List<UExpr<out USort>> {
-        return when (expr) {
-            is Slice<Sort> -> {
+        return when {
+            expr is Slice<Sort> -> {
                 val cut = Cut(start, end, pos, posIsStable)
                 val newExpr = expr.ilctx.addCut(expr, cut)
                 listOf(newExpr)
             }
 
-            is Combine<out USort> -> {
+            expr is Combine<out USort> -> {
                 val slices = expr.slices
                 slices.flatMap { readExprUnsafe(it.expr, exprType, sightType, start, end, pos, posIsStable) }
             }
 
-            else -> {
+            expr.sort is UAddressSort && exprType is IlStructType-> {
+                commonReadFields(exprType, start, pos, sightType) { f ->
+                    val fieldSort = pos.ilctx.typeToSort(f.fieldType)
+                    val lvalue = UFieldLValue(fieldSort, expr.asExpr(ctx.addressSort), f)
+                    read(lvalue)
+                }
+            }
+
+            expr.sort is UAddressSort ->  {
+                error("not implemented")
+            }
+
+
+                else -> {
                 val cut = Cut(start, end, pos, posIsStable)
                 val cuts = LinkedList<Cut>().also { it.add(cut) }
                 val slice = expr.ilctx.mkSlice(expr, exprType, cuts)

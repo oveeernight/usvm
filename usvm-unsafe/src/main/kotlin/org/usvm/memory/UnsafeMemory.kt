@@ -19,8 +19,8 @@ interface AffectedValue<Type, Sort: USort> {
 }
 
 
-interface UnsafeLValue<Sort: USort, Type> {
-    val base: ULValue<*, *>
+interface UnsafeLValue<Type> {
+    val base: ULValue<*, *>?
     val baseType: Type
     val offset: UExpr<UBvSort>
     val sightType: Type
@@ -34,8 +34,8 @@ abstract class UnsafeMemory<Type, Method>(
     mocks: UIndexedMocker<Method> = UIndexedMocker(),
     regions: UPersistentHashMap<UMemoryRegionId<*, *>, UMemoryRegion<*, *>> = persistentHashMapOf()
 ) : UMemory<Type, Method>(ctx, ownership, types, stack, mocks, regions) {
-    abstract fun readUnsafe(lvalue: UnsafeLValue<out USort, Type>): UExpr<out USort>
-    abstract fun writeUnsafe(lvalue: UnsafeLValue<out USort, Type>, value: UExpr<out USort>, valueType: Type)
+    abstract fun readUnsafe(lvalue: UnsafeLValue<Type>): UExpr<out USort>
+    abstract fun writeUnsafe(lvalue: UnsafeLValue<Type>, value: UExpr<out USort>, valueType: Type)
     abstract override fun clone(
         typeConstraints: UTypeConstraints<Type>,
         thisOwnership: MutabilityOwnership,

@@ -65,8 +65,7 @@ class IlTestExecutorDecoderApi(private val ctx: IlContext): DecoderApi<Message> 
     override fun createObject(type: IlType, address: Int): Message {
         return objectInstance { typeRepr = type.toTypeRepr(); this.address = address }
     }
-    override fun createCyclicReference(type: IlType, address: Int): Message =
-        cyclicReference { typeRepr = type.toTypeRepr(); this.address = address }
+
     // TODO ctor call
     override fun callMethod(method: IlMethod, args: List<Message>): Message {
         val argsPacked = args.map { it.pack() }
