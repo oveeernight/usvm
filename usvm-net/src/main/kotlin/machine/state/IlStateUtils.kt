@@ -13,6 +13,9 @@ import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.interpreter.*
 import org.usvm.machine.write
 
+val IlState.lastStackTraceFrame: UStackTraceFrame<IlMethod, IlStmt>
+    get() = callStack.stackTrace(currentStatement).last()
+
 fun IlState.newStmt(stmt: IlStmt) {
     pathNode += stmt
 }
@@ -125,4 +128,9 @@ internal fun IlState.copyStruct(structRef: UHeapRef, type: IlStructType): UHeapR
         UFieldLValue(fieldSort, copyRef, f).let { memory.write(it, fieldValue) }
     }
     return copyRef
+}
+
+fun IlState.skipMethodInvokeWithValue(call: MethodCall, result: UExpr<out USort>) {
+    methodResult = IlMethodResult.Success(result, call.method)
+    newStmt(call.returnSite)
 }

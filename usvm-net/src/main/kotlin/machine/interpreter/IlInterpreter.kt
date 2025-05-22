@@ -25,6 +25,8 @@ class IlInterpreter(
     private val forkBlackList: UForkBlackList<IlState, IlStmt> = UForkBlackList.createDefault()
 ) : UInterpreter<IlState>() {
 
+    private val approximationsResolver = IlApproximationsResolver(ctx)
+
     private val strings = mutableMapOf<String, UConcreteHeapRef>()
 
     private val typeInstances = mutableMapOf<IlType, UConcreteHeapRef>()
@@ -58,11 +60,19 @@ class IlInterpreter(
                 val paramRValue = state.memory.read(paramLValue)
                 if (!isPrimitiveType(type)) {
                     val refinedRValue = if (type is IlStructType) {
-                        state.copyStruct(paramRValue.asExpr(ctx.addressSort), type)
-                    } else paramRValue.asExpr(ctx.addressSort)
+                        state.copyStruct(paramRValue.asExpr(addressSort), type)
+                    } else paramRValue.asExpr(addressSort)
                     state.pathConstraints += mkIsSubtypeExpr(refinedRValue, type)
                     entrypointArgs += type to refinedRValue
                 } else entrypointArgs += type to paramRValue
+
+                if (type is IlArrayType) {
+                    val ref = paramRValue.asExpr(addressSort)
+                    val elemType = ctx.arrayDescriptorOf(type)
+                    val lenKey = UArrayLengthLValue(ref, elemType, sizeSort)
+                    val len = state.memory.read(lenKey)
+                    state.pathConstraints += mkBvSignedLessOrEqualExpr(mkBv(0), len)
+                }
             }
 
             val solver = solver<IlType>()
@@ -182,6 +192,10 @@ class IlInterpreter(
             }
 
             is IlConcreteCallStmt -> {
+                val exprResolver = mkExprResolver(scope)
+                if (approximationsResolver.approximate(stmt, scope, exprResolver)) {
+                    return
+                }
                 scope.doWithState { callMethod(stmt.method, stmt.args, stmt.returnSite) }
             }
 

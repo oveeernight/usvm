@@ -10,6 +10,11 @@ import org.jacodb.api.net.generated.models.ilModel
 import org.jacodb.api.net.generated.models.ilSigModel
 import org.jacodb.api.net.publication.IlPublicationCache
 import org.jacodb.api.net.rdinfra.RdServer
+import org.usvm.test.util.logger
+import java.util.*
+import kotlin.math.log
+import kotlin.system.measureTimeMillis
+import kotlin.time.measureTime
 
 class JacoDBContainer(
     assemblies: List<String>,
@@ -25,24 +30,29 @@ class JacoDBContainer(
         val database = IlDatabaseImpl(settings)
         val freePort = NetUtils.findFreePort(0)
         server = RdServer(freePort, tacBuilderPath, database)
-        server.protocol.scheduler.queue {
-            val res =
-                server.protocol.ilModel.ilSigModel.publication.sync(
-                    PublicationRequest(assemblies),
-                    RpcTimeouts.longRunning
-                )
-            database.persistence.persistAsmHierarchy(res.reachableAsms, res.referencedAsms)
-            database.persistence.persistTypes(res.reachableTypes)
+        val timer = Timer()
+        val timeTaken = measureTime {
+            server.protocol.scheduler.queue {
+                val res =
+                    server.protocol.ilModel.ilSigModel.publication.sync(
+                        PublicationRequest(assemblies),
+                        RpcTimeouts.longRunning
+                    )
+                database.persistence.persistAsmHierarchy(res.reachableAsms, res.referencedAsms)
+                database.persistence.persistTypes(res.reachableTypes)
 
 
-            publication = database.publication(
-                assemblies,
-                listOf(
-                    IlPublicationCache(settings.publicationCacheSettings),
-                    IlMethodInstructionsFeature(),
+                publication = database.publication(
+                    assemblies,
+                    listOf(
+                        IlPublicationCache(settings.publicationCacheSettings),
+                        IlMethodInstructionsFeature(),
+                    )
                 )
-            )
+            }
         }
+        logger.error { "timeTaken $timeTaken" }
+
     }
 
     companion object {

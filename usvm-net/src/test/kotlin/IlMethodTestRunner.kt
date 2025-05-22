@@ -35,7 +35,6 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
             }
             listOf(res)
         }
-    // |    |      |
     protected val runnerWithDefaultOptions: (KFunction<*>) -> Unit = { f -> runner(f, options)}
     override val coverageRunner: (List<ExecutionResult>) -> IlTypeCoverage
         get() = TODO("Not yet implemented")
@@ -45,7 +44,7 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
         private val dir = System.getProperty("user.dir")
         val samplesAsmPath = Paths.get(dir, "src/test/dotnet/samples/bin/Release/net7.0/publish/samples.dll").pathString
         val samplesAsmName = "samples, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-        val tacBuilderPath: String = "../../dotnet-tac/TACBuilder/bin/Release/net8.0/linux-x64/"
+        val tacBuilderPath: String = "../../dotnet-tac/TACBuilder/bin/Release/net8.0/"
         val executorPath: String = "../../test-executor/TestExecutor.Application/bin/Release/net8.0"
         val profilerPath: String = "/home/rnpozharskiy/work/test-executor/TestExecutor.Application/bin/Release/net8.0/libvsharpCoverage.so"
     }

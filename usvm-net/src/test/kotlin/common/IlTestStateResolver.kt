@@ -17,6 +17,7 @@ import org.usvm.memory.UReadOnlyMemory
 import org.usvm.memory.URegisterStackLValue
 import org.usvm.model.UModelBase
 import org.usvm.types.single
+import kotlin.math.log
 
 abstract class IlTestStateResolver<T>(
     val ctx: IlContext,
@@ -132,7 +133,7 @@ abstract class IlTestStateResolver<T>(
         val elemType = type.elementType
         val sort = ctx.typeToSort(elemType)
         val lengthKey = UArrayLengthLValue(heapRef, descriptor, ctx.sizeSort)
-        val length = memory.read(lengthKey).tryInt32() ?: error("array $evaledRef length is not integer")
+        val length = clipArrayLength(resolveInt32(memory.read(lengthKey)))
         val array = decoderApi.createArray(elemType, length, evaledRef.address)
 
         cache[evaledRef.address] = array
@@ -196,5 +197,20 @@ abstract class IlTestStateResolver<T>(
         finally {
             resolveMode = prevMode
         }
+    }
+
+    companion object {
+        fun clipArrayLength(len: Int): Int = when {
+            len in 0..MAX_ARRAY_LENGTH -> len
+
+            len > MAX_ARRAY_LENGTH -> MAX_ARRAY_LENGTH
+
+            else -> {
+                org.usvm.machine.logger.warn { "negative array size $len" }
+                0
+            }
+        }
+
+        private const val MAX_ARRAY_LENGTH = 100
     }
 }

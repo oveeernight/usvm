@@ -37,6 +37,24 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val intPtrType by lazy { findTypeOrReportAbsence("IntPtr", mscorelib) }
     val uintPtrType by lazy { findTypeOrReportAbsence("UIntPtr", mscorelib) }
 
+    val primitiveTypes: Set<IlType> by lazy {
+        buildSet {
+            add(boolType)
+            add(charType)
+            add(int8Type)
+            add(uint8Type)
+            add(int16Type)
+            add(uint16Type)
+            add(int32Type)
+            add(uint32Type)
+            add(int64Type)
+            add(uint64Type)
+            add(floatType)
+            add(doubleType)
+
+        }
+    }
+
     val valueType by lazy { findTypeOrReportAbsence("ValueType", mscorelib) }
     val nullableType by lazy { findTypeOrReportAbsence("Nullable", mscorelib) }
     val voidType by lazy { findTypeOrReportAbsence("Void", mscorelib) }
@@ -172,6 +190,10 @@ class IlContext(val publication: IlPublication, components: IlComponents) : UCon
     val invalidCastException: IlType by lazy { findTypeOrReportAbsence(invalidCastExceptionName, mscorelib) }
     val overflowException: IlType by lazy { findTypeOrReportAbsence(overflowExceptionName, mscorelib) }
     val divideByZeroException: IlType by lazy { findTypeOrReportAbsence(divideByZeroExceptionName, mscorelib) }
+    val argumentException: IlType by lazy { findTypeOrReportAbsence(argumentExceptionName, mscorelib) }
+    val argumentOutOfRangeException: IlType by lazy { findTypeOrReportAbsence(argumentOutOfRangeExceptionName, mscorelib) }
+    val arrayTypeMismatchException: IlType by lazy { findTypeOrReportAbsence(arrayTypeMismatchExceptionName, mscorelib) }
+    val argumentNullException: IlType by lazy { findTypeOrReportAbsence(argumentNullExceptionName, mscorelib)}
 
     private fun findTypeOrReportAbsence(typeName: String, asmName: String, useSystemPrefix: Boolean = true): IlType {
         val name = if (useSystemPrefix) "${SYSTEM_PREFIX}${typeName}" else typeName
@@ -225,3 +247,7 @@ private const val nullReferenceExceptionName = "NullReferenceException"
 private const val invalidCastExceptionName = "InvalidCastException"
 private const val overflowExceptionName = "OverflowException"
 private const val divideByZeroExceptionName = "DivideByZeroException"
+private const val argumentExceptionName = "ArgumentException"
+private const val arrayTypeMismatchExceptionName = "ArrayTypeMismatchException"
+private const val argumentNullExceptionName = "ArgumentNullException"
+private const val argumentOutOfRangeExceptionName = "ArgumentOutOfRangeException"

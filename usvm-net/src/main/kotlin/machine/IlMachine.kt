@@ -47,12 +47,12 @@ class IlMachine(
         state.callStack.isEmpty() || state.criticalErrorOccurred
 
     override fun close() {
-        TODO()
+
     }
 }
 
 class IlMachineOptions(
     val forkOnRemainingTypes: Boolean = false,
-    val maxArraySize: Int = 1_000,
+    val maxArraySize: Int = 100,
     val forkOnImplicitExceptions: Boolean = true,
 )

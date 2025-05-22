@@ -133,7 +133,7 @@ class IlExprResolver(
     private fun arrayAccessToLValue(expr: IlArrayAccess): UArrayIndexLValue<*, *, *>? = with(ctx) {
         val elementType = (expr.array.type as IlArrayType).elementType
         val arrayRef = resolve(expr.array)?.asExpr(addressSort) ?: return null
-        checkNullPointer(arrayRef, expr.array.type) ?: return null
+        checkNullPointer(arrayRef) ?: return null
 
         val index = resolve(expr.index)?.asExpr(sizeSort) ?: return null
 
@@ -142,10 +142,16 @@ class IlExprResolver(
             scope.calcOnState { memory.read(it) }
         }
 
-        val maxArrayLengthConstr = mkBvUnsignedLessExpr(len, machineOptions.maxArraySize.toBv(sizeSort))
-        scope.assert(maxArrayLengthConstr)
+//        scope.fork(mkBvSignedLessOrEqualExpr(mkBv(0), len),
+//            blockOnFalseState = {
+//                throwException(overflowException, lastStackTraceFrame)
+//            }) ?: return@with null
 
-        checkArrayIndexBounds(index, len) ?: return@with null
+
+        val maxArrayLengthConstr = mkBvUnsignedLessExpr(len, machineOptions.maxArraySize.toBv(sizeSort))
+        scope.assert(maxArrayLengthConstr).logAssertFailure { "IlExprResolver: array length max" }
+
+        checkArrayIndexBounds(index, len) ?: return null
 
 
         val lvalue = UArrayIndexLValue(typeToSort(elementType), arrayRef, index, arrayDesc)
@@ -162,7 +168,7 @@ class IlExprResolver(
                 setStructFieldsDefaultValues(ctx.nullRef, field.declaringType as IlStructType)
                 assertStructLocation(instance)
             }
-            checkNullPointer(instance, expr.instance!!.type) ?: return@calcOnState null
+            if (field.declaringType !is IlStructType) checkNullPointer(instance) ?: return@calcOnState null
             key
         } else {
             ensureStaticFieldsInitialized(field.declaringType) {
@@ -186,13 +192,19 @@ class IlExprResolver(
         }
     }
 
-    private fun checkNullPointer(ref: UHeapRef, type: IlType): Unit? = with(ctx) {
-        if (type.baseType == ctx.valueType || type is IlPointerType && type.targetType.baseType == ctx.valueType) return@with
+    fun throwException(type: IlType) = scope.doWithState {
+            val frame = callStack.stackTrace(currentStatement).last()
+            throwException(type, frame)
+        }
+
+    fun checkNullPointer(ref: UHeapRef, exception: IlType? = null): Unit? = with(ctx) {
+//        if (type.baseType == ctx.valueType || type is IlPointerType && type.targetType.baseType == ctx.valueType) return@with
+        val toThrow = exception ?: ctx.nullReferenceException
         val constr = !ctx.mkHeapRefEq(ref, nullRef)
         return if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 constr,
-                blockOnFalseState = { throwException(nullReferenceException, callStack.stackTrace(currentStatement).last())
+                blockOnFalseState = { throwException(toThrow, lastStackTraceFrame)
             })
         }
         else {
@@ -201,12 +213,13 @@ class IlExprResolver(
         }
     }
 
-    private fun checkArrayIndexBounds(index: UExpr<USizeSort>, length: UExpr<USizeSort>) = with(ctx) {
-        val inside = mkBvSignedLessExpr(index, length)
-        if (machineOptions.forkOnImplicitExceptions) {
+    private fun checkArrayIndexBounds(index: UExpr<USizeSort>, length: UExpr<USizeSort>): Unit? = with(ctx) {
+        // TODO lower bounds
+        val inside = mkBvSignedLessOrEqualExpr(mkBv(0), index) and mkBvSignedLessExpr(index, length)
+        return if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 inside,
-                blockOnFalseState = { throwException(indexOutOfRangeException, callStack.stackTrace(currentStatement).last()) }
+                blockOnFalseState = { throwException(indexOutOfRangeException, lastStackTraceFrame) }
             )
         } else {
             // TODO handle exceptions, log ex
@@ -239,7 +252,7 @@ class IlExprResolver(
 
     override fun visitIlArrayLength(expr: IlArrayLengthExpr): UExpr<out USort>? {
         val arrayRef = resolve(expr.array)?.asExpr(ctx.addressSort) ?: return null
-        checkNullPointer(arrayRef, expr.array.type) ?: return null
+        checkNullPointer(arrayRef) ?: return null
         val arrayDesc = ctx.arrayDescriptorOf(expr.array.type as IlArrayType)
         val key = UArrayLengthLValue(arrayRef, arrayDesc, ctx.sizeSort)
         return scope.calcOnState { memory.read(key) }
@@ -264,7 +277,7 @@ class IlExprResolver(
                         blockOnFalseState = {
                             throwException(
                                 divideByZeroException,
-                                callStack.stackTrace(currentStatement).last()
+                                lastStackTraceFrame
                             )
                         }) ?: return@with null
                 }
@@ -280,7 +293,7 @@ class IlExprResolver(
                         blockOnFalseState = {
                             throwException(
                                 ctx.overflowException,
-                                callStack.stackTrace(currentStatement).last()
+                                lastStackTraceFrame
                             )
                         }) ?: return null
                 }
@@ -357,7 +370,7 @@ class IlExprResolver(
     ) : UExpr<out USort>? {
         if (instance != null) {
             val resolvedInstance = resolve(instance)?.asExpr(ctx.addressSort) ?: return null
-            checkNullPointer(resolvedInstance, instance.type) ?: return null
+            checkNullPointer(resolvedInstance) ?: return null
         }
 
         val resolvedArgs = args.zip(parameters).map { (arg, param) ->
@@ -483,7 +496,7 @@ class IlExprResolver(
         if (machineOptions.forkOnImplicitExceptions) {
             scope.fork(
                 isSubtype,
-                blockOnFalseState = { throwException(ctx.invalidCastException, callStack.stackTrace(currentStatement).last()) }
+                blockOnFalseState = { throwException(ctx.invalidCastException, lastStackTraceFrame) }
             )
         }
         else {
@@ -587,7 +600,7 @@ class IlExprResolver(
             forkCases += instanceIsNull to {
                 throwException(
                     nullReferenceException,
-                    callStack.stackTrace(currentStatement).last()
+                    lastStackTraceFrame
                 )
             }
             val instanceIsNotNull = !instanceIsNull
@@ -601,7 +614,7 @@ class IlExprResolver(
             forkCases += castIsInvalid to {
                 throwException(
                     invalidCastException,
-                    callStack.stackTrace(currentStatement).last()
+                    lastStackTraceFrame
                 )
             }
             reading
