@@ -160,8 +160,8 @@ class IlInputBoxedValueReading<Sort : USort> internal constructor(
     override fun internEquals(other: Any): Boolean = structurallyEqual(other, { sort }, { ref }, { collection })
 
     override fun accept(transformer: KTransformerBase): KExpr<Sort> {
-        require(transformer is IlTransformer)
-        TODO("Not yet implemented")
+        require(transformer is IlTransformer) { "Expected an IlTransformer, but got: $transformer" }
+        return transformer.transform(this)
     }
 
     override fun internHashCode(): Int = hash(sort, ref, collection)

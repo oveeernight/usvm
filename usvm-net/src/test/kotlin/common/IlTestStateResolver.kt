@@ -12,6 +12,7 @@ import org.usvm.collection.array.length.UArrayLengthLValue
 import org.usvm.collection.field.UFieldLValue
 import org.usvm.machine.*
 import org.usvm.machine.interpreter.IlMethodResult
+import org.usvm.machine.state.boxed.IlBoxedLocationLValue
 import org.usvm.memory.ULValue
 import org.usvm.memory.UReadOnlyMemory
 import org.usvm.memory.URegisterStackLValue
@@ -109,6 +110,11 @@ abstract class IlTestStateResolver<T>(
         val typeStream = memoryToRead(evaledRef).typeStreamOf(evaledRef).filterBySupertype(type)
 
         val evaluatedType = typeStream.single()
+        if (ctx.isPrimitiveType(evaluatedType)) {
+            val memory = memoryToRead(evaledRef)
+            val result = memory.read(IlBoxedLocationLValue(ctx.typeToSort(evaluatedType), evaledRef))
+            return resolvePrimitive(result, evaluatedType)
+        }
 
         return resolveCyclic(evaledRef, evaluatedType) {
             when (evaluatedType) {

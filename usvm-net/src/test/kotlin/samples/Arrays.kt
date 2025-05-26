@@ -1,8 +1,6 @@
 package samples
 
 import IlMethodTestRunner
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.TestInstance
 import kotlin.test.Ignore
 import kotlin.test.Test
 
@@ -37,7 +35,6 @@ class Arrays : IlMethodTestRunner() {
         runnerWithDefaultOptions(::copyConcreteToConcreteArray)
     }
 
-    @Ignore
     @Test
     fun copyConcreteToSymbolicArray() {
         runnerWithDefaultOptions(::copyConcreteToSymbolicArray)
@@ -118,7 +115,6 @@ class Arrays : IlMethodTestRunner() {
         runnerWithDefaultOptions(::testSolvingCopy7)
     }
 
-    @Ignore
     @Test
     fun testSolvingCopy8() {
         runnerWithDefaultOptions(::testSolvingCopy8)

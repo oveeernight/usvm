@@ -63,7 +63,11 @@ class IlBoxedValueRegion<Sort: USort>(
         key.ref.mapWithStaticAsSymbolic(
             ignoreNullRefs = true,
             concreteMapper = { concreteRef -> allocatedValues[concreteRef.address]!!},
-            symbolicMapper = { inputRef -> inputValues?.read(inputRef)!! }
+            symbolicMapper = { inputRef ->
+                if (inputValues == null) {
+                    inputValues = IlInputBoxedValuesId(sort).emptyRegion()
+                }
+                inputValues!!.read(inputRef) }
         )
 
     private fun updateAllocated(allocatedValues: UPersistentHashMap<UConcreteHeapAddress, UExpr<Sort>>) =

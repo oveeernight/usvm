@@ -1,8 +1,6 @@
 package samples
 
 import IlMethodTestRunner
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Ignore
 import kotlin.test.Test
 
 class Unsafe : IlMethodTestRunner() {
@@ -31,7 +29,6 @@ class Unsafe : IlMethodTestRunner() {
         runnerWithDefaultOptions(::symbolicStackUnsafe2)
     }
 
-    @Ignore("")
     @Test
     fun detachedPtr() {
         runnerWithDefaultOptions(::detachedPtr)
@@ -147,8 +144,4 @@ class Unsafe : IlMethodTestRunner() {
     fun classWriteSafeOverlappingFields() {
         runnerWithDefaultOptions(::classWriteSafeOverlappingFields)
     }
-
-
-
-
 }

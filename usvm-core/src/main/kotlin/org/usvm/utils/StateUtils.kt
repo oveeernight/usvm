@@ -16,7 +16,7 @@ import org.usvm.solver.UUnsatResult
  * If this **terminated** [UState] is definitely sat (its [UState.models] are not empty), returns `true`.
  * Otherwise, runs [verify] with this [UState], and returns whether the solver result is [USatResult].
  */
-internal fun <Type> UState<Type, *, *, *, *, *>.isSat(): Boolean {
+fun <Type> UState<Type, *, *, *, *, *>.isSat(): Boolean {
     if (models.isNotEmpty()) {
         return true
     }

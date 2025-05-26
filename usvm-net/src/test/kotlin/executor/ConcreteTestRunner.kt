@@ -29,11 +29,6 @@ class ConcreteTestRunner(private val serverPort: Int): Closeable {
         }
         channel.shutdown()
 
-        val isSuccess = result.resultCase == TestExpressions.ExecutionResult.ResultCase.SUCCESS
-        require(isSuccess) {
-            val failReason = result.fail.reason
-            "Some executions failed:\n$failReason"
-        }
         return result
     }
 

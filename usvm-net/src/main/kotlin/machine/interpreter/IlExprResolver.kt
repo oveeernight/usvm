@@ -369,8 +369,8 @@ class IlExprResolver(
         onBeforeCall: IlStepScope.(List<UExpr<out USort>>) -> Unit
     ) : UExpr<out USort>? {
         if (instance != null) {
-            val resolvedInstance = resolve(instance)?.asExpr(ctx.addressSort) ?: return null
-            checkNullPointer(resolvedInstance) ?: return null
+            val resolvedInstance = resolveInstance(instance) ?: return null
+            if (instance !is IlManagedRefExpr) checkNullPointer(resolvedInstance) ?: return null
         }
 
         val resolvedArgs = args.zip(parameters).map { (arg, param) ->
@@ -591,8 +591,16 @@ class IlExprResolver(
 
     // actually, it is UnboxAny
     override fun visitIlUnboxExpr(expr: IlUnboxExpr): UExpr<out USort>? = with(ctx) {
-        val instance = resolve(expr.operand)?.asExpr(ctx.addressSort) ?: return@with null
+        val instance = resolve(expr.operand)?.asExpr(addressSort) ?: return@with null
         val expectedType = expr.expectedType
+        if (expectedType is IlReferenceType) {
+            val isExpr = scope.calcOnState { memory.types.evalIsSubtype(instance, expectedType) }
+            scope.fork(
+                isExpr,
+                blockOnFalseState = { throwException(ctx.invalidCastException, lastStackTraceFrame) }
+            ) ?: return null
+            return instance
+        }
         require(expectedType is IlValueType)
         val instanceIsNull = mkHeapRefEq(instance, nullRef)
         val forkCases = mutableListOf<Pair<UBoolExpr, IlState.() -> Unit>>()
@@ -625,6 +633,10 @@ class IlExprResolver(
                 val nullableExprNullCase = memory.allocConcrete(expectedType)
                 UFieldLValue(boolSort, nullableExprNullCase, hasValueField).let {
                     memory.write(it, falseExpr)
+                }
+
+                if (instance == ctx.nullRef) {
+                    return@calcOnState nullableExprNullCase
                 }
 
                 val nullableExprNonNullCase = memory.allocConcrete(expectedType)

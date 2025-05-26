@@ -29,8 +29,9 @@ class IlTestExecutor {
 
     fun execute(states: List<IlState>, method: IlMethod) : TestExpressions.ExecutionResult {
         val tests = states.mapNotNull { state ->
-            if (state.criticalErrorOccurred) null
-            else {
+            if (state.criticalErrorOccurred) {
+                null
+            } else {
                 val model = state.models.first()
                 val memory = state.memory
                 val scope = MemoryScope(state.ctx, method, state.methodResult, model, memory)
@@ -39,6 +40,13 @@ class IlTestExecutor {
         }
         val batch = ilTestBatch {
             this.tests.addAll(tests)
+        }
+
+        if (tests.isEmpty()) {
+            return executionResult {
+
+                this.fail = fail { }
+            }
         }
 
         return concreteRunner.run(batch)

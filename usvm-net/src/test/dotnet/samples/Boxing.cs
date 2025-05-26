@@ -15,7 +15,7 @@ public class Boxing
     
     
     [SvmTest(90)]
-    public int BoxNullable()
+    public int BoxNullable1()
     {
         int? i = null;
         int? j = 5;
@@ -100,6 +100,143 @@ public class Boxing
     public int UnboxInterface(IMyInterface o)
     {
         var obj = (Impl)o;
-        return 0;
+        return obj.X;
     }
+    
+    public class A
+    {
+        private int x;
+
+        public A()
+        {
+            x = 123;
+        }
+    }
+
+    public struct B<T>
+    {
+        private T x;
+
+        public B(T z)
+        {
+            x = z;
+        }
+    }
+
+    private static bool IsCast<T>(object o)
+    {
+        return o is T;
+    }
+
+    private static T AsCast<T> (object o) where T : class
+    {
+        return o as T;
+    }
+
+    private static T Cast<T> (object o)
+    {
+        return (T) o;
+    }
+
+    // [SvmTest(100)]
+    // public static B UnboxAny1()
+    // {
+    //     var b = new B<int>(5);
+    //     return Cast<B>(b);
+    // }
+
+    [SvmTest(40)]
+    public static object UnboxAny2()
+    {
+        var b = new B<double>(5);
+        return Cast<A>(b);
+    }
+
+    [SvmTest(33)]
+    public static object UnboxAny3()
+    {
+        var a = new A();
+        return Cast<B>(a);
+    }
+
+    [SvmTest(100)]
+    public static object UnboxAny4()
+    {
+        var a = new A();
+        return Cast<A>(a);
+    }
+
+    [SvmTest(100)]
+    public static uint[] UnboxAny5()
+    {
+        var a = new int[] {1, 2, 3};
+        return Cast<uint[]>(a);
+    }
+
+    [SvmTest(100)]
+    public static int[] UnboxAny6()
+    {
+        var a = new uint[] {1, 2, 3};
+        return Cast<int[]>(a);
+    }
+    
+    [SvmTest(100)]
+    public static object TrickyBox(int x)
+    {
+        if (x == 5)
+        {
+            return x;
+        }
+        return 42;
+    }
+
+    [SvmTest(100)]
+    public static object Box7()
+    {
+        int? x = 7;
+        return x;
+    }
+    
+    [SvmTest(100)]
+    public static object BoxNullable(int? x)
+    {
+        return x;
+    }
+
+    [SvmTest(100)]
+    public static bool AlwaysNull()
+    {
+        return BoxNullable(null) == null;
+    }
+
+    private static bool AlwaysTrueForNullable(int? x)
+    {
+        object obj = x;
+        int? y = (int?) obj;
+        return x == y;
+    }
+
+    [SvmTest(100)]
+    public static bool True1()
+    {
+        return AlwaysTrueForNullable(null);
+    }
+
+    [SvmTest(100)]
+    public static bool True2()
+    {
+        int? x = 55;
+
+        return AlwaysTrueForNullable(x);
+    }
+
+    [SvmTest(100)]
+    public static bool True3()
+    {
+        int x = 42;
+        object obj = x;
+        int y = (int) obj;
+        return x == y;
+    }
+
 }

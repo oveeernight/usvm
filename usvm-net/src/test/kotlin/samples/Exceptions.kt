@@ -30,7 +30,6 @@ class Exceptions : IlMethodTestRunner() {
         runnerWithDefaultOptions(::arrayIndexReading)
     }
 
-    @Ignore("fix tac")
     @Test
     fun simpleFilterScope() {
         runnerWithDefaultOptions(::simpleFilterScope)
@@ -42,8 +41,7 @@ class Exceptions : IlMethodTestRunner() {
         runnerWithDefaultOptions(::filterInsideFinally)
     }
 
-    @Ignore("fix tac")
-    @Test
+        @Test
     fun exceptionInFilterScope() {
         runnerWithDefaultOptions(::exceptionInFilterScope)
     }

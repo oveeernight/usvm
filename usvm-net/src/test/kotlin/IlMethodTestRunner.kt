@@ -5,12 +5,19 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.usvm.UMachineOptions
 import org.usvm.machine.IlMachine
 import org.usvm.machine.IlMachineOptions
+import org.usvm.machine.logger
+import org.usvm.machine.state.IlState
 import org.usvm.test.util.TestRunner
+import testrunner.expressions.TestExpressions
 import testrunner.expressions.TestExpressions.ExecutionResult
+import testrunner.expressions.executionResult
+import testrunner.expressions.success
+import java.io.File
 import java.nio.file.Paths
 import kotlin.io.path.pathString
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.time.measureTime
 
 
 @ExtendWith(IlMethodTestRunnerController::class)
@@ -30,10 +37,35 @@ open class IlMethodTestRunner : TestRunner<ExecutionResult, KFunction<*>, KClass
             val ilMethod = publication.getMethodByName(method)
             val ilOptions = IlMachineOptions()
             val machine = IlMachine(publication, options, ilOptions)
-            val res = machine.analyze(listOf(ilMethod)).let {
-                executor.execute(it, ilMethod)
+            var analysisResult: List<IlState> = emptyList()
+            val analysisTime = measureTime {
+                try {
+                    analysisResult = machine.analyze(listOf(ilMethod))
+                } catch (e: Exception) {
+
+                }
             }
-            listOf(res)
+//            val path = "/home/rnpozharskiy/study/bench/usvm/arith5.txt"
+//            File(path).appendText("${analysisTime.inWholeSeconds}:${analysisTime.inWholeMilliseconds % 1000}\n")
+
+//            listOf(executionResult { this.success = success {} })
+            if (analysisResult.isEmpty()) {
+                error("Failed analysis for $method")
+            }
+            val check = executor.execute(analysisResult, ilMethod)
+            when (check.resultCase) {
+                TestExpressions.ExecutionResult.ResultCase.SUCCESS -> {
+                    val success = check.success
+                    logger.info { "$ilMethod: successfully generated ${success.generatedTests} tests with total coverage ${success.coverage}" }
+                }
+                TestExpressions.ExecutionResult.ResultCase.FAIL -> {
+                    val fail = check.fail
+                    logger.error { "$ilMethod: failed. Reproduced {${fail.reproduced} tests with total coverage ${fail.coverage}. Reason:\n${fail.reason}" }
+                    error { "$ilMethod: failed. Reproduced {${fail.reproduced} tests with total coverage ${fail.coverage}. Reason:\n${fail.reason}" }
+                }
+                else -> error("unreachable")
+            }
+            listOf(check)
         }
     protected val runnerWithDefaultOptions: (KFunction<*>) -> Unit = { f -> runner(f, options)}
     override val coverageRunner: (List<ExecutionResult>) -> IlTypeCoverage
